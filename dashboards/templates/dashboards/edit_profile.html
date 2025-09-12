@@ -1,0 +1,57 @@
+{% extends "dashboards/base.html" %}
+
+{% block title %}Profile Details{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg rounded-3">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Your Profile</h4>
+            {% if profile %}
+                <a href="{% url 'edit_profile' %}" class="btn btn-warning btn-sm">Edit Profile</a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+
+            {% if profile %}
+                <ul class="list-group">
+
+                    <li class="list-group-item"><strong>PF Number:</strong> {{ user.pf_number }}</li>
+                    <li class="list-group-item"><strong>Role:</strong> {{ user.get_role_display }}</li>
+
+                    {% if user.role == "non_teaching" %}
+                        {% for field, label in [
+                            (profile.name, "Name"),
+                            (profile.job_title, "Job Title"),
+                            (profile.school_or_department, "School/Department"),
+                            (profile.grade, "Grade"),
+                            (profile.get_terms_of_service_display, "Terms of Service")
+                        ] %}
+                            <li class="list-group-item"><strong>{{ label }}:</strong> {{ field }}</li>
+                        {% endfor %}
+                    {% elif user.role == "teaching" %}
+                        {% for field, label in [
+                            (profile.personal_number, "Personal Number"),
+                            (profile.designation, "Designation"),
+                            (profile.school_or_department, "School/Department"),
+                            (profile.get_terms_of_service_display, "Terms of Service")
+                        ] %}
+                            <li class="list-group-item"><strong>{{ label }}:</strong> {{ field }}</li>
+                        {% endfor %}
+                    {% endif %}
+
+                </ul>
+
+            {% else %}
+                <h5 class="mb-3">Complete Your Profile</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-success">Save Profile</button>
+                </form>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,199 @@
+{% extends "dashboards/base.html" %}
+
+{% block title %}Supervisor Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+
+    <!-- Quick Stats Cards -->
+    <div class="row g-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted">Total Staff</h6>
+                <h3 class="fw-bold">{{ total_staff }}</h3>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted">Evaluations Submitted</h6>
+                <h3 class="fw-bold">{{ evaluations_submitted }}</h3>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted">Active Evaluation Period</h6>
+                {% if active_period %}
+                    <h5 class="fw-bold">{{ active_period.name }}</h5>
+                    <small>{{ active_period.start_date }} - {{ active_period.end_date }}</small>
+                {% else %}
+                    <h5 class="text-muted">None</h5>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <h6 class="text-muted">Pending Evaluations</h6>
+                <h3 class="fw-bold">{{ pending_evaluations }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs for Teaching vs Non-Teaching -->
+    <div class="card mt-4 shadow-lg border-0">
+        <div class="card-header p-0">
+            <ul class="nav nav-tabs card-header-tabs" id="staffTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="teaching-tab" data-bs-toggle="tab" data-bs-target="#teaching" type="button" role="tab">Teaching Staff</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="non-teaching-tab" data-bs-toggle="tab" data-bs-target="#non-teaching" type="button" role="tab">Non-Teaching Staff</button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card-body">
+            <div class="tab-content" id="staffTabsContent">
+
+                <!-- Teaching Staff Evaluations -->
+                <div class="tab-pane fade show active" id="teaching" role="tabpanel">
+                    {% if teaching_evaluations %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>PF Number</th>
+                                        <th>Period</th>
+                                        <th>TRS</th>
+                                        <th>MRS</th>
+                                        <th>% Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for eval in teaching_evaluations %}
+                                    <tr>
+                                        <td>{{ eval.staff.pf_number }}</td>
+                                        <td>{{ active_period.name }}</td>
+                                        <td>{{ eval.trs }}</td>
+                                        <td>{{ eval.mrs|floatformat:2 }}</td>
+                                        <td>{{ eval.percent_score|floatformat:2 }}%</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No teaching staff evaluations submitted yet.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Non-Teaching Staff Evaluations -->
+                <div class="tab-pane fade" id="non-teaching" role="tabpanel">
+                    {% if non_teaching_evaluations %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>PF Number</th>
+                                        <th>Period</th>
+                                        <th>TRS</th>
+                                        <th>MRS</th>
+                                        <th>% Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for eval in non_teaching_evaluations %}
+                                    <tr>
+                                        <td>{{ eval.staff.pf_number }}</td>
+                                        <td>{{ active_period.name }}</td>
+                                        <td>{{ eval.trs }}</td>
+                                        <td>{{ eval.mrs|floatformat:2 }}</td>
+                                        <td>{{ eval.percent_score|floatformat:2 }}%</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No non-teaching staff evaluations submitted yet.</p>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Evaluations Section -->
+    <div class="card mt-4 shadow-lg border-0">
+        <div class="card-header bg-warning text-dark fw-bold">
+            Pending Evaluations
+        </div>
+        <div class="card-body">
+            {% if pending_teaching_staff or pending_non_teaching_staff %}
+                <div class="row">
+
+                    <!-- Teaching Staff Pending -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Teaching Staff</h6>
+                        {% if pending_teaching_staff %}
+                            <ul class="list-group list-group-flush">
+                                {% for staff in pending_teaching_staff %}
+                                    <li class="list-group-item">
+                                        <a href="{% url 'spe:teaching_evaluate_staff' staff.id %}">
+                                            {{ staff.pf_number }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-success">All teaching staff have been evaluated ✅</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Non-Teaching Staff Pending -->
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Non-Teaching Staff</h6>
+                        {% if pending_non_teaching_staff %}
+                            <ul class="list-group list-group-flush">
+                                {% for staff in pending_non_teaching_staff %}
+                                    <li class="list-group-item">
+                                        <a href="{% url 'spe:nonteaching_evaluate_staff' staff.id %}">
+                                            {{ staff.pf_number }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-success">All non-teaching staff have been evaluated ✅</p>
+                        {% endif %}
+                    </div>
+
+                </div>
+            {% else %}
+                <p class="text-success text-center fw-bold">🎉 All staff evaluations are complete!</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<style>
+.nav-tabs .nav-link {
+    color: #495057;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-bottom: none;
+    margin-right: 2px;
+}
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+    font-weight: bold;
+}
+.nav-tabs .nav-link:hover {
+    color: #0d6efd;
+    background-color: #e2e6ea;
+}
+</style>
+
+{% endblock %}

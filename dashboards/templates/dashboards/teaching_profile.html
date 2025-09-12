@@ -1,0 +1,23 @@
+{% extends "dashboards/base.html" %}
+
+{% block title %}Profile Details{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg rounded-3">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">Your Profile</h4>
+        </div>
+        <div class="card-body">
+            {% if profile %}
+                {{ form.as_p }}
+            {% else %}
+                <div class="alert alert-warning">
+                    No profile found. 
+                    <a href="{% url 'complete_profile' %}" class="alert-link">Complete your profile</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

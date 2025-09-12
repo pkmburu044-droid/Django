@@ -1,0 +1,70 @@
+{% extends "dashboards/base.html" %}
+
+{% block title %}Add New Evaluation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Add New Evaluation Items</h4>
+            <p class="mb-0">Supervisors can add Periods, Attributes, and Indicators here</p>
+        </div>
+        <div class="card-body">
+            <!-- Period Form -->
+            <h5>Add Evaluation Period</h5>
+            <form method="POST">
+                {% csrf_token %}
+                {{ period_form.as_p }}
+                <button type="submit" name="add_period" class="btn btn-success">Add Period</button>
+            </form>
+            <hr>
+            <h6>Existing Periods:</h6>
+            <ul>
+                {% for p in periods %}
+                    <li>{{ p.name }} ({{ p.start_date }} - {{ p.end_date }})</li>
+                {% empty %}
+                    <li>No periods yet.</li>
+                {% endfor %}
+            </ul>
+
+            <hr>
+
+            <!-- Attribute Form -->
+            <h5>Add Attribute</h5>
+            <form method="POST">
+                {% csrf_token %}
+                {{ attribute_form.as_p }}
+                <button type="submit" name="add_attribute" class="btn btn-success">Add Attribute</button>
+            </form>
+            <hr>
+            <h6>Existing Attributes:</h6>
+            <ul>
+                {% for a in attributes %}
+                    <li>{{ a.name }}</li>
+                {% empty %}
+                    <li>No attributes yet.</li>
+                {% endfor %}
+            </ul>
+
+            <hr>
+
+            <!-- Indicator Form -->
+            <h5>Add Indicator</h5>
+            <form method="POST">
+                {% csrf_token %}
+                {{ indicator_form.as_p }}
+                <button type="submit" name="add_indicator" class="btn btn-success">Add Indicator</button>
+            </form>
+            <hr>
+            <h6>Existing Indicators:</h6>
+            <ul>
+                {% for i in indicators %}
+                    <li>{{ i.attribute.name }} → {{ i.description }}</li>
+                {% empty %}
+                    <li>No indicators yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

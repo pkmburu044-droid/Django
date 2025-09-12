@@ -1,0 +1,185 @@
+{% extends "dashboards/base.html" %}
+
+{% block title %}Non-Teaching Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Notifications / Alerts -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Quick Stats -->
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted"><i class="bi bi-person-check"></i> Profile Status</h6>
+                    {% if profile %}
+                        <p class="text-success fw-bold">Complete</p>
+                    {% else %}
+                        <p class="text-danger fw-bold">Incomplete</p>
+                        <a href="{% url 'complete_profile' %}" class="btn btn-sm btn-outline-success">Complete Now</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted"><i class="bi bi-file-earmark-text"></i> Appraisals Submitted</h6>
+                    <p class="fw-bold">{{ appraisals.count }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted"><i class="bi bi-clock-history"></i> Latest Appraisal</h6>
+                    {% if latest_appraisal %}
+                        <p>{{ latest_appraisal.supervisor_name }} ({{ latest_appraisal.date_of_appointment }})</p>
+                    {% else %}
+                        <p class="text-muted">None</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted"><i class="bi bi-calendar-range"></i> Years of Service</h6>
+                    {% if appraisals %}
+                        {% with earliest=appraisals|last %}
+                            <p class="fw-bold">{{ earliest.date_of_appointment|timesince }} approx.</p>
+                        {% endwith %}
+                    {% else %}
+                        <p class="text-muted">N/A</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mt-3 d-flex gap-2">
+        <a href="{% url 'spe:evaluation_form' %}" class="btn btn-primary">+ New Evaluation</a>
+        <a href="{% url 'complete_profile' %}" class="btn btn-outline-success">Edit Profile</a>
+        <a href="#" class="btn btn-outline-secondary">Download Report</a>
+    </div>
+
+    <!-- Profile Summary -->
+    <div class="card mt-4 shadow-lg border-0">
+        <div class="card-header bg-success text-white d-flex align-items-center">
+            {% if profile.profile_picture %}
+                <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="rounded-circle me-2" width="40" height="40">
+            {% endif %}
+            Profile Summary
+        </div>
+        <div class="card-body">
+            {% if profile %}
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Personal Number:</strong> {{ profile.personal_number }}</li>
+                    <li class="list-group-item"><strong>Designation:</strong> {{ profile.designation }}</li>
+                    <li class="list-group-item"><strong>Department:</strong> {{ profile.department }}</li>
+                    <li class="list-group-item"><strong>Terms of Service:</strong>
+                        {% if profile.terms_of_service == 'permanent' %}
+                            <span class="badge bg-success">Permanent</span>
+                        {% else %}
+                            <span class="badge bg-primary">Contract</span>
+                        {% endif %}
+                    </li>
+                </ul>
+            {% else %}
+                <div class="alert alert-warning">
+                    No profile found. 
+                    <a href="{% url 'complete_profile' %}" class="btn btn-sm btn-outline-success">Complete Profile</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="card mt-4 shadow-lg border-0">
+        <div class="card-header bg-info text-white">
+            Appraisals Overview
+        </div>
+        <div class="card-body">
+            <canvas id="nonTeachingChart" height="150"></canvas>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                const ctx = document.getElementById('nonTeachingChart').getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: [{% for a in appraisals %}'{{ a.date_of_appointment.year }}',{% endfor %}],
+                        datasets: [{
+                            label: 'Appraisals Submitted',
+                            data: [{% for a in appraisals %}1,{% endfor %}],
+                            backgroundColor: 'rgba(255, 159, 64, 0.5)',
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            </script>
+        </div>
+    </div>
+
+    <!-- Appraisal History -->
+    <div class="card mt-4 shadow-lg border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <span>Appraisal History</span>
+            <a href="{% url 'spe:evaluation_form' %}" class="btn btn-light btn-sm">+ New Appraisal</a>
+        </div>
+        <div class="card-body">
+            {% if appraisals %}
+                <table class="table table-striped align-middle table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date of Appointment</th>
+                            <th>Supervisor</th>
+                            <th>Supervisor Designation</th>
+                            <th>Years Experience (Current Org)</th>
+                            <th>Years Experience (Elsewhere)</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appraisal in appraisals %}
+                        <tr class="{% if appraisal.status == 'Pending' %}table-warning{% elif appraisal.status == 'Approved' %}table-success{% else %}table-danger{% endif %}">
+                            <td>{{ appraisal.date_of_appointment }}</td>
+                            <td>{{ appraisal.supervisor_name }}</td>
+                            <td>{{ appraisal.supervisor_designation }}</td>
+                            <td>{{ appraisal.years_experience_current }}</td>
+                            <td>{{ appraisal.years_experience_elsewhere }}</td>
+                            <td>{{ appraisal.status }}</td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-primary">View</a>
+                                <a href="#" class="btn btn-sm btn-outline-secondary">Download</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted">No appraisals submitted yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

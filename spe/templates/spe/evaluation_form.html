@@ -1,0 +1,107 @@
+{% extends "dashboards/base.html" %}
+
+{% block title %}Staff Performance Evaluation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Staff Performance Evaluation</h4>
+            <p class="mb-0">Select an evaluation period and complete ratings for each attribute below.</p>
+        </div>
+        <div class="card-body">
+            <form method="POST" id="evaluationForm">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        Please fix the errors below.
+                    </div>
+                {% endif %}
+
+                <!-- Period Selection -->
+                <div class="mb-3">
+                    <label for="{{ form.period.id_for_label }}" class="form-label">Evaluation Period</label>
+                    {{ form.period }}
+                </div>
+
+                <!-- Accordion for Attributes & Indicators -->
+                <div class="accordion" id="attributeAccordion">
+                    {% for attribute in attributes %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" 
+                                        type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse{{ forloop.counter }}" 
+                                        aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" 
+                                        aria-controls="collapse{{ forloop.counter }}">
+                                    {{ attribute.name }}
+                                </button>
+                            </h2>
+                            <div id="collapse{{ forloop.counter }}" 
+                                 class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" 
+                                 aria-labelledby="heading{{ forloop.counter }}" 
+                                 data-bs-parent="#attributeAccordion">
+                                <div class="accordion-body">
+                                    {% for indicator in attribute.indicators.all %}
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">{{ indicator.description }}</label>
+                                            <input type="number" name="rating_{{ indicator.id }}" 
+                                                   class="form-control" min="1" max="5" required>
+                                            <textarea name="remarks_{{ indicator.id }}" 
+                                                      class="form-control mt-2" rows="2" 
+                                                      placeholder="Remarks (optional)"></textarea>
+                                        </div>
+                                    {% endfor %}
+
+                                    <!-- Navigation buttons -->
+                                    <div class="d-flex justify-content-between">
+                                        {% if not forloop.first %}
+                                            <button type="button" class="btn btn-secondary prev-btn">Previous</button>
+                                        {% endif %}
+                                        {% if not forloop.last %}
+                                            <button type="button" class="btn btn-primary next-btn">Next</button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Final Submit -->
+                <div class="mt-4 text-end">
+                    <button type="submit" class="btn btn-success">Submit All Evaluations</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Script for next/previous navigation -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".next-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+            let current = btn.closest(".accordion-collapse");
+            let next = current.parentElement.nextElementSibling.querySelector(".accordion-collapse");
+            if (next) {
+                new bootstrap.Collapse(next, { show: true });
+                new bootstrap.Collapse(current, { hide: true });
+            }
+        });
+    });
+
+    document.querySelectorAll(".prev-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+            let current = btn.closest(".accordion-collapse");
+            let prev = current.parentElement.previousElementSibling.querySelector(".accordion-collapse");
+            if (prev) {
+                new bootstrap.Collapse(prev, { show: true });
+                new bootstrap.Collapse(current, { hide: true });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

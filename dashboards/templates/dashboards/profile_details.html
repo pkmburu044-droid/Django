@@ -1,0 +1,53 @@
+{% extends "dashboards/base.html" %}
+
+{% block title %}Profile Details{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg rounded-3">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Your Profile</h4>
+
+            {% if profile %}
+                <!-- ✅ Edit button on top-right -->
+                <a href="{% url 'edit_profile' %}" class="btn btn-light btn-sm">
+                    <i class="bi bi-pencil-square"></i> Edit
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="card-body">
+            {% if profile %}
+                <!-- ✅ Show details depending on role -->
+                <ul class="list-group">
+                    <li class="list-group-item"><strong>PF Number:</strong> {{ user.pf_number }}</li>
+                    <li class="list-group-item"><strong>Role:</strong> {{ user.get_role_display }}</li>
+
+                    {% if user.role == "non_teaching" %}
+                        <li class="list-group-item"><strong>Name:</strong> {{ profile.name }}</li>
+                        <li class="list-group-item"><strong>Job Title:</strong> {{ profile.job_title }}</li>
+                        <li class="list-group-item"><strong>School/Department:</strong> {{ profile.school_or_department }}</li>
+                        <li class="list-group-item"><strong>Grade:</strong> {{ profile.grade }}</li>
+                        <li class="list-group-item"><strong>Terms of Service:</strong> {{ profile.get_terms_of_service_display }}</li>
+                    
+                    {% elif user.role == "teaching" %}
+                        <li class="list-group-item"><strong>Personal Number:</strong> {{ profile.personal_number }}</li>
+                        <li class="list-group-item"><strong>Designation:</strong> {{ profile.designation }}</li>
+                        <li class="list-group-item"><strong>School/Department:</strong> {{ profile.school_or_department }}</li>
+                        <li class="list-group-item"><strong>Terms of Service:</strong> {{ profile.get_terms_of_service_display }}</li>
+                    {% endif %}
+                </ul>
+
+            {% else %}
+                <!-- ✅ Show form if profile missing -->
+                <h5 class="mb-3">Complete Your Profile</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-success">Save Profile</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "dashboards/base.html" %}
+{% load dict_extras %}
+
+{% block title %}Evaluate Teaching Staff{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Evaluate: {{ staff.user.get_full_name }}</h3>
+  <p>Period: {{ period.name }}</p>
+
+  <form method="post">
+    {% csrf_token %}
+    
+    {% for attribute in attributes %}
+      <div class="card mb-3">
+        <div class="card-header">
+          <strong>{{ attribute.name }}</strong>
+        </div>
+        <div class="card-body">
+          {% for indicator in attribute.indicators.all %}
+            <div class="mb-2">
+              <label><strong>{{ indicator.description }}</strong></label>
+              <div class="row align-items-center">
+
+                <!-- Staff self-rating -->
+                <div class="col-md-2">
+                  <small class="text-muted">
+                    Self-rating: {{ self_ratings_dict|get_item:indicator.id|default:"-" }}
+                  </small>
+                </div>
+
+                <!-- Supervisor rating -->
+                <div class="col-md-2">
+                  <select class="form-select" name="rating_{{ indicator.id }}">
+                    <option value="">Select rating</option>
+                    {% for i in "12345" %}
+                      {% with i_str=i %}
+                      <option value="{{ i_str }}" 
+                        {% if self_ratings_dict|get_item:indicator.id == i_str %}selected{% endif %}>
+                        {{ i_str }}
+                      </option>
+                      {% endwith %}
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <!-- Supervisor remarks -->
+                <div class="col-md-8">
+                  <input type="text" class="form-control" 
+                         name="remarks_{{ indicator.id }}" 
+                         placeholder="Optional remarks"
+                         value="{{ self_ratings_remarks|get_item:indicator.id|default:'' }}">
+                </div>
+
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+
+    <div class="mt-3 d-flex justify-content-between">
+      <button type="submit" name="complete" value="no" class="btn btn-secondary">
+        Save Draft
+      </button>
+      <button type="submit" name="complete" value="yes" class="btn btn-primary">
+        Submit Evaluation
+      </button>
+    </div>
+
+    <a class="btn btn-link mt-2" href="{% url 'supervisor_dashboard' %}">Back to Dashboard</a>
+
+  </form>
+</div>
+{% endblock %}
