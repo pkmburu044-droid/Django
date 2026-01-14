@@ -1,53 +1,327 @@
 {% extends "dashboards/base.html" %}
+{% load static %}
 
 {% block title %}Profile Details{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="card shadow-lg rounded-3">
-        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">Your Profile</h4>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        My Profile
+                    </h4>
+                    <a href="{% url 'users:edit_profile' %}" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-edit me-1"></i> Edit Profile
+                    </a>
+                </div>
 
-            {% if profile %}
-                <!-- ✅ Edit button on top-right -->
-                <a href="{% url 'edit_profile' %}" class="btn btn-light btn-sm">
-                    <i class="bi bi-pencil-square"></i> Edit
-                </a>
-            {% endif %}
-        </div>
+                <div class="card-body p-4">
+                    {% if profile %}
+                        <!-- Profile Information Display -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3 border-bottom pb-2">
+                                    <i class="fas fa-id-card me-2"></i>
+                                    Personal Information
+                                </h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <td class="fw-semibold text-muted" width="45%">PF Number:</td>
+                                            <td>{{ user.pf_number }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold text-muted">Full Name:</td>
+                                            <td>{{ user.get_full_name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold text-muted">Email:</td>
+                                            <td>{{ user.email }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold text-muted">Role:</td>
+                                            <td>
+                                                <span class="badge bg-info">{{ user.get_role_display }}</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h6 class="text-primary mb-3 border-bottom pb-2">
+                                    <i class="fas fa-briefcase me-2"></i>
+                                    Employment Details
+                                </h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-borderless">
+                                        <tr>
+                                            <td class="fw-semibold text-muted" width="45%">Department:</td>
+                                            <td>
+                                                {% if user.department %}
+                                                    {{ user.department.name }}
+                                                {% else %}
+                                                    <span class="text-danger">Not assigned</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold text-muted">Designation:</td>
+                                            <td>{{ profile.designation|default:"Not set" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold text-muted">Employment Type:</td>
+                                            <td>{{ user.get_employment_type_display }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-semibold text-muted">Account Status:</td>
+                                            <td>
+                                                <span class="badge bg-success">Active</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
 
-        <div class="card-body">
-            {% if profile %}
-                <!-- ✅ Show details depending on role -->
-                <ul class="list-group">
-                    <li class="list-group-item"><strong>PF Number:</strong> {{ user.pf_number }}</li>
-                    <li class="list-group-item"><strong>Role:</strong> {{ user.get_role_display }}</li>
+                        <!-- Employment History Section -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3 border-bottom pb-2">
+                                    <i class="fas fa-history me-2"></i>
+                                    Employment History
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-borderless">
+                                                <tr>
+                                                    <td class="fw-semibold text-muted" width="50%">Date of Appointment:</td>
+                                                    <td>{{ profile.display_date_of_appointment|default:"Not specified" }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-semibold text-muted">Total Experience:</td>
+                                                    <td>{{ profile.display_experience }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-semibold text-muted">KYU Experience:</td>
+                                                    <td>
+                                                        {% if profile.current_appraisal and profile.current_appraisal.years_experience_kyu %}
+                                                            {{ profile.current_appraisal.years_experience_kyu }} years
+                                                        {% else %}
+                                                            Not specified
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-semibold text-muted">Other Institution Experience:</td>
+                                                    <td>
+                                                        {% if profile.current_appraisal and profile.current_appraisal.years_experience_elsewhere %}
+                                                            {{ profile.current_appraisal.years_experience_elsewhere }} years
+                                                        {% else %}
+                                                            Not specified
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-borderless">
+                                                <tr>
+                                                    <td class="fw-semibold text-muted" width="50%">Length of Service:</td>
+                                                    <td>{{ profile.display_length_of_service|default:"Not specified" }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-semibold text-muted">Years in Equivalent Position:</td>
+                                                    <td>
+                                                        {% if profile.current_appraisal and profile.current_appraisal.years_in_equivalent_position %}
+                                                            {{ profile.current_appraisal.years_in_equivalent_position }}
+                                                        {% else %}
+                                                            Not specified
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-semibold text-muted">Acting/Special Duty:</td>
+                                                    <td>{{ profile.display_acting_duty|default:"None" }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="fw-semibold text-muted">Data Source:</td>
+                                                    <td>
+                                                        {% if profile.current_appraisal %}
+                                                            <span class="badge bg-info">Current Appraisal</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">No appraisal data</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                    {% if user.role == "non_teaching" %}
-                        <li class="list-group-item"><strong>Name:</strong> {{ profile.name }}</li>
-                        <li class="list-group-item"><strong>Job Title:</strong> {{ profile.job_title }}</li>
-                        <li class="list-group-item"><strong>School/Department:</strong> {{ profile.school_or_department }}</li>
-                        <li class="list-group-item"><strong>Grade:</strong> {{ profile.grade }}</li>
-                        <li class="list-group-item"><strong>Terms of Service:</strong> {{ profile.get_terms_of_service_display }}</li>
-                    
-                    {% elif user.role == "teaching" %}
-                        <li class="list-group-item"><strong>Personal Number:</strong> {{ profile.personal_number }}</li>
-                        <li class="list-group-item"><strong>Designation:</strong> {{ profile.designation }}</li>
-                        <li class="list-group-item"><strong>School/Department:</strong> {{ profile.school_or_department }}</li>
-                        <li class="list-group-item"><strong>Terms of Service:</strong> {{ profile.get_terms_of_service_display }}</li>
+                        <!-- Current Appraisal Status -->
+                        {% if profile.current_appraisal %}
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3 border-bottom pb-2">
+                                    <i class="fas fa-chart-line me-2"></i>
+                                    Current Appraisal Status
+                                </h6>
+                                <div class="alert alert-{% if profile.current_appraisal.status == 'reviewed' %}success{% elif profile.current_appraisal.status == 'submitted' %}info{% else %}warning{% endif %}">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>
+                                                <i class="fas fa-{% if profile.current_appraisal.status == 'reviewed' %}check-circle{% elif profile.current_appraisal.status == 'submitted' %}hourglass-half{% else %}edit{% endif %} me-2"></i>
+                                                {{ profile.current_appraisal.period.name }}
+                                            </strong>
+                                            - Status: 
+                                            <span class="badge bg-{% if profile.current_appraisal.status == 'reviewed' %}success{% elif profile.current_appraisal.status == 'submitted' %}info{% else %}secondary{% endif %}">
+                                                {{ profile.current_appraisal.get_status_display }}
+                                            </span>
+                                        </div>
+                                        {% if profile.current_appraisal.status == 'reviewed' %}
+                                        <a href="{% url 'dashboards:staff_evaluation_detail' profile.current_appraisal.id %}" class="btn btn-success btn-sm">
+                                            View Results
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <!-- No Appraisal Data Message -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-info-circle fa-2x me-3"></i>
+                                        <div>
+                                            <h6 class="alert-heading mb-1">No Employment History Data</h6>
+                                            <p class="mb-0">Your employment history will appear here once you complete your first performance appraisal or update your profile.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                    {% else %}
+                        <!-- Profile Completion Form (for users without profile) -->
+                        <div class="text-center mb-4">
+                            <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+                            <h5 class="text-primary">Complete Your Profile</h5>
+                            <p class="text-muted">Please provide your designation to complete your profile</p>
+                        </div>
+                        
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+                            
+                            <!-- Department Display (Read-only) -->
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold text-primary">
+                                    <i class="fas fa-building me-1"></i>
+                                    Department
+                                </label>
+                                <input type="text" class="form-control bg-light" 
+                                       value="{% if user.department %}{{ user.department.name }}{% else %}Not assigned{% endif %}" 
+                                       readonly>
+                                <div class="form-text">Your department is assigned by administrator</div>
+                            </div>
+
+                            <!-- Designation Field -->
+                            <div class="mb-4">
+                                <label for="{{ form.designation.id_for_label }}" class="form-label fw-semibold text-primary">
+                                    <i class="fas fa-briefcase me-1"></i>
+                                    {{ form.designation.label }}
+                                </label>
+                                {{ form.designation }}
+                                {% if form.designation.help_text %}
+                                    <div class="form-text">{{ form.designation.help_text }}</div>
+                                {% endif %}
+                                {% if form.designation.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {% for error in form.designation.errors %}
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                                <i class="fas fa-save me-2"></i>Save Profile
+                            </button>
+                        </form>
                     {% endif %}
-                </ul>
+                </div>
 
-            {% else %}
-                <!-- ✅ Show form if profile missing -->
-                <h5 class="mb-3">Complete Your Profile</h5>
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn btn-success">Save Profile</button>
-                </form>
-            {% endif %}
+                <div class="card-footer bg-light py-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                Last updated: {% if profile %}{{ profile.updated_at|date:"M d, Y" }}{% else %}Never{% endif %}
+                            </small>
+                        </div>
+                        <div class="col-auto">
+                            <small class="text-muted">
+                                <i class="fas fa-user-circle me-1"></i>
+                                {{ user.get_role_display }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+.card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.75rem;
+}
+
+.card-header {
+    border-radius: 0.75rem 0.75rem 0 0 !important;
+}
+
+.table-borderless td {
+    padding: 0.5rem 0.25rem;
+    border: none;
+    vertical-align: top;
+}
+
+.border-bottom {
+    border-color: #e3e6f0 !important;
+}
+
+.badge {
+    font-size: 0.7em;
+    font-weight: 500;
+}
+
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.btn-outline-light:hover {
+    color: #4e73df !important;
+    background-color: #fff;
+}
+
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+    margin-bottom: 0;
+}
+</style>
 {% endblock %}

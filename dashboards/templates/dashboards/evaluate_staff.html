@@ -1,0 +1,152 @@
+{% extends "dashboards/base.html" %}
+{% load dashboard_extras %}
+{% block title %}Evaluate Staff{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- URL DEBUG -->
+    <div class="alert alert-success">
+        <h6>✅ URL FIXED</h6>
+        <small>
+            <strong>Correct URL Pattern:</strong> /dashboard/supervisor/evaluate/{{ appraisal.id }}/<br>
+            <strong>Appraisal ID:</strong> {{ appraisal.id }}<br>
+            <strong>Full URL:</strong> /dashboard/supervisor/evaluate/{{ appraisal.id }}/
+        </small>
+    </div>
+
+    <!-- Header Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-1">📊 Evaluate Staff Performance</h4>
+                    <p class="mb-0">Review and rate staff self-assessments</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-{% if appraisal.status == 'submitted' %}warning{% elif appraisal.status == 'reviewed' %}success{% else %}secondary{% endif %} fs-6">
+                        {{ appraisal.status|title }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Staff Member:</strong> {{ appraisal.profile.user.get_full_name }}</p>
+                    <p class="mb-1"><strong>Department:</strong> {{ appraisal.profile.department.name }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Evaluation Period:</strong> {{ appraisal.period.name }}</p>
+                    <p class="mb-0"><strong>Role:</strong> {{ appraisal.profile.user.get_role_display }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not self_assessments %}
+        <div class="alert alert-warning text-center">
+            <h5>📭 No Self-Assessments Found</h5>
+            <p class="mb-0">This staff member hasn't submitted any self-assessments for evaluation.</p>
+        </div>
+    {% else %}
+        <!-- CORRECTED FORM -->
+        <form method="post" action="/dashboard/supervisor/evaluate/{{ appraisal.id }}/" class="mb-4">
+            {% csrf_token %}
+
+            <!-- Performance Indicators by Attribute -->
+            {% regroup self_assessments by attribute as grouped_attrs %}
+            
+            {% for group in grouped_attrs %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0 text-primary">📋 {{ group.grouper.name }}</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-secondary">
+                                    <tr>
+                                        <th width="40%">Performance Indicator</th>
+                                        <th width="20%">Staff Self-Rating</th>
+                                        <th width="20%">Your Rating</th>
+                                        <th width="20%">Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sa in group.list %}
+                                        {% with eval=existing_evals|get_item:sa.id %}
+                                        <tr>
+                                            <td>
+                                                <div class="fw-semibold">{{ sa.indicator.description }}</div>
+                                                <small class="text-muted">ID: {{ sa.id }}</small>
+                                            </td>
+                                            
+                                            <td>
+                                                {% if sa.self_rating %}
+                                                    <span class="badge bg-info fs-6">{{ sa.self_rating }}/5</span>
+                                                {% else %}
+                                                    <span class="text-muted">Not rated</span>
+                                                {% endif %}
+                                            </td>
+                                            
+                                            <td>
+                                                <select name="supervisor_rating_{{ sa.id }}" class="form-select" required>
+                                                    <option value="">Select Rating</option>
+                                                    <option value="1">1 - Poor</option>
+                                                    <option value="2">2 - Fair</option>
+                                                    <option value="3">3 - Good</option>
+                                                    <option value="4">4 - Very Good</option>
+                                                    <option value="5">5 - Excellent</option>
+                                                </select>
+                                            </td>
+                                            
+                                            <td>
+                                                <textarea name="supervisor_remark_{{ sa.id }}" 
+                                                          class="form-control" 
+                                                          rows="2" 
+                                                          placeholder="Feedback..."></textarea>
+                                            </td>
+                                        </tr>
+                                        {% endwith %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <!-- Action Buttons -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'dashboards:view_staff_evaluations' %}" class="btn btn-outline-secondary">
+                            ← Back to Staff List
+                        </a>
+                        
+                        {% if appraisal.status == "submitted" %}
+                            <button type="submit" class="btn btn-success btn-lg">
+                                💾 Save Evaluation
+                            </button>
+                        {% else %}
+                            <button type="button" class="btn btn-secondary" disabled>
+                                {% if appraisal.status == "reviewed" %}
+                                    ✅ Already Evaluated
+                                {% else %}
+                                    ⏸️ Appraisal Not Ready
+                                {% endif %}
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </form>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ DEBUG: Form will submit to:', '/dashboard/supervisor/evaluate/{{ appraisal.id }}/');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,212 @@
+{% extends "dashboards/base.html" %}
+{% block title %}Department Staff Evaluations{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
+            <h5 class="mb-0">
+                👨‍🏫 Staff Evaluations — {{ department.name }}
+            </h5>
+            {% if period %}
+                <span class="badge bg-info text-dark">
+                    Active Period: {{ period.name }}
+                </span>
+            {% else %}
+                <span class="badge bg-secondary">No Active Period</span>
+            {% endif %}
+        </div>
+
+        <div class="card-body">
+            {% if staff_data %}
+                <!-- Performance Summary -->
+                <div class="mb-4 p-3 bg-light rounded">
+                    <h6>📊 Performance Summary</h6>
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="text-primary">{{ total_staff }}</h5>
+                                    <small>Total Staff</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="text-success">
+                                        {% if top_score %}{{ top_score }}%{% else %}—{% endif %}
+                                    </h5>
+                                    <small>Top Score</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="text-warning">
+                                        {% if lowest_score %}{{ lowest_score }}%{% else %}—{% endif %}
+                                    </h5>
+                                    <small>Lowest Score</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="text-info">{{ evaluated_count }}</h5>
+                                    <small>Evaluated</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Staff Table -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle text-center">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Rank</th>
+                                <th>Staff Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Score</th>
+                                <th>Appraisal Status</th>
+                                <th>Period</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for staff in staff_data %}
+                                <tr>
+                                    <td>
+                                        {% if staff.avg_score %}
+                                            <strong class="text-primary">#{{ forloop.counter }}</strong>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-start">
+                                        <strong>{{ staff.name }}</strong>
+                                        {% if staff.avg_score %}
+                                            <br>
+                                            <small class="text-muted">
+                                                Performance Rank
+                                            </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ staff.email }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ staff.role|title }}</span>
+                                    </td>
+                                    <td>
+                                        {% if staff.avg_score %}
+                                            <span class="badge bg-{{ staff.score_class }} fs-6" 
+                                                  title="Performance Score: {{ staff.avg_score }}%">
+                                                {{ staff.avg_score }}%
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-light text-muted" title="Not yet evaluated">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if staff.appraisal_status == "Submitted" %}
+                                            <span class="badge bg-success" title="Ready for evaluation">Submitted</span>
+                                        {% elif staff.appraisal_status == "Reviewed" %}
+                                            <span class="badge bg-warning text-dark" title="Evaluation completed">Reviewed</span>
+                                        {% elif staff.appraisal_status == "Finalized" %}
+                                            <span class="badge bg-info text-dark" title="Finalized appraisal">Finalized</span>
+                                        {% elif staff.appraisal_status == "Draft" %}
+                                            <span class="badge bg-secondary" title="Draft in progress">Draft</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-muted" title="Waiting for submission">Awaiting Submission</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ staff.period }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-vertical btn-group-sm" style="min-width: 120px;">
+                                            <!-- Evaluate Button -->
+                                            {% if staff.can_evaluate and staff.appraisal %}
+                                                <a href="{% url 'dashboards:evaluate_staff' staff.appraisal.id %}" 
+                                                   class="btn btn-success mb-1" 
+                                                   title="Evaluate current appraisal">
+                                                    📝 Evaluate
+                                                </a>
+                                            {% elif staff.status_lower == "awaiting" %}
+                                                <button class="btn btn-outline-secondary mb-1" disabled 
+                                                        title="Waiting for staff submission">
+                                                    ⏳ Awaiting
+                                                </button>
+                                            {% elif staff.status_lower == "reviewed" %}
+                                                <span class="badge bg-success mb-1 p-2">✅ Reviewed</span>
+                                            {% elif staff.status_lower == "draft" %}
+                                                <span class="badge bg-secondary mb-1 p-2">📄 Draft</span>
+                                            {% endif %}
+                                            
+                                            <!-- View Records Button - FIXED -->
+                                            {% if staff.has_any_appraisals and staff.any_appraisal_id %}
+                                                <a href="{% url 'dashboards:supervisor_evaluation_results_detail' staff.any_appraisal_id %}" 
+                                                   class="btn btn-outline-primary"
+                                                   title="View appraisal history and records">
+                                                    📊 View Records
+                                                </a>
+                                            {% else %}
+                                                <button class="btn btn-outline-secondary" disabled
+                                                        title="No appraisal records available">
+                                                    📊 No Records
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Legend -->
+                <div class="mt-3 p-2 bg-light rounded small">
+                    <strong>Score Legend:</strong>
+                    <span class="badge bg-success ms-2">80-100%</span>
+                    <span class="badge bg-warning text-dark ms-1">60-79%</span>
+                    <span class="badge bg-danger ms-1">0-59%</span>
+                    <span class="badge bg-secondary ms-1">Not Evaluated</span>
+                </div>
+
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <h6>👥 No Staff Members</h6>
+                    <p class="mb-0">No staff found in your department.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.table th {
+    font-weight: 600;
+    background-color: #e9ecef;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.btn-group-vertical .btn {
+    border-radius: 0.375rem;
+}
+
+.card .card-body {
+    padding: 1rem;
+}
+
+.card h5 {
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+</style>
+{% endblock %}

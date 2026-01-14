@@ -1,0 +1,523 @@
+{% extends "dashboards/base.html" %}
+{% load static %}
+{% load dashboard_extras %}
+
+{% block title %}Performance Evaluation Results - Kirinyaga University{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center mb-2">
+                                <a href="{% url 'dashboards:staff_evaluation_results' %}" class="btn btn-light btn-sm me-3">
+                                    <i class="bi bi-arrow-left me-1"></i>Back to List
+                                </a>
+                                <h2 class="h3 mb-0">
+                                    <i class="bi bi-clipboard-data me-2"></i>Performance Evaluation Results
+                                </h2>
+                            </div>
+                            <p class="mb-0 opacity-90">
+                                <i class="bi bi-calendar-check me-1"></i>Period: {{ appraisal.period.name }} | 
+                                <i class="bi bi-person-check me-1"></i>Evaluated by: {{ summary.supervisor_name }} |
+                                <i class="bi bi-info-circle me-1"></i>Status: {{ appraisal.get_status_display }}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <a href="?export=pdf" class="btn btn-warning btn-lg px-4">
+                                <i class="bi bi-download me-2"></i>Export PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overall Performance Summary -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Overall Performance Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Self-Assessment Performance -->
+                        <div class="col-md-4 text-center border-end">
+                            {% if has_self_assessment_evaluation %}
+                            <div class="display-4 text-{{ performance_class }} fw-bold">
+                                {{ summary.percentage_score }}%
+                            </div>
+                            <span class="badge bg-{{ performance_class }} fs-6 mb-2">{{ performance }}</span>
+                            <p class="text-muted small mb-0">Self-Assessment Score</p>
+                            <p class="small mb-0">{{ summary.avg_score }}/5 Average</p>
+                            {% else %}
+                            <div class="display-4 text-secondary fw-bold">-</div>
+                            <span class="badge bg-secondary fs-6 mb-2">Not Evaluated</span>
+                            <p class="text-muted small mb-0">Self-Assessment Score</p>
+                            <p class="small mb-0">No self-assessment data</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Performance Targets Summary -->
+                        <div class="col-md-4 text-center border-end">
+                            {% if has_evaluated_targets %}
+                            <div class="display-4 text-info fw-bold">
+                                {{ overall_target_performance.average_score }}%
+                            </div>
+                            <span class="badge bg-info fs-6 mb-2">{{ overall_target_performance.overall_rating }}</span>
+                            <p class="text-muted small mb-0">Targets Performance</p>
+                            <p class="small mb-0">{{ overall_target_performance.evaluated_count }}/{{ target_stats.total_targets }} Targets Evaluated</p>
+                            {% else %}
+                            <div class="display-4 text-secondary fw-bold">-</div>
+                            <span class="badge bg-secondary fs-6 mb-2">Not Evaluated</span>
+                            <p class="text-muted small mb-0">Targets Performance</p>
+                            <p class="small mb-0">No targets evaluated</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Combined Performance -->
+                        <div class="col-md-4 text-center">
+                            {% if show_combined_score %}
+                            <div class="display-4 text-success fw-bold">
+                                {{ summary.combined_overall_score }}%
+                            </div>
+                            <span class="badge bg-{{ summary.combined_performance_class }} fs-6 mb-2">{{ summary.combined_performance }}</span>
+                            <p class="text-muted small mb-0">Overall Performance</p>
+                            <p class="small mb-0">Average of Both</p>
+                            {% elif has_self_assessment_evaluation %}
+                            <div class="display-4 text-{{ performance_class }} fw-bold">
+                                {{ summary.percentage_score }}%
+                            </div>
+                            <span class="badge bg-{{ performance_class }} fs-6 mb-2">{{ performance }}</span>
+                            <p class="text-muted small mb-0">Overall Performance</p>
+                            <p class="small mb-0">Based on Self-Assessment</p>
+                            {% elif has_evaluated_targets %}
+                            <div class="display-4 text-info fw-bold">
+                                {{ overall_target_performance.average_score }}%
+                            </div>
+                            <span class="badge bg-info fs-6 mb-2">{{ overall_target_performance.overall_rating }}</span>
+                            <p class="text-muted small mb-0">Overall Performance</p>
+                            <p class="small mb-0">Based on Targets</p>
+                            {% else %}
+                            <div class="display-4 text-secondary fw-bold">-</div>
+                            <span class="badge bg-secondary fs-6 mb-2">Not Evaluated</span>
+                            <p class="text-muted small mb-0">Overall Performance</p>
+                            <p class="small mb-0">No evaluation data</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Details Row -->
+            <div class="row mb-4">
+                <!-- Self-Assessment Details -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-warning text-dark">
+                            <h6 class="mb-0">
+                                <i class="bi bi-person me-2"></i>Self-Assessment Details
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-6 mb-3">
+                                    <div class="border rounded p-3">
+                                        <h4 class="text-primary mb-1">{{ summary.total_indicators }}</h4>
+                                        <small class="text-muted">Indicators Evaluated</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="border rounded p-3">
+                                        <h4 class="text-success mb-1">{{ summary.avg_score }}/5</h4>
+                                        <small class="text-muted">Average Rating</small>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <hr>
+                                    <p class="mb-1"><strong>Evaluated By:</strong> {{ summary.supervisor_name }}</p>
+                                    <p class="mb-0"><strong>Period:</strong> {{ appraisal.period.name }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Targets Details -->
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0">
+                                <i class="bi bi-bullseye me-2"></i>Performance Targets
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% if has_targets %}
+                            <div class="row text-center">
+                                <div class="col-4 mb-3">
+                                    <div class="border rounded p-2">
+                                        <h5 class="text-primary mb-1">{{ target_stats.total_targets }}</h5>
+                                        <small class="text-muted">Total Targets</small>
+                                    </div>
+                                </div>
+                                <div class="col-4 mb-3">
+                                    <div class="border rounded p-2">
+                                        <h5 class="text-success mb-1">{{ target_stats.approved_targets }}</h5>
+                                        <small class="text-muted">Approved</small>
+                                    </div>
+                                </div>
+                                <div class="col-4 mb-3">
+                                    <div class="border rounded p-2">
+                                        <h5 class="text-warning mb-1">{{ target_stats.evaluated_targets }}</h5>
+                                        <small class="text-muted">Evaluated</small>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="progress mb-2" style="height: 10px;">
+                                        <div class="progress-bar bg-success" style="width: {{ target_stats.evaluation_completion_rate }}%">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">
+                                        Evaluation Progress: {{ target_stats.evaluation_completion_rate|floatformat:0 }}%
+                                    </small>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-3">
+                                <i class="bi bi-bullseye text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mb-0 mt-2">No performance targets set for this period.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Targets Section -->
+            {% if has_targets %}
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bullseye me-2"></i>Performance Targets Evaluation
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Targets Status Overview -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6>Targets Status Overview</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-secondary">Draft: {{ target_status_counts.draft }}</span>
+                                <span class="badge bg-warning">Pending: {{ target_status_counts.pending }}</span>
+                                <span class="badge bg-info">Approved: {{ target_status_counts.approved }}</span>
+                                <span class="badge bg-success">Completed: {{ target_status_counts.completed }}</span>
+                                <span class="badge bg-danger">Rejected: {{ target_status_counts.rejected }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Individual Targets -->
+                    <div class="row">
+                        {% for target in target_evaluations %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 {% if target.is_evaluated %}border-{{ target.performance_class }}{% endif %}">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">Target #{{ target.target_number }}</h6>
+                                    <span class="badge bg-{% if target.status == 'approved' %}success{% elif target.status == 'pending' %}warning{% elif target.status == 'rejected' %}danger{% else %}secondary{% endif %}">
+                                        {{ target.status_display }}
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ target.description|truncatewords:15 }}</h6>
+                                    <p class="card-text small text-muted">
+                                        <strong>Success Measures:</strong><br>
+                                        {{ target.success_measures|default:"Not specified"|truncatewords:20 }}
+                                    </p>
+                                    
+                                    {% if target.is_evaluated %}
+                                    <div class="evaluation-result mt-3 p-3 bg-light rounded">
+                                        <h6 class="text-{{ target.performance_class }} mb-2">
+                                            <i class="bi bi-graph-up me-1"></i>
+                                            {{ target.performance_category }}
+                                        </h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="h4 text-{{ target.performance_class }} mb-0">
+                                                    {{ target.performance_rating }}%
+                                                </span>
+                                                <small class="d-block text-muted">Performance Rating</small>
+                                            </div>
+                                            {% if target.supervisor_comments %}
+                                            <div>
+                                                <button class="btn btn-sm btn-outline-info" 
+                                                        type="button" 
+                                                        data-bs-toggle="collapse" 
+                                                        data-bs-target="#comments-{{ target.target_number }}">
+                                                    View Comments
+                                                </button>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if target.supervisor_comments %}
+                                        <div class="collapse mt-2" id="comments-{{ target.target_number }}">
+                                            <div class="card card-body">
+                                                <strong>Supervisor Comments:</strong>
+                                                <p class="mb-0 text-muted">{{ target.supervisor_comments }}</p>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if target.evaluated_at %}
+                                        <small class="text-muted d-block mt-2">
+                                            Evaluated on: {{ target.evaluated_at|date:"M d, Y" }}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    <div class="text-center py-3">
+                                        <i class="bi bi-clock text-muted" style="font-size: 2rem;"></i>
+                                        <p class="text-muted mb-0 mt-2">Awaiting evaluation</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Self-Assessment Detailed Breakdown -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up me-2"></i>Self-Assessment Detailed Breakdown
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for assessment in self_assessments %}
+                    {% with eval_data=supervisor_evals|get_item:assessment.id %}
+                    <div class="evaluation-item border-bottom pb-3 mb-3">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h6 class="text-primary mb-2">{{ assessment.attribute.name }}</h6>
+                                <p class="mb-1"><strong>{{ assessment.indicator.name }}</strong></p>
+                                <p class="text-muted small mb-3">{{ assessment.indicator.description }}</p>
+                                
+                                <!-- Ratings Row -->
+                                <div class="row">
+                                    <!-- Self Assessment -->
+                                    <div class="col-md-4 mb-3">
+                                        <div class="rating-card border p-3 rounded">
+                                            <h6 class="text-warning mb-3">
+                                                <i class="bi bi-person me-2"></i>Your Self-Assessment
+                                            </h6>
+                                            <div class="text-warning mb-2">
+                                                {% for i in rating_choices %}
+                                                <i class="bi bi-star{% if assessment.self_rating >= i.0 %}-fill text-warning{% else %} text-muted{% endif %}"></i>
+                                                {% endfor %}
+                                                <span class="ms-2 fw-bold">{{ assessment.self_rating }}/5</span>
+                                            </div>
+                                            <small class="text-muted">Your own rating</small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Supervisor Evaluation -->
+                                    <div class="col-md-4 mb-3">
+                                        <div class="rating-card border p-3 rounded">
+                                            <h6 class="text-info mb-3">
+                                                <i class="bi bi-person-badge me-2"></i>Supervisor Rating
+                                            </h6>
+                                            <div class="text-info mb-2">
+                                                {% for i in rating_choices %}
+                                                <i class="bi bi-star{% if eval_data.supervisor_rating >= i.0 %}-fill text-info{% else %} text-muted{% endif %}"></i>
+                                                {% endfor %}
+                                                <span class="ms-2 fw-bold">{{ eval_data.supervisor_rating }}/5</span>
+                                            </div>
+                                            <small class="text-muted">Supervisor's evaluation</small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Combined Score -->
+                                    <div class="col-md-4 mb-3">
+                                        <div class="rating-card border p-3 rounded bg-light">
+                                            <h6 class="text-success mb-3">
+                                                <i class="bi bi-graph-up me-2"></i>Combined Score
+                                            </h6>
+                                            <div class="text-success mb-2">
+                                                {% for i in rating_choices %}
+                                                <i class="bi bi-star{% if eval_data.combined_score >= i.0 %}-fill text-success{% else %} text-muted{% endif %}"></i>
+                                                {% endfor %}
+                                                <span class="ms-2 fw-bold">{{ eval_data.combined_score }}/5</span>
+                                            </div>
+                                            <small class="text-muted">Average of both ratings</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Supervisor Remarks -->
+                                {% if eval_data.remarks %}
+                                <div class="mt-3 p-3 bg-light rounded">
+                                    <strong class="text-info">
+                                        <i class="bi bi-chat-left me-2"></i>Supervisor Remarks:
+                                    </strong>
+                                    <p class="text-muted mb-0 mt-1">{{ eval_data.remarks }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endwith %}
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-clipboard-x text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">No evaluation data available for this appraisal.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Performance Legend -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Rating Legend</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="text-warning">
+                                <i class="bi bi-person fa-2x mb-2"></i>
+                                <h6>Self-Assessment</h6>
+                                <small>Your own evaluation</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-info">
+                                <i class="bi bi-person-badge fa-2x mb-2"></i>
+                                <h6>Supervisor Rating</h6>
+                                <small>Supervisor's evaluation</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-success">
+                                <i class="bi bi-graph-up fa-2x mb-2"></i>
+                                <h6>Combined Score</h6>
+                                <small>Average of both ratings</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-primary">
+                                <i class="bi bi-bullseye fa-2x mb-2"></i>
+                                <h6>Targets</h6>
+                                <small>Performance targets</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <a href="{% url 'dashboards:staff_evaluation_results' %}" class="btn btn-primary me-3">
+                        <i class="bi bi-arrow-left me-2"></i>Back to List
+                    </a>
+                    <a href="?export=pdf" class="btn btn-warning me-3">
+                        <i class="bi bi-download me-2"></i>Download PDF Report
+                    </a>
+                    <button onclick="window.print()" class="btn btn-info">
+                        <i class="bi bi-printer me-2"></i>Print Results
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.evaluation-item:last-child {
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.display-4 {
+    font-size: 3.5rem;
+    font-weight: 300;
+    line-height: 1.2;
+}
+
+.rating-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: 100%;
+}
+
+.rating-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-1px);
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2.5rem;
+    }
+    
+    .border-end {
+        border-right: none !important;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .rating-card {
+        margin-bottom: 1rem;
+    }
+    
+    .btn {
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+    
+    .d-flex.flex-wrap {
+        justify-content: center;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .btn {
+        display: none !important;
+    }
+    
+    .rating-card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+    
+    .card {
+        break-inside: avoid;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa !important;h
+        color: #000 !important;
+    }
+}
+</style>
+{% endblock %}

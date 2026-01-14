@@ -1,0 +1,274 @@
+{% extends 'hr/base.html' %}
+{% block title %}HR | Supervisor Evaluations{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold text-success mb-1">📊 Supervisor Evaluations</h1>
+            <p class="text-muted mb-0">
+                Manage supervisor evaluations
+                {% if active_period %}
+                - {{ active_period.name }}
+                {% endif %}
+            </p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-warning text-dark border p-2">
+                <i class="fas fa-user-gear me-1"></i>HR Staff
+            </span>
+        </div>
+    </div>
+
+    <!-- Supervisors List -->
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-success text-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="fw-semibold mb-0">
+                    <i class="fas fa-user-tie me-2"></i>Supervisors List
+                </h5>
+                <span class="badge bg-light text-success fs-6">
+                    {{ supervisor_data|length }} Supervisors
+                </span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if supervisor_data %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="fw-semibold text-dark">Supervisor</th>
+                            <th class="fw-semibold text-dark">Department</th>
+                            <th class="fw-semibold text-dark text-center">Status</th>
+                            <th class="fw-semibold text-dark text-center">Average Rating</th>
+                            <th class="fw-semibold text-dark text-center">Submitted</th>
+                            <th class="fw-semibold text-dark text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in supervisor_data %}
+                        <tr class="{% if data.has_submitted %}table-success{% else %}table-warning{% endif %}">
+                            <!-- Supervisor Info -->
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                                        <i class="fas fa-user-tie text-success"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-dark d-block">{{ data.supervisor.get_full_name }}</strong>
+                                        <small class="text-muted">PF: {{ data.supervisor.pf_number }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <!-- Department -->
+                            <td>
+                                {% if data.supervisor.department %}
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary">
+                                    <i class="fas fa-building me-1"></i>
+                                    {{ data.supervisor.department.name }}
+                                </span>
+                                {% else %}
+                                <span class="text-muted">No department</span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Status -->
+                            <td class="text-center">
+                                {% if data.has_submitted %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>Evaluated
+                                </span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-clock me-1"></i>Pending Evaluation
+                                </span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Average Rating -->
+                            <td class="text-center">
+                                {% if data.has_submitted %}
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <span class="fw-bold text-primary fs-5 me-2">{{ data.summary.average_rating }}</span>
+                                    <small class="text-muted">/5</small>
+                                </div>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Submission Date -->
+                            <td class="text-center">
+                                {% if data.has_submitted %}
+                                <small class="text-muted">{{ data.summary.submission_date|date:"M d, Y" }}</small>
+                                {% else %}
+                                <span class="text-muted">Not evaluated</span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Actions -->
+                            <td class="text-center">
+                                <div class="btn-group">
+                                    <!-- Evaluate Button - Always shown -->
+                                    <a href="{% url 'hr:evaluate_supervisor' data.supervisor.id %}" 
+                                       class="btn btn-sm btn-success">
+                                        <i class="fas fa-edit me-1"></i>Evaluate
+                                    </a>
+                                    
+                                    <!-- View Details Button - Only shown when user has records -->
+                                    {% if data.has_submitted %}
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#evaluationModal{{ forloop.counter }}">
+                                        <i class="fas fa-eye me-1"></i>View
+                                    </button>
+                                    {% endif %}
+                                    
+                                    <!-- Contact Supervisor -->
+                                    <a href="mailto:{{ data.supervisor.email }}" class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-envelope me-1"></i>Contact
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="bg-light rounded p-4">
+                    <i class="fas fa-user-tie display-4 text-muted d-block mb-3"></i>
+                    <h5 class="text-muted mb-2">No Supervisors Found</h5>
+                    <p class="text-muted">No supervisors are currently registered in the system.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Evaluation Details Modals -->
+    {% for data in supervisor_data %}
+    {% if data.has_submitted %}
+    <div class="modal fade" id="evaluationModal{{ forloop.counter }}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-list-check me-2"></i>
+                        Evaluation Details - {{ data.supervisor.get_full_name }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Supervisor Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <strong class="text-muted d-block">Supervisor</strong>
+                            <span class="fw-bold text-dark">{{ data.supervisor.get_full_name }}</span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong class="text-muted d-block">Department</strong>
+                            <span class="text-dark">
+                                {% if data.supervisor.department %}
+                                {{ data.supervisor.department.name }}
+                                {% else %}
+                                No department
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Evaluation Details -->
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Attribute</th>
+                                    <th>Indicator</th>
+                                    <th class="text-center">Rating</th>
+                                    <th>Comments</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for evaluation in data.evaluations %}
+                                <tr>
+                                    <td class="fw-semibold text-dark">{{ evaluation.attribute.name }}</td>
+                                    <td class="text-dark">{{ evaluation.indicator.description }}</td>
+                                    <td class="text-center">
+                                        <span class="badge 
+                                            {% if evaluation.rating >= 4 %}bg-success
+                                            {% elif evaluation.rating >= 3 %}bg-warning text-dark
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ evaluation.rating }}/5
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if evaluation.comments %}
+                                        <small class="text-muted">{{ evaluation.comments }}</small>
+                                        {% else %}
+                                        <span class="text-muted">No comments</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="fw-bold text-success mb-3">Evaluation Summary</h6>
+                        <div class="row text-center">
+                            <div class="col-3">
+                                <div class="border-end">
+                                    <div class="h4 fw-bold text-primary">{{ data.summary.average_rating }}/5</div>
+                                    <small class="text-muted">Average Rating</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="border-end">
+                                    <div class="h4 fw-bold text-success">{{ data.summary.excellent_count }}</div>
+                                    <small class="text-muted">Excellent (5)</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="border-end">
+                                    <div class="h4 fw-bold text-warning">{{ data.summary.good_count }}</div>
+                                    <small class="text-muted">Good (3-4)</small>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="h4 fw-bold text-danger">{{ data.summary.needs_improvement_count }}</div>
+                                <small class="text-muted">Needs Improvement (1-2)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="mailto:{{ data.supervisor.email }}" class="btn btn-primary">
+                        <i class="fas fa-envelope me-1"></i>Contact Supervisor
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+
+<style>
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+.table td {
+    vertical-align: middle;
+}
+</style>
+{% endblock %}

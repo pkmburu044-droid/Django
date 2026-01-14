@@ -1,0 +1,620 @@
+{% extends 'vc/base.html' %}
+
+{% block title %}Vice Chancellor Dashboard - KyU{% endblock %}
+
+{% block page_title %}Vice Chancellor Dashboard{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="{% url 'vc:vc_download_department_report' %}" class="btn btn-gold">
+        <i class="fas fa-file-pdf me-1"></i> Download Report
+    </a>
+    <button type="button" class="btn btn-primary" onclick="updateDashboardStats()">
+        <i class="fas fa-sync-alt me-1"></i> Refresh
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Quick Stats Row -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card stat-departments">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h5 class="card-title text-muted">Departments</h5>
+                <h2 class="card-text" style="color: var(--kyu-green); font-weight: 700;">
+                    {{ total_departments|default:"0" }}
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card stat-supervisors">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <h5 class="card-title text-muted">Supervisors</h5>
+                <h2 class="card-text" style="color: var(--kyu-light-green); font-weight: 700;">
+                    {{ total_supervisors|default:"0" }}
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card stat-staff">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h5 class="card-title text-muted">Total Staff</h5>
+                <h2 class="card-text" style="color: var(--kyu-gold); font-weight: 700;">
+                    {{ total_staff|default:"0" }}
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card stat-evaluated">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <h5 class="card-title text-muted">Evaluation Rate</h5>
+                <h2 class="card-text" style="color: var(--kyu-dark-green); font-weight: 700;">
+                    {{ completion_rate|default:"0" }}%
+                </h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Period Status -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-calendar-alt me-2"></i>Current Evaluation Period</span>
+                {% if current_period %}
+                <span class="badge bg-success">Active</span>
+                {% else %}
+                <span class="badge bg-danger">Inactive</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if current_period %}
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Period Name</h6>
+                        <h4>{{ current_period.name }}</h4>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Date Range</h6>
+                        <h5>{{ current_period.start_date|date:"M d, Y" }} - {{ current_period.end_date|date:"M d, Y" }}</h5>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted">Status</h6>
+                        <h5>
+                            {% if current_period.is_active %}
+                                <span class="text-success">Active</span>
+                            {% else %}
+                                <span class="text-danger">Inactive</span>
+                            {% endif %}
+                        </h5>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Active Evaluation Period</h5>
+                    <p class="text-muted">Please contact HR to set up an active evaluation period.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Overview -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-line me-2"></i>Performance Overview
+            </div>
+            <div class="card-body">
+                {% if performance_data %}
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Performance Data Available</h5>
+                    <p class="text-muted">Performance data will appear once evaluations are completed.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-trophy me-2"></i>Top Performing Departments
+            </div>
+            <div class="card-body">
+                {% if performance_data %}
+                <div class="list-group">
+                    {% for dept in performance_data|slice:":5" %}
+                    <div class="list-group-item list-group-item-action border-0 py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ dept.department.name|truncatechars:25 }}</h6>
+                                <small class="text-muted">{{ dept.evaluated_supervisors }}/{{ dept.total_supervisors }} evaluated</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge {% if dept.avg_score >= 80 %}badge-excellent{% elif dept.avg_score >= 70 %}badge-good{% elif dept.avg_score >= 60 %}badge-average{% else %}badge-poor{% endif %}">
+                                    {{ dept.avg_score|floatformat:1 }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="progress mt-2" style="height: 5px;">
+                            <div class="progress-bar {% if dept.evaluation_rate >= 80 %}bg-success{% elif dept.evaluation_rate >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                 style="width: {{ dept.evaluation_rate }}%"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-trophy fa-2x text-muted mb-3"></i>
+                    <p class="text-muted">No department rankings available</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Departments Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-building me-2"></i>Departments Summary</span>
+                <a href="{% url 'vc:vc_department_overview' %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-eye me-1"></i> View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if department_data %}
+                <div class="table-responsive">
+                    <table class="table table-hover" id="departmentsTable">
+                        <thead>
+                            <tr>
+                                <th>Department</th>
+                                <th class="text-center">Staff</th>
+                                <th class="text-center">Supervisors</th>
+                                <th class="text-center">Evaluated</th>
+                                <th class="text-center">Avg Score</th>
+                                <th class="text-center">Evaluation Rate</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dept in department_data|slice:":10" %}
+                            <tr>
+                                <td>
+                                    <strong>{{ dept.department.name }}</strong>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary">{{ dept.total_staff }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info">{{ dept.supervisors_count }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge {% if dept.total_evaluations == dept.supervisors_count %}bg-success{% elif dept.total_evaluations > 0 %}bg-warning{% else %}bg-secondary{% endif %}">
+                                        {{ dept.total_evaluations }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="performance-badge {% if dept.average_score >= 80 %}badge-excellent{% elif dept.average_score >= 70 %}badge-good{% elif dept.average_score >= 60 %}badge-average{% else %}badge-poor{% endif %}">
+                                        {{ dept.average_score|floatformat:1 }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="progress" style="height: 20px; width: 100px; margin: 0 auto;">
+                                        <div class="progress-bar {% if dept.evaluation_rate >= 80 %}bg-success{% elif dept.evaluation_rate >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             style="width: {{ dept.evaluation_rate }}%">
+                                            {{ dept.evaluation_rate|floatformat:0 }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'vc:vc_department_staff' dept.department.id %}" class="btn btn-outline-primary" title="View Staff">
+                                            <i class="fas fa-users"></i>
+                                        </a>
+                                        <a href="{% url 'vc:vc_download_department_report' dept.department.id %}" class="btn btn-outline-success" title="Download Report">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Department Data Available</h5>
+                    <p class="text-muted">Department information will appear here once available.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Evaluation Progress -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-user-check me-2"></i>Supervisor Evaluation Status
+            </div>
+            <div class="card-body">
+                {% if total_supervisors %}
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h3 class="mb-0">{{ total_supervisors|default:"0" }}</h3>
+                        <small class="text-muted">Total Supervisors</small>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 text-success">{{ evaluated_count|default:"0" }}</h3>
+                        <small class="text-muted">Evaluated</small>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 text-warning">{{ pending_count|default:"0" }}</h3>
+                        <small class="text-muted">Pending</small>
+                    </div>
+                </div>
+                
+                <div class="progress mb-3" style="height: 25px;">
+                    <div class="progress-bar bg-success" style="width: {{ completion_rate|default:"0" }}%">
+                        {{ completion_rate|default:"0" }}% Complete
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <a href="{% url 'vc:vc_evaluate_supervisor_list' %}" class="btn btn-primary">
+                        <i class="fas fa-clipboard-check me-1"></i> View Evaluation List
+                    </a>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-user-check fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Evaluation Data</h5>
+                    <p class="text-muted">Supervisor evaluation data will appear here.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-bullhorn me-2"></i>Recent Activities
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% if recent_activities %}
+                    {% for activity in recent_activities|slice:":5" %}
+                    <div class="timeline-item mb-3">
+                        <div class="d-flex">
+                            <div class="timeline-icon me-3">
+                                <i class="fas fa-{{ activity.icon }} text-primary"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">{{ activity.title }}</h6>
+                                <p class="text-muted small mb-0">{{ activity.description }}</p>
+                                <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <!-- Sample activities if none available -->
+                    <div class="timeline-item mb-3">
+                        <div class="d-flex">
+                            <div class="timeline-icon me-3">
+                                <i class="fas fa-file-pdf text-success"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Report Generated</h6>
+                                <p class="text-muted small mb-0">Department performance report generated</p>
+                                <small class="text-muted">Just now</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="timeline-item mb-3">
+                        <div class="d-flex">
+                            <div class="timeline-icon me-3">
+                                <i class="fas fa-user-check text-primary"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Supervisor Evaluated</h6>
+                                <p class="text-muted small mb-0">Dr. Jane Smith evaluation completed</p>
+                                <small class="text-muted">2 hours ago</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="timeline-item mb-3">
+                        <div class="d-flex">
+                            <div class="timeline-icon me-3">
+                                <i class="fas fa-chart-line text-warning"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Performance Updated</h6>
+                                <p class="text-muted small mb-0">Monthly performance metrics updated</p>
+                                <small class="text-muted">1 day ago</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="text-center mt-3">
+                    <a href="#" class="btn btn-outline-primary btn-sm">View All Activities</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Links -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-rocket me-2"></i>Quick Actions
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3 col-sm-6">
+                        <a href="{% url 'vc:vc_evaluate_supervisor_list' %}" class="card quick-action-card text-decoration-none">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-clipboard-check fa-2x text-primary"></i>
+                                </div>
+                                <h6 class="card-title">Evaluate Supervisors</h6>
+                                <p class="card-text small text-muted">Review and evaluate supervisor performance</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <a href="{% url 'vc:vc_department_overview' %}" class="card quick-action-card text-decoration-none">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-building fa-2x text-success"></i>
+                                </div>
+                                <h6 class="card-title">View Departments</h6>
+                                <p class="card-text small text-muted">Monitor department performance metrics</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <a href="{% url 'vc:vc_download_department_report' %}" class="card quick-action-card text-decoration-none">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                                </div>
+                                <h6 class="card-title">Generate Reports</h6>
+                                <p class="card-text small text-muted">Download comprehensive performance reports</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <a href="{% url 'vc:vc_search_staff' %}" class="card quick-action-card text-decoration-none">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-search fa-2x text-info"></i>
+                                </div>
+                                <h6 class="card-title">Search Staff</h6>
+                                <p class="card-text small text-muted">Find and review staff information</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .quick-action-card {
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .quick-action-card:hover {
+        border-color: var(--kyu-green);
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(30, 150, 79, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-left: 10px;
+    }
+    
+    .timeline-item:before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 15px;
+        width: 2px;
+        height: calc(100% - 15px);
+        background: #e9ecef;
+    }
+    
+    .timeline-item:last-child:before {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Initialize performance chart
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if performance_data %}
+        initializePerformanceChart();
+        {% endif %}
+        
+        // Initialize data tables
+        $('#departmentsTable').DataTable({
+            "pageLength": 10,
+            "order": [[4, "desc"]], // Sort by avg score descending
+            "responsive": true,
+            "language": {
+                "search": "Search departments:",
+                "lengthMenu": "Show _MENU_ departments per page",
+                "info": "Showing _START_ to _END_ of _TOTAL_ departments",
+                "paginate": {
+                    "previous": "<i class='fas fa-chevron-left'></i>",
+                    "next": "<i class='fas fa-chevron-right'></i>"
+                }
+            }
+        });
+    });
+    
+    function initializePerformanceChart() {
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        
+        // Create sample data for now - you can replace this with actual data
+        const departments = [
+            {% for dept in performance_data|slice:":5" %}
+            "{{ dept.department.name|truncatechars:15 }}",
+            {% endfor %}
+        ];
+        
+        const avgScores = [
+            {% for dept in performance_data|slice:":5" %}
+            {{ dept.avg_score|default:0 }},
+            {% endfor %}
+        ];
+        
+        // If no data, show empty chart
+        if (departments.length === 0) {
+            departments.push("Sample 1", "Sample 2", "Sample 3", "Sample 4", "Sample 5");
+            avgScores.push(85, 72, 68, 90, 65);
+        }
+        
+        // Color coding based on scores
+        const backgroundColors = avgScores.map(score => {
+            if (score >= 80) return 'rgba(30, 150, 79, 0.7)'; // Green
+            if (score >= 70) return 'rgba(45, 175, 101, 0.7)'; // Light Green
+            if (score >= 60) return 'rgba(199, 155, 50, 0.7)'; // Gold
+            return 'rgba(220, 53, 69, 0.7)'; // Red
+        });
+        
+        const borderColors = avgScores.map(score => {
+            if (score >= 80) return 'rgba(30, 150, 79, 1)';
+            if (score >= 70) return 'rgba(45, 175, 101, 1)';
+            if (score >= 60) return 'rgba(199, 155, 50, 1)';
+            return 'rgba(220, 53, 69, 1)';
+        });
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: departments,
+                datasets: [{
+                    label: 'Average Score',
+                    data: avgScores,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1,
+                    borderRadius: 5,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Average Score'
+                        },
+                        grid: {
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Average Score: ${context.parsed.y.toFixed(1)} points`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Function to update dashboard stats
+    function updateDashboardStats() {
+        $.ajax({
+            url: "{% url 'vc:vc_department_stats_api' %}",
+            method: 'GET',
+            beforeSend: function() {
+                $('.btn-primary').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Refreshing...');
+            },
+            success: function(data) {
+                if (data.success) {
+                    location.reload(); // Simple refresh for now
+                }
+            },
+            complete: function() {
+                $('.btn-primary').prop('disabled', false).html('<i class="fas fa-sync-alt me-1"></i> Refresh');
+            }
+        });
+    }
+</script>
+
+<!-- DataTables CSS & JS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+{% endblock %}

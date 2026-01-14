@@ -1,0 +1,942 @@
+{% extends 'hr/base.html' %}
+{% block title %}Evaluation Settings | HR{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="h2 fw-bold text-primary mb-2">📋 Evaluation Settings</h1>
+            <p class="text-muted mb-0">Create global evaluation forms for all teaching or non-teaching staff</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-light text-dark border p-2">
+                <i class="fas fa-users-cog me-1"></i>HR Mode
+            </span>
+        </div>
+    </div>
+
+    <!-- Global Form Selection -->
+    <div class="card shadow-lg border-0 mb-4">
+        <div class="card-header bg-gradient-primary text-white py-3">
+            <h5 class="fw-semibold mb-0">
+                <i class="fas fa-globe me-2"></i>Global Form Selection
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <label class="form-label fw-semibold">Form Type</label>
+                    <div class="btn-group w-100" role="group">
+                        <a href="?staff_type=teaching" 
+                           class="btn {% if staff_type == 'teaching' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                           📚 Global Teaching Staff Forms
+                        </a>
+                        <a href="?staff_type=non_teaching" 
+                           class="btn {% if staff_type == 'non_teaching' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                           💼 Global Non-Teaching Staff Forms
+                        </a>
+                    </div>
+                    <div class="alert alert-info mt-3 mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Forms will apply to <strong>ALL {{ staff_type_display }}</strong> across all departments
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PERIOD MANAGEMENT SECTION -->
+    <div class="card shadow-lg border-0 mb-5">
+        <div class="card-header bg-gradient-primary text-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="fw-semibold mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>Evaluation Periods
+                </h5>
+                <span class="badge bg-white text-primary fs-6">{{ periods.count }} period(s)</span>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <!-- Information Message -->
+            <div class="alert alert-info border-0 mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle me-3 fs-4 text-primary"></i>
+                    <div>
+                        <strong class="text-primary">Period Management</strong><br>
+                        <small class="text-dark mb-0">Evaluation periods are created by administrators. You can activate and manage existing periods.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Periods List -->
+            {% if periods %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="fw-semibold text-primary">Period Details</th>
+                            <th class="fw-semibold text-center text-primary">Duration</th>
+                            <th class="fw-semibold text-center text-primary">Status</th>
+                            <th class="fw-semibold text-center text-primary">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for period in periods %}
+                        <tr class="{% if period.is_active %}table-success{% endif %}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 p-2 rounded me-3">
+                                        <i class="fas fa-calendar text-primary fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="d-block text-dark">{{ period.name }}</strong>
+                                        <small class="text-muted">
+                                            {% if period.default_appraisal_date %}
+                                            Appraisal: {{ period.default_appraisal_date }}
+                                            {% else %}
+                                            No appraisal date set
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <div class="text-muted">
+                                    <small class="fw-medium">{{ period.start_date|date:"M d, Y" }}</small><br>
+                                    <small class="fw-light">to {{ period.end_date|date:"M d, Y" }}</small>
+                                </div>
+                                {% with days_left=period.end_date|timeuntil %}
+                                <span class="badge {% if period.is_active %}bg-warning text-dark{% else %}bg-light text-dark{% endif %} mt-1 fw-normal">
+                                    {{ days_left }}
+                                </span>
+                                {% endwith %}
+                            </td>
+                            <td class="text-center">
+                                {% if period.is_active %}
+                                    <span class="badge bg-success bg-opacity-20 text-success border border-success fs-6">
+                                        <i class="fas fa-check-circle me-1"></i>Active
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary fs-6">
+                                        <i class="fas fa-pause-circle me-1"></i>Inactive
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-center gap-2">
+                                    {% if not period.is_active %}
+                                    <form method="post" class="d-inline" 
+                                          onsubmit="return confirm('Activate {{ period.name }}? This will deactivate all other periods.')">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="activate_period">
+                                        <input type="hidden" name="period_id" value="{{ period.id }}">
+                                        <button class="btn btn-success btn-sm fw-medium" title="Activate Period">
+                                            <i class="fas fa-play me-1"></i> Activate
+                                        </button>
+                                    </form>
+                                    {% endif %}
+
+                                    <a href="#" class="btn btn-outline-primary btn-sm fw-medium"
+                                       title="Manage Attributes & Indicators">
+                                        <i class="fas fa-cog me-1"></i> Manage Criteria
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div class="bg-light rounded-circle d-inline-flex p-4 mb-3">
+                    <i class="fas fa-calendar-times display-6 text-muted"></i>
+                </div>
+                <h5 class="text-muted mb-3">No evaluation periods available</h5>
+                <p class="text-muted">Contact your administrator to create evaluation periods.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- FORM PUBLISHING CONTROL SECTION -->
+    <div class="card shadow-lg border-0 mb-5">
+        <div class="card-header bg-gradient-success text-white py-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white bg-opacity-20 p-2 rounded me-3">
+                        <i class="fas fa-broadcast-tower fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-semibold mb-0">Form Publishing Control</h5>
+                        <small class="opacity-75">Control when evaluation forms are available to {{ staff_type_display }}</small>
+                    </div>
+                </div>
+                {% if selected_period %}
+                <span class="badge bg-white text-success fs-6 fw-medium px-3 py-2">
+                    {{ selected_period.get_forms_status_display }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body p-4">
+            {% if selected_period %}
+            <!-- Workflow Progress -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center position-relative">
+                        <!-- Progress Line -->
+                        <div class="position-absolute top-50 start-0 end-0 bg-light rounded-pill" style="height: 4px; z-index: 1;"></div>
+                        
+                        <!-- Step 1: Draft -->
+                        <div class="d-flex flex-column align-items-center position-relative" style="z-index: 2;">
+                            <div class="rounded-circle {% if selected_period.forms_status == 'draft' %}bg-warning text-dark{% elif selected_period.forms_status == 'ready' or selected_period.forms_status == 'closed' %}bg-success text-white{% else %}bg-secondary text-white{% endif %} d-flex align-items-center justify-content-center mb-2" 
+                                 style="width: 50px; height: 50px;">
+                                <i class="fas fa-pencil-alt fs-5"></i>
+                            </div>
+                            <span class="fw-medium text-center">Draft<br><small class="text-muted">Setup Phase</small></span>
+                        </div>
+                        
+                        <!-- Step 2: Ready -->
+                        <div class="d-flex flex-column align-items-center position-relative" style="z-index: 2;">
+                            <div class="rounded-circle {% if selected_period.forms_status == 'ready' %}bg-success text-white{% elif selected_period.forms_status == 'closed' %}bg-success text-white{% else %}bg-light text-muted{% endif %} d-flex align-items-center justify-content-center mb-2" 
+                                 style="width: 50px; height: 50px;">
+                                <i class="fas fa-check-circle fs-5"></i>
+                            </div>
+                            <span class="fw-medium text-center">Ready<br><small class="text-muted">Staff Access</small></span>
+                        </div>
+                        
+                        <!-- Step 3: Closed -->
+                        <div class="d-flex flex-column align-items-center position-relative" style="z-index: 2;">
+                            <div class="rounded-circle {% if selected_period.forms_status == 'closed' %}bg-secondary text-white{% else %}bg-light text-muted{% endif %} d-flex align-items-center justify-content-center mb-2" 
+                                 style="width: 50px; height: 50px;">
+                                <i class="fas fa-lock fs-5"></i>
+                            </div>
+                            <span class="fw-medium text-center">Closed<br><small class="text-muted">Completed</small></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row align-items-center">
+                <div class="col-md-7">
+                    <div class="bg-light rounded p-4">
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <strong class="d-block text-muted mb-1">Current Period</strong>
+                                <span class="text-primary fw-semibold fs-5">{{ selected_period.name }}</span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <strong class="d-block text-muted mb-1">Scope</strong>
+                                <span class="text-dark fw-medium">Global {{ staff_type_display }}</span>
+                            </div>
+                            <div class="col-6">
+                                <strong class="d-block text-muted mb-1">Staff Type</strong>
+                                <span class="badge bg-primary bg-opacity-10 text-primary">{{ staff_type_display }}</span>
+                            </div>
+                            <div class="col-6">
+                                <strong class="d-block text-muted mb-1">Current Status</strong>
+                                <span class="badge 
+                                    {% if selected_period.forms_status == 'ready' %}bg-success text-white
+                                    {% elif selected_period.forms_status == 'draft' %}bg-warning text-dark
+                                    {% else %}bg-secondary text-white{% endif %} fs-6">
+                                    {{ selected_period.get_forms_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-5 text-end">
+                    {% if selected_period.forms_status == 'draft' %}
+                    <div class="text-center">
+                        <form method="post" class="d-inline-block">
+                            {% csrf_token %}
+                            <input type="hidden" name="period_id" value="{{ selected_period.id }}">
+                            <button type="submit" name="action" value="publish_forms" 
+                                    class="btn btn-success btn-lg px-5 py-3 fw-bold"
+                                    onclick="return confirm('Publish forms to ALL {{ staff_type_display }} staff? Staff will be able to start evaluations immediately.')">
+                                <i class="fas fa-broadcast-tower me-2"></i>PUBLISH TO STAFF
+                            </button>
+                        </form>
+                        <small class="form-text text-muted d-block mt-3">
+                            <i class="fas fa-info-circle me-1"></i>
+                            All {{ staff_type_display }} staff will see evaluation forms and can submit targets
+                        </small>
+                    </div>
+                    {% elif selected_period.forms_status == 'ready' %}
+                    <div class="text-center">
+                        <h6 class="text-success mb-3">Forms are currently LIVE</h6>
+                        <div class="d-flex flex-column gap-3">
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="period_id" value="{{ selected_period.id }}">
+                                <button type="submit" name="action" value="unpublish_forms" 
+                                        class="btn btn-warning btn-lg w-100 fw-medium">
+                                    <i class="fas fa-eye-slash me-2"></i> Unpublish Forms
+                                </button>
+                            </form>
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="period_id" value="{{ selected_period.id }}">
+                                <button type="submit" name="action" value="close_forms" 
+                                        class="btn btn-outline-secondary btn-lg w-100 fw-medium"
+                                        onclick="return confirm('Close forms and end evaluation period? This will prevent any further submissions.')">
+                                    <i class="fas fa-lock me-2"></i> Close Forms
+                                </button>
+                            </form>
+                        </div>
+                        <small class="form-text text-muted d-block mt-3">
+                            <i class="fas fa-lightbulb me-1"></i>
+                            Unpublish to make temporary changes, or Close to end the period
+                        </small>
+                    </div>
+                    {% else %}
+                    <!-- CLOSED FORMS SECTION WITH REOPEN BUTTON -->
+                    <div class="text-center py-3">
+                        <div class="bg-light rounded p-4 mb-4">
+                            <i class="fas fa-lock display-4 text-muted d-block mb-3"></i>
+                            <h6 class="text-muted mb-2">Forms are Closed</h6>
+                            <p class="text-muted small mb-0">This evaluation period has been completed and closed.</p>
+                        </div>
+                        <!-- ADDED: REOPEN FORMS BUTTON -->
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="period_id" value="{{ selected_period.id }}">
+                            <button type="submit" name="action" value="reopen_forms" 
+                                    class="btn btn-success btn-lg w-100 fw-medium"
+                                    onclick="return confirm('Reopen forms for ALL {{ staff_type_display }} staff? Staff will be able to submit evaluations again.')">
+                                <i class="fas fa-unlock me-2"></i> Reopen Forms
+                            </button>
+                        </form>
+                        <small class="form-text text-muted d-block mt-3">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Reopening forms will allow all {{ staff_type_display }} staff to access and submit evaluations again
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if selected_period.forms_status == 'ready' %}
+            <div class="alert alert-success border-0 mt-4">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle me-3 fs-4 text-success"></i>
+                    <div>
+                        <strong class="text-success d-block">Forms are LIVE and accessible to staff!</strong>
+                        <small class="text-dark mb-0">All {{ staff_type_display }} staff members can now access and submit evaluations.</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <div class="bg-light rounded-circle d-inline-flex p-4 mb-3">
+                    <i class="fas fa-calendar-event display-6 text-muted"></i>
+                </div>
+                <h5 class="text-muted mb-2">No period selected</h5>
+                <p class="text-muted">Select a period from the list above to manage form publishing.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- INTERACTIVE CRITERIA BUILDER -->
+    {% if selected_period %}
+    <div class="card shadow-lg border-0 mb-5">
+        <div class="card-header bg-gradient-warning text-white py-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="bg-white bg-opacity-20 p-2 rounded me-3">
+                        <i class="fas fa-magic fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-semibold mb-0">Interactive Criteria Builder</h5>
+                        <small class="opacity-75">Build complete evaluation criteria with attributes and indicators</small>
+                    </div>
+                </div>
+                <span class="badge bg-white text-warning fs-6 fw-medium px-3 py-2">
+                    {{ attributes.count }} criteria defined
+                </span>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            
+            <!-- MAIN FORM FOR CRITERIA BUILDER -->
+            <form method="post" id="criteriaForm">
+                {% csrf_token %}
+                <input type="hidden" name="period" value="{{ selected_period.id }}">
+                <input type="hidden" name="action" value="save_criteria">
+                
+                <div class="row">
+                    <!-- LEFT: Criteria Creation Panel -->
+                    <div class="col-lg-5 mb-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-light">
+                                <h6 class="fw-semibold mb-0 text-dark">
+                                    <i class="fas fa-plus-circle me-2 text-primary"></i>Create New Criteria
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <!-- Attribute Creation -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Performance Attribute</label>
+                                    <input type="text" name="attribute_name" id="newAttributeName" class="form-control" 
+                                           placeholder="e.g., Communication Skills, Technical Expertise" required>
+                                    <div class="form-text">Define the main performance category</div>
+                                </div>
+
+                                <!-- Indicators Builder -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Performance Indicators</label>
+                                    <div id="indicatorsContainer">
+                                        <!-- Indicators will be added here dynamically -->
+                                    </div>
+                                    <button type="button" id="addIndicatorBtn" class="btn btn-outline-primary btn-sm mt-2 w-100">
+                                        <i class="fas fa-plus me-1"></i>Add Another Indicator
+                                    </button>
+                                    <div class="form-text">Add specific behaviors that demonstrate this attribute</div>
+                                </div>
+
+                                <!-- Save Button -->
+                                <button type="submit" class="btn btn-success w-100 fw-medium">
+                                    <i class="fas fa-save me-2"></i>Save Complete Criteria
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: Preview & Templates -->
+                    <div class="col-lg-7">
+                        <!-- Preview Card -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-light">
+                                <h6 class="fw-semibold mb-0 text-dark">
+                                    <i class="fas fa-eye me-2 text-info"></i>Live Preview
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="criteriaPreview" class="text-muted">
+                                    <p class="mb-2"><strong>Attribute:</strong> <span id="previewAttribute" class="text-primary">Not set</span></p>
+                                    <p class="mb-1"><strong>Indicators:</strong></p>
+                                    <ul id="previewIndicators" class="list-unstyled ms-3">
+                                        <li class="text-muted">No indicators added yet</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Templates -->
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-light">
+                                <h6 class="fw-semibold mb-0 text-dark">
+                                    <i class="fas fa-bolt me-2 text-warning"></i>Quick Templates
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <button type="button" class="btn btn-outline-primary btn-sm w-100 template-btn" data-template="communication">
+                                            <i class="fas fa-comments me-1"></i>Communication
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button type="button" class="btn btn-outline-primary btn-sm w-100 template-btn" data-template="technical">
+                                            <i class="fas fa-cog me-1"></i>Technical Skills
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button type="button" class="btn btn-outline-primary btn-sm w-100 template-btn" data-template="teamwork">
+                                            <i class="fas fa-users me-1"></i>Teamwork
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button type="button" class="btn btn-outline-primary btn-sm w-100 template-btn" data-template="leadership">
+                                            <i class="fas fa-star me-1"></i>Leadership
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- EXISTING CRITERIA MANAGEMENT -->
+            <div class="mt-5">
+                <h6 class="fw-semibold mb-3 text-dark border-bottom pb-2">
+                    <i class="fas fa-list-check me-2"></i>Existing Performance Criteria
+                </h6>
+                
+                {% if attributes %}
+                <div class="row" id="existingCriteria">
+                    {% for attribute in attributes %}
+                    <div class="col-lg-6 mb-3">
+                        <div class="card border-0 shadow-sm h-100 criteria-item">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <h6 class="fw-semibold mb-0 text-dark">{{ attribute.name }}</h6>
+                                <div class="btn-group">
+                                    <!-- EDIT ATTRIBUTE BUTTON -->
+                                    <button class="btn btn-sm btn-warning text-white" 
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editAttributeModal"
+                                            data-attribute-id="{{ attribute.id }}"
+                                            data-attribute-name="{{ attribute.name }}"
+                                            title="Edit Attribute">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </button>
+                                    <!-- DELETE ATTRIBUTE BUTTON -->
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="attribute_id" value="{{ attribute.id }}">
+                                        <button type="submit" name="action" value="delete_attribute" 
+                                                class="btn btn-sm btn-danger text-white"
+                                                onclick="return confirm('Delete this criteria and all indicators?')"
+                                                title="Delete Attribute">
+                                            <i class="fas fa-trash me-1"></i>Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                {% if attribute.indicators.all %}
+                                <ul class="list-group list-group-flush">
+                                    {% for indicator in attribute.indicators.all %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 border-0 py-2">
+                                        <span class="text-dark small flex-grow-1">{{ indicator.description }}</span>
+                                        <div class="btn-group btn-group-sm ms-2">
+                                            <!-- EDIT INDICATOR BUTTON -->
+                                            <button class="btn btn-warning text-white px-3"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editIndicatorModal"
+                                                    data-indicator-id="{{ indicator.id }}"
+                                                    data-indicator-desc="{{ indicator.description }}"
+                                                    title="Edit Indicator">
+                                                <i class="fas fa-edit me-1"></i>Edit
+                                            </button>
+                                            <!-- DELETE INDICATOR BUTTON -->
+                                            <form method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="indicator_id" value="{{ indicator.id }}">
+                                                <button type="submit" name="action" value="delete_indicator" 
+                                                        class="btn btn-danger text-white px-3"
+                                                        onclick="return confirm('Delete this indicator?')"
+                                                        title="Delete Indicator">
+                                                    <i class="fas fa-trash me-1"></i>Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                <p class="text-muted small mb-0">No indicators defined</p>
+                                {% endif %}
+                                
+                                <!-- Add Indicator to Existing Attribute -->
+                                <form method="post" class="mt-3">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="attribute_id" value="{{ attribute.id }}">
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" name="indicator_desc" class="form-control" 
+                                               placeholder="Add new indicator..." required>
+                                        <button type="submit" name="action" value="add_indicator" 
+                                                class="btn btn-primary">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <div class="bg-light rounded p-4">
+                        <i class="fas fa-list-check display-4 text-muted d-block mb-3"></i>
+                        <h5 class="text-muted mb-2">No criteria defined yet</h5>
+                        <p class="text-muted">Use the interactive builder above to create your first performance criteria.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Information Card -->
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-gradient-info text-white py-3">
+            <h5 class="fw-semibold mb-0">
+                <i class="fas fa-lightbulb me-2"></i>Interactive Builder Guide
+            </h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <div class="text-center">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
+                            <i class="fas fa-pencil-alt text-primary fs-2"></i>
+                        </div>
+                        <h6 class="fw-semibold">1. Define Attribute</h6>
+                        <p class="text-muted small">Enter the main performance category</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="text-center">
+                        <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
+                            <i class="fas fa-list-check text-success fs-2"></i>
+                        </div>
+                        <h6 class="fw-semibold">2. Add Indicators</h6>
+                        <p class="text-muted small">Specify measurable behaviors</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="text-center">
+                        <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
+                            <i class="fas fa-eye text-warning fs-2"></i>
+                        </div>
+                        <h6 class="fw-semibold">3. Preview</h6>
+                        <p class="text-muted small">See how it will appear to staff</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="text-center">
+                        <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
+                            <i class="fas fa-save text-info fs-2"></i>
+                        </div>
+                        <h6 class="fw-semibold">4. Save</h6>
+                        <p class="text-muted small">Complete criteria saved instantly</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT ATTRIBUTE MODAL -->
+<div class="modal fade" id="editAttributeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-semibold">
+                    <i class="fas fa-edit me-2"></i>Edit Attribute
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" id="editAttributeForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit_attribute">
+                <input type="hidden" name="attribute_id" id="editAttributeId">
+                
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-warning mb-2">Attribute Name</label>
+                        <input type="text" name="attribute_name" id="editAttributeName" 
+                               class="form-control form-control-lg border-warning" 
+                               placeholder="Enter attribute name..." required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light rounded-bottom">
+                    <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-warning text-dark px-4 fw-semibold">
+                        <i class="fas fa-save me-1"></i>Update Attribute
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT INDICATOR MODAL -->
+<div class="modal fade" id="editIndicatorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-semibold">
+                    <i class="fas fa-edit me-2"></i>Edit Indicator
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" id="editIndicatorForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit_indicator">
+                <input type="hidden" name="indicator_id" id="editIndicatorId">
+                
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-warning mb-2">Indicator Description</label>
+                        <textarea name="indicator_desc" id="editIndicatorDesc" 
+                                  class="form-control form-control-lg border-warning" 
+                                  rows="3" placeholder="Enter indicator description..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light rounded-bottom">
+                    <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-warning text-dark px-4 fw-semibold">
+                        <i class="fas fa-save me-1"></i>Update Indicator
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Interactive Builder -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let indicatorCount = 0;
+    
+    // Initialize with one indicator field
+    addIndicatorField();
+    
+    // Add indicator field
+    document.getElementById('addIndicatorBtn').addEventListener('click', addIndicatorField);
+    
+    // Update preview in real-time
+    document.getElementById('newAttributeName').addEventListener('input', updatePreview);
+    
+    // Template buttons
+    document.querySelectorAll('.template-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            loadTemplate(this.dataset.template);
+        });
+    });
+
+    // Edit Attribute Modal Handler
+    const editAttributeModal = document.getElementById('editAttributeModal');
+    if (editAttributeModal) {
+        editAttributeModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            document.getElementById('editAttributeId').value = button.getAttribute('data-attribute-id');
+            document.getElementById('editAttributeName').value = button.getAttribute('data-attribute-name');
+        });
+    }
+
+    // Edit Indicator Modal Handler
+    const editIndicatorModal = document.getElementById('editIndicatorModal');
+    if (editIndicatorModal) {
+        editIndicatorModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            document.getElementById('editIndicatorId').value = button.getAttribute('data-indicator-id');
+            document.getElementById('editIndicatorDesc').value = button.getAttribute('data-indicator-desc');
+        });
+    }
+
+    function addIndicatorField() {
+        const container = document.getElementById('indicatorsContainer');
+        const index = indicatorCount++;
+        
+        const indicatorDiv = document.createElement('div');
+        indicatorDiv.className = 'input-group input-group-sm mb-2';
+        indicatorDiv.innerHTML = `
+            <input type="text" class="form-control indicator-input" 
+                   name="indicator_${index}"
+                   placeholder="e.g., Clearly articulates ideas and information" required>
+            <button type="button" class="btn btn-outline-danger remove-indicator">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        container.appendChild(indicatorDiv);
+        
+        // Add event listener for real-time preview
+        const input = indicatorDiv.querySelector('.indicator-input');
+        input.addEventListener('input', updatePreview);
+        
+        // Add remove functionality
+        indicatorDiv.querySelector('.remove-indicator').addEventListener('click', function() {
+            indicatorDiv.remove();
+            updatePreview();
+        });
+    }
+    
+    function updatePreview() {
+        const attributeName = document.getElementById('newAttributeName').value;
+        const attributePreview = document.getElementById('previewAttribute');
+        const indicatorsPreview = document.getElementById('previewIndicators');
+        
+        // Update attribute
+        attributePreview.textContent = attributeName || 'Not set';
+        attributePreview.className = attributeName ? 'text-primary fw-semibold' : 'text-muted';
+        
+        // Update indicators
+        const indicatorInputs = document.querySelectorAll('.indicator-input');
+        const indicators = Array.from(indicatorInputs)
+            .map(input => input.value.trim())
+            .filter(value => value !== '');
+        
+        indicatorsPreview.innerHTML = '';
+        
+        if (indicators.length > 0) {
+            indicators.forEach(indicator => {
+                const li = document.createElement('li');
+                li.className = 'text-dark small mb-1';
+                li.textContent = indicator;
+                indicatorsPreview.appendChild(li);
+            });
+        } else {
+            const li = document.createElement('li');
+            li.className = 'text-muted';
+            li.textContent = 'No indicators added yet';
+            indicatorsPreview.appendChild(li);
+        }
+    }
+    
+    function loadTemplate(templateType) {
+        const templates = {
+            communication: {
+                attribute: 'Communication Skills',
+                indicators: [
+                    'Clearly articulates ideas and information',
+                    'Listens actively and responds appropriately',
+                    'Adapts communication style to audience',
+                    'Provides constructive feedback'
+                ]
+            },
+            technical: {
+                attribute: 'Technical Expertise',
+                indicators: [
+                    'Demonstrates proficiency in required technical skills',
+                    'Applies technical knowledge to solve problems',
+                    'Stays updated with industry developments',
+                    'Shares technical knowledge with team members'
+                ]
+            },
+            teamwork: {
+                attribute: 'Teamwork & Collaboration',
+                indicators: [
+                    'Works effectively with team members',
+                    'Supports colleagues and shares workload',
+                    'Respects diverse perspectives and opinions',
+                    'Contributes to positive team environment'
+                ]
+            },
+            leadership: {
+                attribute: 'Leadership & Initiative',
+                indicators: [
+                    'Takes initiative without being asked',
+                    'Motivates and inspires team members',
+                    'Makes sound decisions under pressure',
+                    'Takes responsibility for outcomes'
+                ]
+            }
+        };
+        
+        const template = templates[templateType];
+        if (template) {
+            document.getElementById('newAttributeName').value = template.attribute;
+            
+            // Clear existing indicators
+            document.getElementById('indicatorsContainer').innerHTML = '';
+            indicatorCount = 0;
+            
+            // Add template indicators
+            template.indicators.forEach((indicator, index) => {
+                addIndicatorField();
+                const inputs = document.querySelectorAll('.indicator-input');
+                const lastInput = inputs[inputs.length - 1];
+                lastInput.value = indicator;
+                lastInput.name = `indicator_${index}`;
+            });
+            
+            updatePreview();
+        }
+    }
+});
+</script>
+
+<style>
+.card {
+    border-radius: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+}
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+}
+.criteria-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+.bg-gradient-success {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+}
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+}
+.bg-gradient-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%);
+}
+.indicator-input {
+    border-radius: 8px 0 0 8px;
+}
+.remove-indicator {
+    border-radius: 0 8px 8px 0;
+}
+
+/* Enhanced Button Styles */
+.btn-warning {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #212529 !important;
+    font-weight: 500;
+}
+.btn-danger {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: white !important;
+    font-weight: 500;
+}
+.btn-warning:hover {
+    background-color: #ffca2c !important;
+    border-color: #ffca2c !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+}
+.btn-danger:hover {
+    background-color: #bb2d3b !important;
+    border-color: #b02a37 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+.btn-group-sm .btn {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.75rem;
+}
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Modal Styles */
+.modal-content {
+    border-radius: 16px;
+    overflow: hidden;
+}
+.modal-header {
+    padding: 1.5rem;
+}
+.modal-body {
+    padding: 2rem;
+}
+.form-control-lg {
+    border-radius: 8px;
+    border: 2px solid #ffc107;
+    padding: 1rem;
+}
+.form-control-lg:focus {
+    border-color: #fd7e14;
+    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.25);
+}
+</style>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends 'hr/base.html' %}
+
+{% block title %}Generate Reports{% endblock %}
+{% block page_title %}Generate Institutional Reports{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="{% url 'hr:hr_dashboard' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Go Back
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <!-- Messages -->
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-file-alt me-2"></i>Report Generation
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Report Type</label>
+                            <select name="report_type" class="form-select" required>
+                                <option value="">Select Report Type</option>
+                                <option value="performance_summary">Performance Summary</option>
+                                <option value="department_analysis">Department Analysis</option>
+                                <option value="supervisor_ranking">Supervisor Ranking</option>
+                                <option value="comprehensive_analysis">Comprehensive Analysis</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Appraisal Period</label>
+                            <select name="report_period" class="form-select" required>
+                                <option value="">Select Period</option>
+                                {% for period in periods %}
+                                <option value="{{ period.id }}">{{ period.name }} ({{ period.start_date|date:"M Y" }} - {{ period.end_date|date:"M Y" }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Department (Optional)</label>
+                            <select name="department" class="form-select">
+                                <option value="">All Departments</option>
+                                {% for department in departments %}
+                                <option value="{{ department.id }}">{{ department.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Output Format</label>
+                            <select name="format" class="form-select">
+                                <option value="pdf">PDF Document</option>
+                                <option value="excel">Excel Spreadsheet</option>
+                                <option value="html">HTML Report</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary w-100 py-3">
+                                <i class="fas fa-download me-2"></i>Generate Report
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Report Types Information -->
+        <div class="row mt-4">
+            <div class="col-md-6 mb-3">
+                <div class="card h-100 border-primary">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-bar fa-2x text-primary mb-3"></i>
+                        <h6>Performance Summary</h6>
+                        <p class="small text-muted">Overall performance metrics and trends across all staff members</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card h-100 border-success">
+                    <div class="card-body text-center">
+                        <i class="fas fa-building fa-2x text-success mb-3"></i>
+                        <h6>Department Analysis</h6>
+                        <p class="small text-muted">Department-wise performance comparison and insights</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card h-100 border-warning">
+                    <div class="card-body text-center">
+                        <i class="fas fa-trophy fa-2x text-warning mb-3"></i>
+                        <h6>Supervisor Ranking</h6>
+                        <p class="small text-muted">Rank supervisors by evaluation scores and performance</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card h-100 border-info">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-line fa-2x text-info mb-3"></i>
+                        <h6>Comprehensive Analysis</h6>
+                        <p class="small text-muted">Detailed analysis with recommendations and insights</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Navigation -->
+        <div class="card border-info mt-4">
+            <div class="card-header bg-info text-white py-2">
+                <h6 class="m-0">
+                    <i class="fas fa-compass me-2"></i>Quick Navigation
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-2">
+                        <a href="{% url 'hr:hr_view_reports' %}" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="fas fa-list me-1"></i> View Reports
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <a href="{% url 'hr:hr_performance_analytics' %}" class="btn btn-outline-success btn-sm w-100">
+                            <i class="fas fa-chart-line me-1"></i> Analytics
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <a href="{% url 'hr:hr_dashboard' %}" class="btn btn-outline-secondary btn-sm w-100">
+                            <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

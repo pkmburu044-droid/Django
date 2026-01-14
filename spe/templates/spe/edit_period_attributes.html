@@ -1,0 +1,377 @@
+{% extends 'dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Manage Attributes - {{ period.name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.attribute-section {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+.attribute-section:hover {
+    background-color: #f0f2f5;
+}
+.indicator-row {
+    border-left: 3px solid #0d6efd;
+    padding-left: 1rem;
+}
+.empty-state {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+.attribute-actions, .indicator-actions {
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+.attribute-section:hover .attribute-actions,
+.indicator-row:hover .indicator-actions {
+    opacity: 1;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <div class="d-flex align-items-center">
+                        <h2>
+                            <i class="bi bi-list-check me-2"></i>Manage Evaluation Attributes
+                        </h2>
+                        <div class="ms-auto">
+                            <span class="badge {% if period.is_active %}bg-success{% else %}bg-secondary{% endif %} me-2">
+                                {% if period.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                            <a href="{% url 'spe:manage_attributes' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>Back to Periods
+                            </a>
+                        </div>
+                    </div>
+                    <p class="text-muted mb-0 mt-2">
+                        Period: <strong>{{ period.name }}</strong>
+                        {% if period.start_date and period.end_date %}
+                            ({{ period.start_date|date:"M d, Y" }} - {{ period.end_date|date:"M d, Y" }})
+                        {% endif %}
+                        | Department: <strong>{{ request.user.department.name }}</strong>
+                    </p>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Messages -->
+                    {% if messages %}
+                    <div class="alert-container mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <div class="d-flex align-items-center">
+                                {% if message.tags == 'success' %}
+                                    <i class="bi bi-check-circle-fill me-2"></i>
+                                {% elif message.tags == 'error' %}
+                                    <i class="bi bi-exclamation-circle-fill me-2"></i>
+                                {% elif message.tags == 'warning' %}
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                {% else %}
+                                    <i class="bi bi-info-circle-fill me-2"></i>
+                                {% endif %}
+                                <span>{{ message }}</span>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" id="attributes-form">
+                        {% csrf_token %}
+                        
+                        <!-- Period Information -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-calendar me-2"></i>Period Information
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Period Name *</label>
+                                        <input type="text" class="form-control" name="period_name" 
+                                               value="{{ period.name }}" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Start Date</label>
+                                        <input type="date" class="form-control" name="start_date" 
+                                               value="{{ period.start_date|date:'Y-m-d' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">End Date</label>
+                                        <input type="date" class="form-control" name="end_date" 
+                                               value="{{ period.end_date|date:'Y-m-d' }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add New Attribute -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-plus-circle me-2"></i>Add New Attribute
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-10">
+                                        <label class="form-label fw-bold">Attribute Name *</label>
+                                        <input type="text" class="form-control" name="new_attribute_name" 
+                                               placeholder="e.g., 'Teaching Excellence', 'Research Output', 'Professional Development'"
+                                               maxlength="200">
+                                        <div class="form-text">
+                                            Attributes are the main categories for evaluation. Each can have multiple indicators.
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-success w-100 h-100">
+                                            <i class="bi bi-plus-lg me-1"></i>Add Attribute
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add New Indicator -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-plus-circle me-2"></i>Add New Indicator
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-5">
+                                        <label class="form-label fw-bold">Select Attribute *</label>
+                                        <select class="form-select" name="new_indicator_attribute">
+                                            <option value="">-- Choose Attribute --</option>
+                                            {% for attribute in attributes %}
+                                            <option value="{{ attribute.id }}">{{ attribute.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if not attributes %}
+                                        <div class="form-text text-warning">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>
+                                            You need to create attributes first before adding indicators
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label fw-bold">Indicator Description *</label>
+                                        <input type="text" class="form-control" name="new_indicator_desc" 
+                                               placeholder="e.g., 'Quality of course materials', 'Student engagement', 'Research publications'"
+                                               maxlength="500">
+                                        <div class="form-text">
+                                            Indicators are specific criteria under each attribute for detailed assessment.
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        {% if attributes %}
+                                        <button type="submit" class="btn btn-info w-100 h-100">
+                                            <i class="bi bi-plus-lg me-1"></i>Add Indicator
+                                        </button>
+                                        {% else %}
+                                        <button type="button" class="btn btn-info w-100 h-100" disabled>
+                                            <i class="bi bi-plus-lg me-1"></i>Add Indicator
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Attributes and Indicators -->
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <div class="d-flex align-items-center">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-list-check me-2"></i>Attributes & Indicators
+                                    </h5>
+                                    <span class="badge bg-light text-dark ms-2">{{ attributes|length }} attributes</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                {% if attributes %}
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-lightbulb me-2"></i>
+                                        Manage your evaluation criteria below. Each attribute can have multiple indicators.
+                                    </div>
+                                    
+                                    {% for attribute in attributes %}
+                                    <div class="attribute-section mb-4 p-4 border rounded">
+                                        <div class="row mb-3 align-items-start">
+                                            <div class="col-md-10">
+                                                <h5 class="text-primary mb-3">
+                                                    <i class="bi bi-tag me-2"></i>
+                                                    <input type="text" class="form-control border-0 bg-transparent p-0 fs-5 fw-bold text-primary" 
+                                                           name="attribute_{{ attribute.id }}_name" 
+                                                           value="{{ attribute.name }}" required
+                                                           style="border-bottom: 1px dashed #0d6efd !important;">
+                                                </h5>
+                                            </div>
+                                            <div class="col-md-2 d-flex align-items-start attribute-actions">
+                                                <button type="button" class="btn btn-outline-danger w-100" 
+                                                        onclick="confirmDeleteAttribute({{ attribute.id }}, '{{ attribute.name|escapejs }}')"
+                                                        title="Delete attribute and all its indicators">
+                                                    <i class="bi bi-trash me-1"></i>Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Indicators for this attribute -->
+                                        <div class="indicators-container ps-4 mt-3">
+                                            <h6 class="mb-3 border-bottom pb-2">
+                                                <i class="bi bi-list-ul me-2"></i>Indicators
+                                                <span class="badge bg-primary ms-2">{{ attribute.indicators.count }}</span>
+                                            </h6>
+                                            
+                                            {% if attribute.indicators.all %}
+                                                {% for indicator in attribute.indicators.all %}
+                                                <div class="indicator-row row mb-3 g-2">
+                                                    <div class="col-md-10">
+                                                        <div class="form-group">
+                                                            <label class="form-label small fw-bold">Description</label>
+                                                            <input type="text" class="form-control" 
+                                                                   name="indicator_{{ indicator.id }}_name" 
+                                                                   value="{{ indicator.description }}" required
+                                                                   placeholder="Indicator description">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2 d-flex align-items-end indicator-actions">
+                                                        <button type="button" class="btn btn-outline-danger btn-sm w-100" 
+                                                                onclick="confirmDeleteIndicator({{ indicator.id }}, '{{ indicator.description|truncatechars:50|escapejs }}')"
+                                                                title="Delete indicator">
+                                                            <i class="bi bi-trash me-1"></i>Delete
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            {% else %}
+                                                <div class="text-center py-3 empty-state rounded">
+                                                    <i class="bi bi-inbox display-6 text-muted d-block mb-2"></i>
+                                                    <p class="text-muted mb-0">No indicators yet. Add one above!</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                    
+                                    <!-- Save Changes Button -->
+                                    <div class="mt-4 p-3 bg-light rounded">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-8">
+                                                <h6 class="mb-0">
+                                                    <i class="bi bi-cloud-check me-2"></i>Save All Changes
+                                                </h6>
+                                                <small class="text-muted">Save period information, attributes, and indicators</small>
+                                            </div>
+                                            <div class="col-md-4 text-end">
+                                                <button type="submit" class="btn btn-primary btn-lg me-2">
+                                                    <i class="bi bi-check-circle me-1"></i>Save All Changes
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                {% else %}
+                                    <div class="text-center py-5 empty-state rounded">
+                                        <i class="bi bi-inbox display-1 text-muted d-block mb-3"></i>
+                                        <h4 class="text-muted">No Attributes Found</h4>
+                                        <p class="text-muted mb-4">Start by adding your first attribute above.</p>
+                                        <div class="alert alert-warning">
+                                            <i class="bi bi-exclamation-triangle me-2"></i>
+                                            You need at least one attribute to create evaluation forms.
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDeleteAttribute(attributeId, attributeName) {
+    if (confirm(`Are you sure you want to delete the attribute "${attributeName}" and ALL its indicators?\n\nThis action cannot be undone and will affect all evaluations using this attribute.`)) {
+        // Create a hidden form and submit it to the current page with delete action
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = window.location.pathname;
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = '{{ csrf_token }}';
+        form.appendChild(csrfInput);
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'delete_attribute';
+        form.appendChild(actionInput);
+        
+        const attrInput = document.createElement('input');
+        attrInput.type = 'hidden';
+        attrInput.name = 'attribute_id';
+        attrInput.value = attributeId;
+        form.appendChild(attrInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function confirmDeleteIndicator(indicatorId, indicatorDesc) {
+    if (confirm(`Are you sure you want to delete the indicator "${indicatorDesc}"?\n\nThis action cannot be undone.`)) {
+        // Create a hidden form and submit it to the current page with delete action
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = window.location.pathname;
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = '{{ csrf_token }}';
+        form.appendChild(csrfInput);
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'delete_indicator';
+        form.appendChild(actionInput);
+        
+        const indInput = document.createElement('input');
+        indInput.type = 'hidden';
+        indInput.name = 'indicator_id';
+        indInput.value = indicatorId;
+        form.appendChild(indInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Form loading state
+document.getElementById('attributes-form').addEventListener('submit', function(e) {
+    const submitBtns = this.querySelectorAll('button[type="submit"]');
+    submitBtns.forEach(btn => {
+        btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Saving...';
+        btn.disabled = true;
+    });
+});
+</script>
+{% endblock %}

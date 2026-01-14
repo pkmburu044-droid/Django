@@ -1,0 +1,117 @@
+{% extends 'dashboards/base.html' %}
+{% load static %}
+{% load math_filters %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">✅ Evaluation Completed Successfully</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Summary Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h1 class="display-4 text-{{ performance_class }}">{{ results.percentage_score }}%</h1>
+                                    <p class="mb-0">Overall Score</p>
+                                    <span class="badge bg-{{ performance_class }} mt-2">{{ performance }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5>Evaluation Summary</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Staff Member:</strong><br>{{ results.staff_name }}</p>
+                                            <p><strong>Evaluation Period:</strong><br>{{ results.period }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Indicators Evaluated:</strong><br>{{ results.total_indicators }}</p>
+                                            <p><strong>Average Rating:</strong><br>{{ results.avg_score }}/5.0</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Breakdown -->
+                    <h5 class="mb-3">Performance Breakdown</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Attribute</th>
+                                    <th>Indicator</th>
+                                    <th class="text-center">Weight</th>
+                                    <th class="text-center">Rating</th>
+                                    <th class="text-center">Weighted Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for eval in evaluations %}
+                                <tr>
+                                    <td>{{ eval.self_assessment.attribute.name }}</td>
+                                    <td>{{ eval.self_assessment.indicator.description }}</td>
+                                    <td class="text-center">{{ eval.self_assessment.indicator.weight }}</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">{{ eval.supervisor_rating }}/5</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong>{{ eval.supervisor_rating|floatformat:1 }} × {{ eval.self_assessment.indicator.weight }} = {{ eval.supervisor_rating|floatformat:1|multiply:eval.self_assessment.indicator.weight|floatformat:1 }}</strong>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-dark">
+                                <tr>
+                                    <td colspan="4" class="text-end"><strong>Total Weighted Score:</strong></td>
+                                    <td class="text-center"><strong>{{ results.weighted_score|floatformat:1 }}</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Performance Interpretation -->
+                    <div class="alert alert-{{ performance_class }} mt-4">
+                        <h6>Performance Interpretation:</h6>
+                        <p class="mb-0">
+                            {% if performance == "Outstanding" %}
+                            🎉 Exceptional performance exceeding all expectations. Consistently demonstrates excellence.
+                            {% elif performance == "Excellent" %}
+                            👍 Strong performance that exceeds expectations in most areas.
+                            {% elif performance == "Very Good" %}
+                            👏 Solid performance meeting all expectations consistently.
+                            {% elif performance == "Good" %}
+                            ✅ Meets expectations with some areas for improvement.
+                            {% elif performance == "Satisfactory" %}
+                            ℹ️  Meets basic requirements but needs development in some areas.
+                            {% else %}
+                            📝 Requires significant improvement and development planning.
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2 mt-4 flex-wrap">
+                        <a href="{% url 'dashboards:view_staff_evaluations' %}" class="btn btn-primary">
+                            ← Back to Staff List
+                        </a>
+                        <a href="{% url 'dashboards:supervisor_dashboard' %}" class="btn btn-outline-primary">
+                            📊 Dashboard
+                        </a>
+                        <button onclick="window.print()" class="btn btn-outline-secondary">
+                            🖨️ Print Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

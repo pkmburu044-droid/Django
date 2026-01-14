@@ -1,0 +1,573 @@
+{% extends 'hr/base.html' %}
+
+{% block title %}HR Dashboard{% endblock %}
+{% block page_title %}HR Performance Dashboard{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <button class="btn btn-primary px-4" onclick="window.location.href='#'">
+        <i class="fas fa-list me-2"></i>All Appraisals
+    </button>
+    <button class="btn btn-outline-primary px-4" onclick="window.location.href='{% url 'hr:hr_generate_reports' %}'">
+        <i class="fas fa-chart-bar me-2"></i>Analytics
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Modern Dashboard Layout -->
+<div class="dashboard-container">
+    <!-- Top Metrics Row -->
+    <div class="row mb-4">
+        <!-- Total Staff -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="metric-card card-hover">
+                <div class="metric-header">
+                    <div class="metric-icon bg-primary-soft">
+                        <i class="fas fa-users text-primary"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h6 class="metric-label">Total Staff</h6>
+                        <h2 class="metric-value">{{ total_staff }}</h2>
+                    </div>
+                </div>
+                <div class="metric-footer">
+                    <span class="badge bg-primary-soft text-primary">Active Employees</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appraisals -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="metric-card card-hover">
+                <div class="metric-header">
+                    <div class="metric-icon bg-info-soft">
+                        <i class="fas fa-clipboard-list text-info"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h6 class="metric-label">Appraisals</h6>
+                        <h2 class="metric-value">{{ total_appraisals }}</h2>
+                    </div>
+                </div>
+                <div class="metric-footer">
+                    <span class="badge bg-info-soft text-info">This Period</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Review -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="metric-card card-hover">
+                <div class="metric-header">
+                    <div class="metric-icon bg-warning-soft">
+                        <i class="fas fa-clock text-warning"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h6 class="metric-label">Pending Review</h6>
+                        <h2 class="metric-value">{{ submitted_count }}</h2>
+                    </div>
+                </div>
+                <div class="metric-footer">
+                    <span class="badge bg-warning-soft text-warning">Awaiting Action</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Targets -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="metric-card card-hover">
+                <div class="metric-header">
+                    <div class="metric-icon bg-danger-soft">
+                        <i class="fas fa-bullseye text-danger"></i>
+                    </div>
+                    <div class="metric-info">
+                        <h6 class="metric-label">Pending Targets</h6>
+                        <h2 class="metric-value">{{ pending_targets }}</h2>
+                    </div>
+                </div>
+                <div class="metric-footer">
+                    <span class="badge bg-danger-soft text-danger">To Be Approved</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="row g-4">
+        <!-- Left Column: Performance Overview -->
+        <div class="col-lg-4">
+            <!-- Performance Score Card -->
+            <div class="card card-hover shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-chart-line text-primary me-2"></i>Performance Overview
+                    </h6>
+                    <span class="badge bg-primary">Avg: {{ avg_score|floatformat:1 }}%</span>
+                </div>
+                <div class="card-body">
+                    <!-- Main Score Display -->
+                    <div class="text-center mb-4">
+                        <div class="performance-score-display">
+                            <div class="score-circle">
+                                <div class="score-value">{{ avg_score|floatformat:1 }}%</div>
+                                <div class="score-label">Average</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Score Range -->
+                    <div class="score-range-container">
+                        <div class="score-item">
+                            <div class="score-indicator bg-success"></div>
+                            <div class="score-info">
+                                <div class="score-number">{{ highest_score|floatformat:1 }}%</div>
+                                <small class="text-muted">Highest Score</small>
+                            </div>
+                        </div>
+                        <div class="score-item">
+                            <div class="score-indicator bg-danger"></div>
+                            <div class="score-info">
+                                <div class="score-number">{{ lowest_score|floatformat:1 }}%</div>
+                                <small class="text-muted">Lowest Score</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Distribution -->
+            <div class="card card-hover shadow-sm border-0">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-tasks text-primary me-2"></i>Status Distribution
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Appraisal Status -->
+                    <h6 class="fw-semibold text-dark mb-3">Appraisal Status</h6>
+                    <div class="status-list">
+                        <div class="status-item">
+                            <div class="status-info">
+                                <div class="status-dot bg-success"></div>
+                                <span>Finalized</span>
+                            </div>
+                            <span class="status-count">{{ finalized_count }}</span>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-info">
+                                <div class="status-dot bg-info"></div>
+                                <span>Reviewed</span>
+                            </div>
+                            <span class="status-count">{{ reviewed_count }}</span>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-info">
+                                <div class="status-dot bg-warning"></div>
+                                <span>Submitted</span>
+                            </div>
+                            <span class="status-count">{{ submitted_count }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Targets Status -->
+                    <hr class="my-4">
+                    <h6 class="fw-semibold text-dark mb-3">Targets Status</h6>
+                    <div class="targets-status">
+                        <div class="target-item text-center">
+                            <div class="target-count text-success">{{ approved_targets_count }}</div>
+                            <small class="text-muted">Approved</small>
+                        </div>
+                        <div class="target-item text-center">
+                            <div class="target-count text-warning">{{ pending_targets }}</div>
+                            <small class="text-muted">Pending</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Quick Actions & Additional Info -->
+        <div class="col-lg-8">
+            <!-- Quick Actions Grid -->
+            <div class="card card-hover shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-rocket text-primary me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Manage Forms -->
+                        <div class="col-md-4 col-6">
+                            <a href="{% url 'spe:manage_attributes' %}" class="action-card">
+                                <div class="action-icon bg-primary-soft">
+                                    <i class="fas fa-edit text-primary"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h6 class="action-title">Manage Forms</h6>
+                                    <p class="action-description">Create evaluation criteria</p>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Staff Appraisals -->
+                        <div class="col-md-4 col-6">
+                            <a href="#" class="action-card">
+                                <div class="action-icon bg-success-soft">
+                                    <i class="fas fa-clipboard-check text-success"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h6 class="action-title">Staff Appraisals</h6>
+                                    <p class="action-description">Review evaluations</p>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Analytics -->
+                        <div class="col-md-4 col-6">
+                            <a href="{% url 'hr:hr_generate_reports' %}" class="action-card">
+                                <div class="action-icon bg-info-soft">
+                                    <i class="fas fa-chart-bar text-info"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h6 class="action-title">Analytics</h6>
+                                    <p class="action-description">View reports</p>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Placeholder for additional actions -->
+                        <div class="col-md-4 col-6">
+                            <div class="action-card coming-soon">
+                                <div class="action-icon bg-secondary-soft">
+                                    <i class="fas fa-plus text-secondary"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h6 class="action-title">More Actions</h6>
+                                    <p class="action-description">Coming soon</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity / Summary Section -->
+            <div class="card card-hover shadow-sm border-0">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-history text-primary me-2"></i>Recent Summary
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="summary-item">
+                                <div class="summary-icon bg-primary">
+                                    <i class="fas fa-user-check text-white"></i>
+                                </div>
+                                <div class="summary-content">
+                                    <h6>Active Evaluators</h6>
+                                    <p class="text-muted mb-0">Staff conducting evaluations</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="summary-item">
+                                <div class="summary-icon bg-success">
+                                    <i class="fas fa-calendar-alt text-white"></i>
+                                </div>
+                                <div class="summary-content">
+                                    <h6>Current Cycle</h6>
+                                    <p class="text-muted mb-0">Q4 2024 Performance Review</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modern Dashboard Styling */
+.dashboard-container {
+    padding: 0 0.5rem;
+}
+
+/* Metric Cards */
+.metric-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.metric-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.metric-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+}
+
+.metric-info {
+    flex: 1;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+.metric-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0;
+    line-height: 1;
+}
+
+.metric-footer {
+    border-top: 1px solid #f1f3f4;
+    padding-top: 0.75rem;
+}
+
+/* Color Utilities */
+.bg-primary-soft { background-color: rgba(13, 110, 253, 0.1); }
+.bg-info-soft { background-color: rgba(13, 202, 240, 0.1); }
+.bg-warning-soft { background-color: rgba(255, 193, 7, 0.1); }
+.bg-danger-soft { background-color: rgba(220, 53, 69, 0.1); }
+.bg-success-soft { background-color: rgba(25, 135, 84, 0.1); }
+.bg-secondary-soft { background-color: rgba(108, 117, 125, 0.1); }
+
+/* Performance Score Display */
+.performance-score-display {
+    position: relative;
+}
+
+.score-circle {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #007bff;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.15);
+}
+
+.score-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1;
+}
+
+.score-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+/* Score Range */
+.score-range-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.score-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.score-indicator {
+    width: 8px;
+    height: 32px;
+    border-radius: 4px;
+    margin-right: 0.75rem;
+}
+
+.score-number {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.125rem;
+}
+
+/* Status List */
+.status-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+}
+
+.status-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.status-count {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Targets Status */
+.targets-status {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+}
+
+.target-item {
+    flex: 1;
+}
+
+.target-count {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+/* Quick Actions */
+.action-card {
+    display: block;
+    padding: 1.25rem;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #007bff;
+    color: inherit;
+}
+
+.action-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+}
+
+.action-icon i {
+    font-size: 1.25rem;
+}
+
+.action-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #2c3e50;
+}
+
+.action-description {
+    font-size: 0.8125rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+.coming-soon {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Summary Items */
+.summary-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.summary-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.summary-content h6 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.125rem;
+    color: #2c3e50;
+}
+
+/* Hover Effects */
+.card-hover {
+    transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .score-range-container {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .targets-status {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .metric-value {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

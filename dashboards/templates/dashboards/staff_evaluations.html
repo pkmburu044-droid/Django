@@ -1,0 +1,89 @@
+
+{% extends "dashboards/base.html" %}
+{% block title %}Staff Evaluations — {{ department.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                👨‍🏫 Staff Evaluations — {{ department.name }}
+            </h5>
+            {% if active_period %}
+                <span class="badge bg-info text-dark">
+                    Active Period: {{ active_period.name }}
+                </span>
+            {% else %}
+                <span class="badge bg-secondary">No Active Period</span>
+            {% endif %}
+        </div>
+
+        <div class="card-body">
+            {% if staff_data %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Staff Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Appraisal Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in staff_data %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ item.staff.first_name }} {{ item.staff.last_name }}</td>
+                                    <td>{{ item.staff.email }}</td>
+                                    <td>{{ item.staff.get_role_display }}</td>
+                                    <td>
+                                        {% if item.appraisal %}
+                                            {% if item.appraisal.status == "submitted" %}
+                                                <span class="badge bg-success">Submitted</span>
+                                            {% elif item.appraisal.status == "reviewed" %}
+                                                <span class="badge bg-warning text-dark">Reviewed</span>
+                                            {% elif item.appraisal.status == "finalized" %}
+                                                <span class="badge bg-info text-dark">Finalized</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Draft</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-secondary">Not Submitted</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if item.appraisal and item.appraisal.status == "submitted" %}
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-success"
+                                                onclick="window.location.href='{% url 'dashboards:evaluate_staff' item.appraisal.id %}'"
+                                            >
+                                                Evaluate
+                                            </button>
+                                        {% elif item.appraisal %}
+                                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                                Cannot Evaluate
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                                Awaiting Submission
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    No staff found in {{ department.name }} department.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

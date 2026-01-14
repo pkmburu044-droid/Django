@@ -1,0 +1,398 @@
+{% extends "dashboards/base.html" %}
+{% load dashboard_extras %}
+{% block title %}Staff Evaluation Results{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if not appraisal %}
+        <!-- LIST VIEW: All Reviewed Appraisals -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2>📊 Staff Evaluation Results</h2>
+                <p class="text-muted">View and export evaluated staff performance records</p>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-primary fs-6">
+                    {{ department.name }}
+                </span>
+            </div>
+        </div>
+
+        {% if not appraisals %}
+            <div class="alert alert-info text-center">
+                <h5>📭 No Evaluations Found</h5>
+                <p class="mb-0">No staff evaluations have been completed in your department yet.</p>
+            </div>
+        {% else %}
+            <!-- Evaluation Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h4>{{ appraisals|length }}</h4>
+                            <p class="mb-0">Evaluated Staff</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h4>{{ appraisals|length }}</h4>
+                            <p class="mb-0">Completed</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <h4>{{ department.name }}</h4>
+                            <p class="mb-0">Department</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <h4>{{ appraisals.0.period.name }}</h4>
+                            <p class="mb-0">Active Period</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staff Evaluations Table -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Evaluated Staff Members</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>Staff Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Evaluation Period</th>
+                                    <th>Status</th>
+                                    <th>Evaluation Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in appraisals %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ app.profile.user.get_full_name }}</strong>
+                                    </td>
+                                    <td>{{ app.profile.user.email }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ app.profile.user.get_role_display }}</span>
+                                    </td>
+                                    <td>{{ app.period.name }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if app.status == 'reviewed' %}success{% else %}info{% endif %}">
+                                            {{ app.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ app.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'dashboards:supervisor_evaluation_results_detail' app.id %}" 
+                                               class="btn btn-outline-primary">
+                                                👁️ View
+                                            </a>
+                                            <a href="{% url 'dashboards:supervisor_evaluation_results_detail' app.id %}?export=pdf" 
+                                               class="btn btn-outline-success">
+                                                📄 PDF
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+    {% else %}
+        <!-- DETAIL VIEW: Single Staff Evaluation -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2>📋 Evaluation Results</h2>
+                <p class="text-muted">Detailed performance evaluation for {{ appraisal.profile.user.get_full_name }}</p>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-{{ performance_class }} fs-6">
+                    {{ performance }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Header Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1">{{ appraisal.profile.user.get_full_name }}</h4>
+                        <p class="mb-0">{{ appraisal.profile.user.email }}</p>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-light text-dark fs-6">
+                            {{ appraisal.profile.user.get_role_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Department:</strong> {{ appraisal.profile.department.name }}</p>
+                        <p class="mb-1"><strong>Evaluation Period:</strong> {{ appraisal.period.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Overall Score:</strong> {{ summary.percentage_score }}%</p>
+                        <p class="mb-0"><strong>Average Rating:</strong> {{ summary.avg_score }}/5</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Summary -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <h3>{{ summary.percentage_score }}%</h3>
+                        <p class="mb-0">Overall Score</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h3>{{ summary.avg_score }}/5</h3>
+                        <p class="mb-0">Average Rating</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h3>{{ summary.total_indicators }}</h3>
+                        <p class="mb-0">Indicators Rated</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body text-center">
+                        <h3>{{ performance }}</h3>
+                        <p class="mb-0">Performance</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <a href="{% url 'dashboards:supervisor_evaluation_results' %}" class="btn btn-outline-secondary">
+                            ← Back to All Evaluations
+                        </a>
+                        <a href="{% url 'dashboards:view_staff_evaluations' %}" class="btn btn-outline-primary ms-2">
+                            📊 Staff List
+                        </a>
+                    </div>
+                    <div>
+                        <a href="?export=pdf" class="btn btn-success">
+                            📄 Export as PDF
+                        </a>
+                        <button onclick="window.print()" class="btn btn-outline-dark ms-2">
+                            🖨️ Print
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Evaluation Results -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">📊 Detailed Performance Evaluation</h5>
+            </div>
+            <div class="card-body p-0">
+                {% regroup self_assessments by attribute as grouped_attrs %}
+                
+                {% for group in grouped_attrs %}
+                <div class="border-bottom">
+                    <div class="p-3 bg-light">
+                        <h6 class="mb-0 text-primary">📋 {{ group.grouper.name }}</h6>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th width="40%">Performance Indicator</th>
+                                    <th width="15%">Staff Self-Rating</th>
+                                    <th width="15%">Supervisor Rating</th>
+                                    <th width="30%">Supervisor Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sa in group.list %}
+                                {% with eval=supervisor_evals|get_item:sa.id %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">{{ sa.indicator.description }}</div>
+                                        {% if sa.indicator.weight != 1.0 %}
+                                            <small class="text-muted">Weight: {{ sa.indicator.weight }}</small>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td>
+                                        {% if sa.self_rating %}
+                                            <span class="badge bg-info fs-6">{{ sa.self_rating }}/5</span>
+                                            <small class="text-muted d-block">
+                                                {% if sa.self_rating == 1 %}Poor
+                                                {% elif sa.self_rating == 2 %}Fair
+                                                {% elif sa.self_rating == 3 %}Good
+                                                {% elif sa.self_rating == 4 %}Very Good
+                                                {% else %}Excellent
+                                                {% endif %}
+                                            </small>
+                                        {% else %}
+                                            <span class="text-muted fst-italic">Not rated</span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td>
+                                        {% if eval.supervisor_rating %}
+                                            <span class="badge bg-{% if eval.supervisor_rating >= 4 %}success{% elif eval.supervisor_rating >= 3 %}warning{% else %}danger{% endif %} fs-6">
+                                                {{ eval.supervisor_rating }}/5
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted fst-italic">Not rated</span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td>
+                                        {% if eval.remarks %}
+                                            <div class="small">{{ eval.remarks }}</div>
+                                        {% else %}
+                                            <span class="text-muted fst-italic">No remarks</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endwith %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Performance History -->
+        {% if all_staff_appraisals %}
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">📈 Performance History</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Status</th>
+                                <th>Evaluation Date</th>
+                                <th>Supervisor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hist_app in all_staff_appraisals %}
+                            <tr>
+                                <td>{{ hist_app.period.name }}</td>
+                                <td>
+                                    <span class="badge bg-{% if hist_app.status == 'reviewed' %}success{% else %}secondary{% endif %}">
+                                        {{ hist_app.status|title }}
+                                    </span>
+                                </td>
+                                <td>{{ hist_app.created_at|date:"M d, Y" }}</td>
+                                <td>{{ hist_app.supervisor_name|default:"Not specified" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Rating Guide -->
+        <div class="card bg-light mt-4">
+            <div class="card-body">
+                <h6>📋 Rating Guide</h6>
+                <div class="row small">
+                    <div class="col-md-2 text-center">
+                        <span class="badge bg-danger">1 - Poor</span>
+                        <div class="text-muted">Below expectations</div>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <span class="badge bg-warning text-dark">2 - Fair</span>
+                        <div class="text-muted">Needs improvement</div>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <span class="badge bg-info">3 - Good</span>
+                        <div class="text-muted">Meets expectations</div>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <span class="badge bg-primary">4 - Very Good</span>
+                        <div class="text-muted">Exceeds expectations</div>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <span class="badge bg-success">5 - Excellent</span>
+                        <div class="text-muted">Outstanding performance</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+@media print {
+    .btn, .card-header .badge {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #ddd !important;
+    }
+    
+    .bg-primary, .bg-success, .bg-info, .bg-warning {
+        background-color: #f8f9fa !important;
+        color: #000 !important;
+    }
+}
+
+.table th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+.card-header h5, .card-header h4 {
+    font-size: 1.1rem;
+}
+
+.badge {
+    font-size: 0.8em;
+}
+</style>
+{% endblock %}

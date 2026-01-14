@@ -1,0 +1,454 @@
+<!-- users/templates/users/view_targets.html -->
+{% extends 'dashboards/base.html' %}
+
+{% block title %}My Performance Targets - SPE System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <!-- ✅ ADD: Go Back Button -->
+                <a href="{% url 'users:role_based_redirect' %}" class="btn btn-outline-light btn-sm me-2">
+                    <i class="bi bi-arrow-left me-1"></i>Go Back
+                </a>
+                <h4 class="mb-0">
+                    <i class="bi bi-bullseye me-2"></i>My Performance Targets
+                </h4>
+            </div>
+            <a href="{% url 'users:set_performance_targets' %}" class="btn btn-light btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Set New Targets
+            </a>
+        </div>
+        <div class="card-body">
+            {% if current_period %}
+                <div class="alert alert-info mb-4">
+                    <h5 class="mb-1"><i class="bi bi-calendar me-2"></i>Evaluation Period: {{ current_period.name }}</h5>
+                    {% if current_period.end_date %}
+                        <p class="mb-0"><strong>Deadline:</strong> {{ current_period.end_date }}</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- ✅ ADD: Status Overview Cards -->
+            {% if has_targets %}
+            <div class="row mb-4">
+                <div class="col-md-2 col-6 mb-3">
+                    <div class="card text-center bg-light border-0">
+                        <div class="card-body py-3">
+                            <h3 class="text-primary mb-1">{{ status_counts.draft|default:0 }}</h3>
+                            <small class="text-muted">Draft</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6 mb-3">
+                    <div class="card text-center bg-light border-0">
+                        <div class="card-body py-3">
+                            <h3 class="text-warning mb-1">{{ status_counts.pending|default:0 }}</h3>
+                            <small class="text-muted">Pending</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6 mb-3">
+                    <div class="card text-center bg-light border-0">
+                        <div class="card-body py-3">
+                            <h3 class="text-success mb-1">{{ status_counts.approved|default:0 }}</h3>
+                            <small class="text-muted">Approved</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6 mb-3">
+                    <div class="card text-center bg-light border-0">
+                        <div class="card-body py-3">
+                            <h3 class="text-danger mb-1">{{ status_counts.rejected|default:0 }}</h3>
+                            <small class="text-muted">Rejected</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6 mb-3">
+                    <div class="card text-center bg-light border-0">
+                        <div class="card-body py-3">
+                            <h3 class="text-info mb-1">{{ status_counts.evaluated|default:0 }}</h3>
+                            <small class="text-muted">Evaluated</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6 mb-3">
+                    <div class="card text-center bg-light border-0">
+                        <div class="card-body py-3">
+                            <h3 class="text-dark mb-1">{{ total_targets|default:0 }}</h3>
+                            <small class="text-muted">Total</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ✅ ADD: Evaluation Results Section -->
+            {% if evaluation_stats and evaluation_stats.total_targets > 0 %}
+            <div class="card mt-4 mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up me-2"></i>Performance Evaluation Results
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Evaluation Overview -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card text-center border-0 bg-light">
+                                <div class="card-body">
+                                    <h3 class="text-primary">{{ evaluation_stats.total_targets }}</h3>
+                                    <p class="mb-0">Total Targets</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center border-0 bg-light">
+                                <div class="card-body">
+                                    <h3 class="text-success">{{ evaluation_stats.evaluated_targets }}</h3>
+                                    <p class="mb-0">Evaluated</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center border-0 bg-light">
+                                <div class="card-body">
+                                    <h3 class="text-warning">{{ evaluation_stats.completion_rate|floatformat:0 }}%</h3>
+                                    <p class="mb-0">Completion</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card text-center border-0 bg-light">
+                                <div class="card-body">
+                                    <h3 class="text-info">{{ evaluation_stats.average_score }}%</h3>
+                                    <p class="mb-0">Average Score</p>
+                                    <small class="text-muted">{{ evaluation_stats.overall_rating }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Evaluation Results -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Target #</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Rating</th>
+                                    <th>Score</th>
+                                    <th>Supervisor Comments</th>
+                                    <th>Evaluated On</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in evaluation_results %}
+                                <tr class="{% if result.is_evaluated %}table-success{% elif result.status == 'approved' %}table-warning{% endif %}">
+                                    <td><strong>{{ result.target_number }}</strong></td>
+                                    <td>{{ result.description }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if result.status == 'approved' %}bg-success
+                                            {% elif result.status == 'pending' %}bg-warning
+                                            {% elif result.status == 'rejected' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ result.status|title }}
+                                        </span>
+                                        {% if result.is_evaluated %}
+                                        <span class="badge bg-info ms-1">Evaluated</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if result.rating_scale %}
+                                            {% for value, label in rating_choices %}
+                                                {% if value == result.rating_scale %}
+                                                    <span class="badge bg-primary">{{ value }} - {{ label }}</span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if result.performance_rating %}
+                                            <!-- FIXED: Convert rating (1-5) to percentage -->
+                                            {% widthratio result.performance_rating 5 100 as percentage %}
+                                            <strong>{{ percentage }}%</strong>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if result.supervisor_comments %}
+                                            <small>{{ result.supervisor_comments }}</small>
+                                        {% else %}
+                                            <span class="text-muted">No comments</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if result.evaluated_at %}
+                                            <small>{{ result.evaluated_at|date:"M d, Y" }}</small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Evaluation Progress -->
+                    {% if evaluation_stats.pending_evaluation > 0 %}
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-clock me-2"></i>
+                        <strong>{{ evaluation_stats.pending_evaluation }} target(s)</strong> are awaiting evaluation by your supervisor.
+                    </div>
+                    {% elif evaluation_stats.evaluated_targets == evaluation_stats.total_targets %}
+                    <div class="alert alert-success mt-3">
+                        <i class="bi bi-check-circle me-2"></i>
+                        <strong>All targets have been evaluated!</strong> Your overall performance rating is <strong>{{ evaluation_stats.overall_rating }}</strong>.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ✅ ADD: Rejected Targets Alert -->
+            {% if has_rejected_targets %}
+            <div class="alert alert-danger mb-4">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                    <div class="flex-grow-1">
+                        <h5 class="alert-heading mb-2">Rejected Targets Need Revision</h5>
+                        <p class="mb-2">You have <strong>{{ rejected_targets_count }}</strong> target(s) that were rejected by your supervisor and need revision before submission.</p>
+                        
+                        {% for rejection in rejection_details %}
+                        <div class="mb-2 p-2 bg-white border-start border-danger border-3">
+                            <strong>Target {{ rejection.target_number }}:</strong> "{{ rejection.description|truncatewords:15 }}"
+                            <br>
+                            <small><strong>Rejection Reason:</strong> {{ rejection.rejection_reason }}</small>
+                            {% if rejection.rejected_at %}
+                            <br>
+                            <small class="text-muted">Rejected by {{ rejection.rejected_by }} on {{ rejection.rejected_at|date:"M d, Y" }}</small>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="mt-3">
+                            <a href="{% url 'users:set_performance_targets' %}" class="btn btn-warning">
+                                <i class="bi bi-pencil me-1"></i>Revise Rejected Targets
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if not has_targets %}
+                <div class="text-center py-5">
+                    <i class="bi bi-bullseye fa-3x text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="text-muted">No Performance Targets Set</h4>
+                    <p class="text-muted">You haven't set any performance targets for the current evaluation period.</p>
+                    <div class="mt-3">
+                        <a href="{% url 'users:set_performance_targets' %}" class="btn btn-primary me-2">
+                            <i class="bi bi-plus-circle me-1"></i>Set Your Targets
+                        </a>
+                        <a href="{% url 'dashboards:supervisor_dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <!-- ✅ ADD: Pending Approval Notice -->
+                {% if status_counts.pending > 0 %}
+                <div class="alert alert-warning mb-4">
+                    <i class="bi bi-clock-history me-2"></i>
+                    <strong>Pending Approval:</strong> You have {{ status_counts.pending }} target(s) waiting for supervisor approval.
+                </div>
+                {% endif %}
+
+                <!-- ✅ ADD: Approved Targets Notice -->
+                {% if status_counts.approved > 0 %}
+                <div class="alert alert-success mb-4">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong>Approved Targets:</strong> You have {{ status_counts.approved }} target(s) approved by your supervisor.
+                </div>
+                {% endif %}
+
+                <div class="row">
+                    {% for target in targets %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 border-0 shadow-sm 
+                            {% if target.status == 'rejected' %}border-danger border-2
+                            {% elif target.status == 'approved' %}border-success border-2
+                            {% elif target.status == 'pending' %}border-warning border-2
+                            {% else %}border-light{% endif %}">
+                            
+                            <div class="card-header 
+                                {% if target.status == 'rejected' %}bg-danger text-white
+                                {% elif target.status == 'approved' %}bg-success text-white
+                                {% elif target.status == 'pending' %}bg-warning text-dark
+                                {% else %}bg-light text-dark{% endif %}">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-target me-2"></i>Target {{ target.target_number }}
+                                </h5>
+                            </div>
+                            
+                            <div class="card-body">
+                                <h6 class="card-title text-dark">Description</h6>
+                                <p class="card-text">{{ target.description|linebreaks }}</p>
+                                
+                                {% if target.success_measures %}
+                                <h6 class="card-title text-dark mt-3">Success Measures</h6>
+                                <p class="card-text">{{ target.success_measures|linebreaks }}</p>
+                                {% endif %}
+
+                                <!-- ✅ ADD: Evaluation Results for this target -->
+                                {% if target.rating_scale or target.performance_rating %}
+                                <div class="mt-3 p-3 bg-success bg-opacity-10 border-start border-success border-3">
+                                    <h6 class="text-success mb-2">
+                                        <i class="bi bi-check-circle me-1"></i>Evaluation Results
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>Rating:</strong> 
+                                            {% if target.rating_scale %}
+                                            <span class="badge bg-primary">
+                                                {{ target.rating_scale }} - 
+                                                {% for value, label in rating_choices %}
+                                                    {% if value == target.rating_scale %}{{ label }}{% endif %}
+                                                {% endfor %}
+                                            </span>
+                                            {% else %}
+                                            <span class="badge bg-primary">
+                                                {{ target.performance_rating }} - 
+                                                {% for value, label in rating_choices %}
+                                                    {% if value == target.performance_rating %}{{ label }}{% endif %}
+                                                {% endfor %}
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Score:</strong> 
+                                            {% if target.performance_rating %}
+                                                <!-- FIXED: Convert rating (1-5) to percentage -->
+                                                {% widthratio target.performance_rating 5 100 as percentage %}
+                                                <span class="fw-bold text-success">{{ percentage }}%</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% if target.supervisor_comments or target.performance_comments %}
+                                    <div class="mt-2">
+                                        <strong>Supervisor Comments:</strong><br>
+                                        <em>"{{ target.supervisor_comments|default:target.performance_comments }}"</em>
+                                    </div>
+                                    {% endif %}
+                                    <!-- ✅ FIXED: Only use evaluated_at field for staff targets -->
+                                    {% if target.evaluated_at %}
+                                    <small class="text-muted mt-2 d-block">
+                                        Evaluated on: {{ target.evaluated_at|date:"M d, Y" }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                <!-- ✅ ADD: Rejection Details -->
+                                {% if target.status == 'rejected' and target.rejection_reason %}
+                                <div class="mt-3 p-3 bg-light border-start border-danger border-3">
+                                    <h6 class="text-danger mb-2">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>Rejection Details
+                                    </h6>
+                                    <p class="mb-2"><strong>Reason:</strong> {{ target.rejection_reason }}</p>
+                                    {% if target.rejected_by %}
+                                    <small class="text-muted">
+                                        Rejected by: {{ target.rejected_by.get_full_name }} on {{ target.rejected_at|date:"M d, Y" }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="card-footer bg-transparent">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge 
+                                            {% if target.status == 'draft' %}bg-warning
+                                            {% elif target.status == 'pending' %}bg-warning text-dark
+                                            {% elif target.status == 'approved' %}bg-success
+                                            {% elif target.status == 'rejected' %}bg-danger
+                                            {% elif target.status == 'completed' %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ target.get_status_display }}
+                                        </span>
+                                        
+                                        <!-- ✅ ADD: Edit Button for Draft/Rejected Targets -->
+                                        {% if target.status == 'draft' or target.status == 'rejected' %}
+                                        <a href="{% url 'users:set_performance_targets' %}" class="btn btn-outline-primary btn-sm ms-2">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">
+                                        Updated: {{ target.updated_at|date:"M d, Y" }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- ✅ ADD: Action Buttons -->
+                <div class="mt-4 p-3 bg-light rounded">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h6 class="mb-1">Target Management</h6>
+                            <small class="text-muted">
+                                {% if has_rejected_targets %}
+                                Revise rejected targets and submit for re-approval.
+                                {% elif status_counts.draft > 0 %}
+                                Submit your draft targets for supervisor approval.
+                                {% elif status_counts.pending > 0 %}
+                                Targets are pending supervisor approval.
+                                {% elif status_counts.approved > 0 %}
+                                All targets are approved and ready for evaluation.
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{% url 'users:set_performance_targets' %}" class="btn btn-primary me-2">
+                                <i class="bi bi-pencil me-1"></i>
+                                {% if has_rejected_targets %}Revise Targets
+                                {% else %}Manage Targets{% endif %}
+                            </a>
+                            <a href="{% url 'users:role_based_redirect' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.rating-badge {
+    font-size: 0.8em;
+    padding: 0.25em 0.6em;
+}
+.progress {
+    height: 8px;
+}
+.evaluation-score {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+</style>
+{% endblock %}

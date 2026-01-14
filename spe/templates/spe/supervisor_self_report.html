@@ -1,0 +1,358 @@
+{% extends 'dashboards/base.html' %}
+{% load static %}
+
+{% block title %}Supervisor Self Evaluation Report - Kirinyaga University{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center mb-2">
+                                <a href="{% url 'dashboards:supervisor_dashboard' %}" class="btn btn-light btn-sm me-3">
+                                    <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                                </a>
+                                <h2 class="h3 mb-0">
+                                    <i class="bi bi-clipboard-data me-2"></i>Supervisor Self Evaluation Report
+                                </h2>
+                            </div>
+                            <p class="mb-0 opacity-90">
+                                <i class="bi bi-calendar-check me-1"></i>Period: {{ period.name|default:"Current Period" }} | 
+                                <i class="bi bi-person-check me-1"></i>Evaluated by: {{ evaluated_by }} |
+                                {% if appraisal %}
+                                <i class="bi bi-info-circle me-1"></i>Status: {{ appraisal.get_status_display }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <a href="#" class="btn btn-warning btn-lg px-4" id="downloadReport">
+                                <i class="bi bi-download me-2"></i>Download Report
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if not appraisal %}
+                <!-- No Evaluation State -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4">
+                            <i class="bi bi-file-earmark-text text-muted" style="font-size: 4rem;"></i>
+                        </div>
+                        <h4 class="text-muted mb-3">No Evaluation Report Available</h4>
+                        <p class="text-muted mb-4">You haven't been evaluated for the current period.</p>
+                        <a href="{% url 'dashboards:supervisor_dashboard' %}" class="btn btn-primary">
+                            <i class="bi bi-speedometer2 me-2"></i>Return to Dashboard
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Comprehensive Performance Summary -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h4 class="mb-0 text-center">COMPREHENSIVE PERFORMANCE SUMMARY</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-4 border-end">
+                                <h3 class="text-info mb-2">{{ criteria_percentage|floatformat:1 }}%</h3>
+                                <p class="mb-1"><strong>Self-Assessment Score</strong></p>
+                                <small class="text-muted">Based on {{ total_criteria }} criteria</small>
+                            </div>
+                            <div class="col-md-4 border-end">
+                                <h3 class="text-success mb-2">{{ target_percentage|floatformat:1 }}%</h3>
+                                <p class="mb-1"><strong>Target Performance</strong></p>
+                                <small class="text-muted">{{ evaluation_stats.evaluated_targets }}/{{ evaluation_stats.total_targets }} targets evaluated</small>
+                            </div>
+                            <div class="col-md-4">
+                                <h3 class="text-primary mb-2">{{ evaluation_stats.average_score|floatformat:1 }}%</h3>
+                                <p class="mb-1"><strong>Overall Score</strong></p>
+                                <small class="text-muted">{{ evaluation_stats.overall_rating }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Targets Section -->
+                {% if targets %}
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-success text-white py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-bullseye me-2"></i>PERFORMANCE TARGETS OVERVIEW
+                            <span class="badge bg-light text-success ms-2">{{ targets|length }} Targets</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Quick Stats -->
+                        <div class="row text-center mb-4">
+                            <div class="col-md-3">
+                                <div class="border p-3 rounded bg-light">
+                                    <h4 class="text-primary mb-1">{{ evaluation_stats.total_targets }}</h4>
+                                    <small class="text-muted">Total Targets</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="border p-3 rounded bg-light">
+                                    <h4 class="text-success mb-1">{{ status_counts.approved }}</h4>
+                                    <small class="text-muted">Approved</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="border p-3 rounded bg-light">
+                                    <h4 class="text-info mb-1">{{ status_counts.evaluated }}</h4>
+                                    <small class="text-muted">Evaluated</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="border p-3 rounded bg-light">
+                                    <h4 class="text-warning mb-1">{{ evaluation_stats.completion_rate|floatformat:1 }}%</h4>
+                                    <small class="text-muted">Completion Rate</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detailed Targets Table -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="5%">#</th>
+                                        <th width="45%">Description</th>
+                                        <th width="10%" class="text-center">Performance Rating</th>
+                                        <th width="10%" class="text-center">Status</th>
+                                        <th width="30%">Supervisor Comments</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for target in targets %}
+                                    <tr>
+                                        <td class="fw-bold text-center">{{ target.target_number }}</td>
+                                        <td>{{ target.description }}</td>
+                                        <td class="text-center">
+                                            {% if target.performance_rating %}
+                                                <span class="badge bg-primary fs-6">{{ target.performance_rating }}/5</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Not Rated</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success">Approved</span>
+                                        </td>
+                                        <td class="text-muted">
+                                            {{ target.performance_comments|default:"No comments provided" }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Evaluation Criteria Section -->
+                {% if criteria_data %}
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-info text-white py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-clipboard-check me-2"></i>DETAILED PERFORMANCE ASSESSMENT
+                            <span class="badge bg-light text-info ms-2">{{ total_criteria }} Criteria</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="20%">Attribute</th>
+                                        <th width="30%">Indicator</th>
+                                        <th width="10%" class="text-center">Self Rating</th>
+                                        <th width="10%" class="text-center">VC Rating</th>
+                                        <th width="10%" class="text-center">Gap</th>
+                                        <th width="20%">VC Comments</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for criteria in criteria_data %}
+                                    <tr>
+                                        <td class="fw-bold">{{ criteria.attribute.name|default:"N/A" }}</td>
+                                        <td>{{ criteria.indicator.description|default:"N/A" }}</td>
+                                        <td class="text-center">
+                                            {% if criteria.self_rating %}
+                                            <span class="badge bg-primary">{{ criteria.self_rating }}/5</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if criteria.vc_rating %}
+                                            <span class="badge bg-info text-dark">{{ criteria.vc_rating }}/5</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if criteria.rating_gap %}
+                                            <span class="badge {% if criteria.rating_gap > 0 %}bg-success{% elif criteria.rating_gap < 0 %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                {{ criteria.rating_gap|floatformat:1 }}
+                                            </span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-muted">{{ criteria.vc_comments|default:"No comments" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Criteria Summary -->
+                        <div class="row mt-4 text-center">
+                            <div class="col-md-4">
+                                <div class="border p-3 rounded">
+                                    <h4 class="text-primary mb-1">{{ criteria_with_both_ratings }}</h4>
+                                    <small class="text-muted">Criteria with Both Ratings</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="border p-3 rounded">
+                                    <h4 class="text-info mb-1">{{ total_criteria }}</h4>
+                                    <small class="text-muted">Total Criteria</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="border p-3 rounded">
+                                    <h4 class="text-warning mb-1">{{ average_rating_gap|floatformat:2 }}</h4>
+                                    <small class="text-muted">Average Rating Gap</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Overall Performance Rating -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-warning text-white py-3">
+                        <h5 class="mb-0 text-center">
+                            <i class="bi bi-award me-2"></i>OVERALL PERFORMANCE RATING
+                        </h5>
+                    </div>
+                    <div class="card-body text-center py-4">
+                        <div class="display-4 text-primary mb-2">{{ evaluation_stats.overall_rating }}</div>
+                        <p class="lead text-muted mb-3">
+                            Final Score: <strong>{{ evaluation_stats.average_score|floatformat:1 }}%</strong>
+                        </p>
+                        <div class="progress mb-3" style="height: 25px;">
+                            <div class="progress-bar 
+                                {% if evaluation_stats.average_score >= 90 %}bg-success
+                                {% elif evaluation_stats.average_score >= 80 %}bg-info
+                                {% elif evaluation_stats.average_score >= 70 %}bg-primary
+                                {% elif evaluation_stats.average_score >= 60 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                style="width: {{ evaluation_stats.average_score }}%">
+                                <strong>{{ evaluation_stats.average_score|floatformat:1 }}%</strong>
+                            </div>
+                        </div>
+                        <p class="text-muted">
+                            Based on {{ evaluation_stats.evaluated_targets }} evaluated targets and {{ total_criteria }} assessment criteria
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Report Summary -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="mb-3"><i class="bi bi-file-text me-2"></i>Report Summary</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="bi bi-calendar-check text-primary me-2"></i>
+                                        <strong>Evaluation Period:</strong> {{ period.name }}
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-person-check text-primary me-2"></i>
+                                        <strong>Evaluated By:</strong> {{ evaluated_by }}
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-bullseye text-primary me-2"></i>
+                                        <strong>Targets Completed:</strong> {{ evaluation_stats.evaluated_targets }}/{{ evaluation_stats.total_targets }}
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="bi bi-graph-up text-primary me-2"></i>
+                                        <strong>Self-Assessment Score:</strong> {{ criteria_percentage|floatformat:1 }}%
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle text-primary me-2"></i>
+                                        <strong>Target Performance:</strong> {{ target_percentage|floatformat:1 }}%
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-award text-primary me-2"></i>
+                                        <strong>Overall Rating:</strong> {{ evaluation_stats.overall_rating }}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="row mt-4">
+                    <div class="col-12 text-center">
+                        <a href="{% url 'dashboards:supervisor_dashboard' %}" class="btn btn-primary me-3">
+                            <i class="bi bi-speedometer2 me-2"></i>Back to Dashboard
+                        </a>
+                        <button onclick="window.print()" class="btn btn-info me-3">
+                            <i class="bi bi-printer me-2"></i>Print Report
+                        </button>
+                        <a href="#" class="btn btn-warning" id="downloadReportBottom">
+                            <i class="bi bi-download me-2"></i>Download PDF
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Download report functionality
+        const downloadButtons = document.querySelectorAll('#downloadReport, #downloadReportBottom');
+        
+        downloadButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Show loading state
+                const originalText = this.innerHTML;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generating PDF...';
+                this.disabled = true;
+                
+                // Simulate download process
+                setTimeout(() => {
+                    // In a real implementation, this would generate and download a PDF
+                    alert('PDF download feature will be implemented soon!');
+                    
+                    // Restore button state
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                }, 1500);
+            });
+        });
+    });
+</script>
+{% endblock %}

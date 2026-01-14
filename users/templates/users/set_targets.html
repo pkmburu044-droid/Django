@@ -1,0 +1,414 @@
+<!-- templates/users/set_targets.html -->
+{% extends 'dashboards/base.html' %}
+
+{% block title %}Set Performance Targets - SPE System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-bullseye me-2"></i>
+                    {% if is_teaching_staff %}Set Performance Targets{% else %}Manage Performance Targets{% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- Period Information -->
+                <div class="alert alert-info">
+                    <h5><i class="fas fa-calendar me-2"></i>Evaluation Period: {{ next_period.name }}</h5>
+                    {% if period_end_date %}
+                        <p class="mb-0">
+                            <strong>Deadline:</strong> {{ period_end_date }}
+                            {% if period_ended %}
+                                <span class="badge bg-danger ms-2">Period Ended</span>
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- ✅ ADD: Staff Type Information -->
+                {% if is_non_teaching_staff %}
+                <div class="alert alert-secondary">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Non-Teaching Staff:</strong> You can set and manage your performance targets here. 
+                    Draft and rejected targets can be edited and submitted for supervisor approval.
+                </div>
+                {% endif %}
+
+                <!-- ✅ ADD: Period Ended Warning -->
+                {% if period_ended %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Target Setting Period Ended:</strong> You can view your existing targets but cannot create new ones or make changes.
+                </div>
+                {% endif %}
+
+                <!-- ✅ ADD: Rejected Targets Alert -->
+                {% if has_rejected_targets %}
+                <div class="alert alert-danger">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+                        <div class="flex-grow-1">
+                            <h5 class="alert-heading mb-2">Rejected Targets Need Revision</h5>
+                            <p class="mb-0">You have <strong>{{ rejected_count }}</strong> target(s) that were rejected by your supervisor. Please revise them below and resubmit for approval.</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Target Status Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-bullseye me-2"></i>Target Status
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <div class="card {% if draft_count > 0 %}border-warning{% else %}border-secondary{% endif %}">
+                                    <div class="card-body">
+                                        <h3 class="text-warning">{{ draft_count }}</h3>
+                                        <p class="mb-0">Draft Targets</p>
+                                        <small>Not submitted</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card {% if pending_count > 0 %}border-primary{% else %}border-secondary{% endif %}">
+                                    <div class="card-body">
+                                        <h3 class="text-primary">{{ pending_count }}</h3>
+                                        <p class="mb-0">Pending Approval</p>
+                                        <small>Awaiting review</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card {% if approved_count > 0 %}border-success{% else %}border-secondary{% endif %}">
+                                    <div class="card-body">
+                                        <h3 class="text-success">{{ approved_count }}</h3>
+                                        <p class="mb-0">Approved</p>
+                                        <small>Targets approved</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card {% if rejected_count > 0 %}border-danger{% else %}border-secondary{% endif %}">
+                                    <div class="card-body">
+                                        <h3 class="text-danger">{{ rejected_count }}</h3>
+                                        <p class="mb-0">Rejected</p>
+                                        <small>Needs revision</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ✅ FIXED: Submit button logic with period check -->
+                        {% if has_draft_targets or has_rejected_targets %}
+                            {% if not period_ended %}
+                            <div class="mt-4 text-center">
+                                <form method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="submit_for_approval">
+                                    <button type="submit" class="btn btn-success btn-lg"
+                                            onclick="return confirm('Are you sure you want to submit your targets for supervisor approval?')">
+                                        <i class="fas fa-paper-plane me-2"></i>
+                                        {% if has_rejected_targets %}Resubmit Revised Targets{% else %}Submit for Approval{% endif %}
+                                    </button>
+                                </form>
+                                <p class="text-muted mt-2">
+                                    <small>
+                                        {% if has_rejected_targets %}
+                                        Your revised targets will be sent back to your supervisor for re-approval.
+                                        {% else %}
+                                        Once submitted, you cannot edit your targets until they are approved or returned by your supervisor.
+                                        {% endif %}
+                                    </small>
+                                </p>
+                            </div>
+                            {% else %}
+                            <div class="mt-4 text-center">
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-clock me-2"></i>
+                                    Cannot submit targets - the target setting period has ended.
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% elif has_pending_targets %}
+                        <div class="mt-4 text-center">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Your targets have been submitted and are awaiting supervisor approval.
+                            </div>
+                        </div>
+                        {% elif approved_count > 0 %}
+                        <div class="mt-4 text-center">
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Your targets have been approved by your supervisor.
+                            </div>
+                        </div>
+                        {% elif not existing_targets and period_ended %}
+                        <div class="mt-4 text-center">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-clock me-2"></i>
+                                No targets were set for this period. The target setting deadline has passed.
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Main Targets Form -->
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_draft">
+                    
+                    {% for form in target_forms %}
+                    <div class="target-section mb-4 p-4 border rounded 
+                        {% if not form.can_edit %}bg-light{% endif %}
+                        {% if form.is_rejected %}border-danger border-2{% endif %}">
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="text-primary mb-0">
+                                <i class="fas fa-target me-2"></i>Target {{ form.number }}
+                            </h5>
+                            <div>
+                                {% if not form.can_edit %}
+                                    <span class="badge bg-secondary">
+                                        {% if form.status == 'pending' %}Pending Approval
+                                        {% elif form.status == 'approved' %}Approved
+                                        {% elif period_ended %}Period Ended
+                                        {% else %}Read Only{% endif %}
+                                    </span>
+                                {% elif form.is_rejected %}
+                                    <span class="badge bg-danger">Rejected - Needs Revision</span>
+                                {% elif form.status == 'draft' %}
+                                    <span class="badge bg-warning">Draft - Editable</span>
+                                {% else %}
+                                    <span class="badge bg-success">New - Editable</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- ✅ ADD: Rejection Reason Display -->
+                        {% if form.is_rejected and form.rejection_reason %}
+                        <div class="alert alert-danger mb-3">
+                            <h6 class="alert-heading mb-2">
+                                <i class="fas fa-exclamation-circle me-1"></i>Rejection Reason
+                            </h6>
+                            <p class="mb-0">{{ form.rejection_reason }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="target_{{ form.number }}" class="form-label fw-bold">
+                                Target Description 
+                                {% if form.can_edit %}*{% endif %}
+                                {% if form.is_rejected %}<span class="text-danger">(Needs Revision)</span>{% endif %}
+                            </label>
+                            <textarea 
+                                name="target_{{ form.number }}" 
+                                id="target_{{ form.number }}" 
+                                class="form-control {% if not form.can_edit %}bg-light{% endif %}" 
+                                rows="3" 
+                                placeholder="Describe your specific, measurable, achievable, relevant, and time-bound (SMART) performance target..."
+                                maxlength="1000"
+                                {% if not form.can_edit %}readonly{% endif %}
+                                {% if form.can_edit %}required{% endif %}
+                            >{{ form.description }}</textarea>
+                            <div class="form-text">
+                                <span id="char_count_{{ form.number }}">0</span>/1000 characters
+                                {% if not form.can_edit %}<span class="text-muted ms-2">(Read only)</span>{% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="measures_{{ form.number }}" class="form-label fw-bold">
+                                Success Measures
+                                {% if form.is_rejected %}<span class="text-danger">(Needs Revision)</span>{% endif %}
+                            </label>
+                            <textarea 
+                                name="measures_{{ form.number }}" 
+                                id="measures_{{ form.number }}" 
+                                class="form-control {% if not form.can_edit %}bg-light{% endif %}" 
+                                rows="2" 
+                                placeholder="How will success be measured? What evidence will demonstrate achievement?"
+                                {% if not form.can_edit %}readonly{% endif %}
+                            >{{ form.measures }}</textarea>
+                            <div class="form-text">
+                                Define clear metrics or indicators for success
+                                {% if not form.can_edit %}<span class="text-muted">(Read only)</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{% url 'users:view_performance_targets' %}" class="btn btn-outline-secondary me-md-2">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Targets Overview
+                        </a>
+                        
+                        <!-- ✅ FIXED: Save button logic with period check -->
+                        {% if has_draft_targets or has_rejected_targets %}
+                            {% if not period_ended %}
+                            <button type="submit" class="btn btn-primary me-md-2">
+                                <i class="fas fa-save me-1"></i>
+                                {% if has_rejected_targets %}Save Revisions{% else %}Save as Draft{% endif %}
+                            </button>
+                            {% endif %}
+                        {% endif %}
+                        
+                        <!-- ✅ FIXED: Submit button in form with period check -->
+                        {% if has_draft_targets or has_rejected_targets %}
+                            {% if not period_ended %}
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#submitModal">
+                                <i class="fas fa-paper-plane me-1"></i>
+                                {% if has_rejected_targets %}Resubmit Targets{% else %}Submit for Approval{% endif %}
+                            </button>
+                            {% endif %}
+                        {% endif %}
+
+                        <!-- ✅ ADD: Create New Targets Button -->
+                        {% if not existing_targets and not period_ended %}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-1"></i>Create Targets
+                        </button>
+                        {% endif %}
+                    </div>
+                </form>
+
+                <!-- ✅ ADD: Delete Drafts Button -->
+                {% if draft_count > 0 and not period_ended %}
+                <div class="mt-3 text-end">
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_drafts">
+                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                onclick="return confirm('Are you sure you want to delete all draft targets? This action cannot be undone.')">
+                            <i class="fas fa-trash me-1"></i>Delete All Drafts
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Submit Confirmation Modal -->
+        <div class="modal fade" id="submitModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            {% if has_rejected_targets %}Resubmit Revised Targets{% else %}Submit Targets for Approval{% endif %}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            {% if has_rejected_targets %}
+                            Are you ready to resubmit your revised targets for supervisor approval?
+                            {% else %}
+                            Are you sure you want to submit your targets for supervisor approval?
+                            {% endif %}
+                        </p>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Important:</strong> 
+                            {% if has_rejected_targets %}
+                            Your revised targets will be sent to your supervisor for re-approval.
+                            {% else %}
+                            Once submitted, you cannot edit your targets until they are approved or returned by your supervisor.
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="submit_for_approval">
+                            <button type="submit" class="btn btn-success">
+                                {% if has_rejected_targets %}Resubmit Targets{% else %}Submit for Approval{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Tips for Effective Targets</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><strong>Specific:</strong> Clearly define what you want to accomplish</li>
+                    <li><strong>Measurable:</strong> Include quantifiable metrics</li>
+                    <li><strong>Achievable:</strong> Set realistic but challenging goals</li>
+                    <li><strong>Relevant:</strong> Align with department and institutional goals</li>
+                    <li><strong>Time-bound:</strong> Set clear deadlines</li>
+                </ul>
+                
+                <div class="mt-3">
+                    <h6>Example Targets:</h6>
+                    <ul>
+                        <li>"Increase student pass rate in my courses by 10% by the end of the semester"</li>
+                        <li>"Publish one research paper in a peer-reviewed journal by December 2024"</li>
+                        <li>"Complete professional development training in digital literacy by June 2024"</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Character count for textareas
+document.addEventListener('DOMContentLoaded', function() {
+    {% for form in target_forms %}
+    const textarea{{ form.number }} = document.getElementById('target_{{ form.number }}');
+    const charCount{{ form.number }} = document.getElementById('char_count_{{ form.number }}');
+    
+    if (textarea{{ form.number }}) {
+        textarea{{ form.number }}.addEventListener('input', function() {
+            charCount{{ form.number }}.textContent = this.value.length;
+        });
+        
+        // Initialize character count
+        charCount{{ form.number }}.textContent = textarea{{ form.number }}.value.length;
+    }
+    {% endfor %}
+
+    // ✅ FIXED: Only disable if period ended or no editable targets
+    const hasEditableTargets = {{ has_draft_targets|yesno:"true,false" }} || {{ has_rejected_targets|yesno:"true,false" }};
+    const periodEnded = {{ period_ended|yesno:"true,false" }};
+    
+    if (!hasEditableTargets || periodEnded) {
+        const saveButton = document.querySelector('button[type="submit"]');
+        if (saveButton) {
+            saveButton.disabled = true;
+            if (periodEnded) {
+                saveButton.title = "Target setting period has ended";
+            } else {
+                saveButton.title = "No editable targets available";
+            }
+        }
+    }
+});
+</script>
+
+<style>
+.target-section {
+    transition: all 0.3s ease;
+}
+.target-section:hover {
+    background-color: #f8f9fa !important;
+    border-color: #0d6efd !important;
+}
+.card {
+    border-radius: 10px;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,7887 @@
+[
+{
+  "model": "users.department",
+  "pk": 1,
+  "fields": {
+    "name": "ICT",
+    "code": "001",
+    "staff_type": "non_teaching"
+  }
+},
+{
+  "model": "users.department",
+  "pk": 2,
+  "fields": {
+    "name": "Education",
+    "code": "098",
+    "staff_type": "teaching"
+  }
+},
+{
+  "model": "users.department",
+  "pk": 3,
+  "fields": {
+    "name": "Hr",
+    "code": "0011",
+    "staff_type": "hr"
+  }
+},
+{
+  "model": "users.department",
+  "pk": 4,
+  "fields": {
+    "name": "Finance",
+    "code": "0003",
+    "staff_type": "non_teaching"
+  }
+},
+{
+  "model": "users.department",
+  "pk": 5,
+  "fields": {
+    "name": "DVC ARSA",
+    "code": "0002",
+    "staff_type": "non_teaching"
+  }
+},
+{
+  "model": "users.customuser",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$Yh47GkGRkMCnwPXvzj5QIm$5EHayrDS1NbjEXquucbCYsA2sNcO+/+aBF+9mkAeXp8=",
+    "last_login": "2025-12-02T08:42:14.727Z",
+    "is_superuser": true,
+    "pf_number": "76",
+    "email": "Admin@gmail.com",
+    "first_name": "Peter",
+    "last_name": "Mburu",
+    "role": "supervisor",
+    "employment_type": "contract",
+    "department": 4,
+    "is_hr": false,
+    "is_vc": false,
+    "is_active": true,
+    "is_staff": true,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.customuser",
+  "pk": 10,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$C0pWbiHiK2o2LJgvfahELV$kfPaqELtPYpa8+3N2/iZItaHJlO1mxsq7N6C3oWo1Zs=",
+    "last_login": "2025-12-01T05:16:25.001Z",
+    "is_superuser": false,
+    "pf_number": "053",
+    "email": "ikairu@kyu.ac.ke",
+    "first_name": "Isaac",
+    "last_name": "Kairu",
+    "role": "supervisor",
+    "employment_type": "contract",
+    "department": 1,
+    "is_hr": false,
+    "is_vc": false,
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.customuser",
+  "pk": 11,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$DmDnNhmeVloZhQBmvYx1VC$sVy1hHFA3LeWqdHiSAoPuObrzS7O9Iysaq7Vq2f+PHk=",
+    "last_login": "2025-11-14T11:40:35Z",
+    "is_superuser": false,
+    "pf_number": "054",
+    "email": "Lynnet@kyu.ac.ke",
+    "first_name": "Linet",
+    "last_name": "Kyalo",
+    "role": "non_teaching",
+    "employment_type": "permanent",
+    "department": 1,
+    "is_hr": false,
+    "is_vc": false,
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.customuser",
+  "pk": 12,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$TjC9Rh80D4AdZR2TISYiv6$6P0m/h+718vsWb6+6F27lGNkiLqjc99KMPMzBgX4GpU=",
+    "last_login": "2025-12-02T11:09:19.094Z",
+    "is_superuser": false,
+    "pf_number": "980",
+    "email": "Hr@gmail.com",
+    "first_name": "Hr",
+    "last_name": "admin",
+    "role": "hr",
+    "employment_type": "contract",
+    "department": 3,
+    "is_hr": true,
+    "is_vc": false,
+    "is_active": true,
+    "is_staff": true,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.customuser",
+  "pk": 18,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$W8yNmhmsxVALvEWOQodWAH$T4UD2yB8QCqciVySru/gtRs5N0U6tbFIN4N2H3rD4hE=",
+    "last_login": "2025-12-02T08:42:38.290Z",
+    "is_superuser": false,
+    "pf_number": "001",
+    "email": "vc@kyu.ac.ke",
+    "first_name": "Prof. Mary",
+    "last_name": "Ndung'u",
+    "role": "vc",
+    "employment_type": "permanent",
+    "department": null,
+    "is_hr": false,
+    "is_vc": false,
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.customuser",
+  "pk": 19,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$qwGUVS85fD9reQkZOdQKYZ$w3zh9T1EpvjYYDp6we4GdaCcZWaETKRsPx4+ex5+P/g=",
+    "last_login": "2025-11-26T12:13:54.170Z",
+    "is_superuser": false,
+    "pf_number": "021",
+    "email": "paul@gmail.com",
+    "first_name": "Paul",
+    "last_name": "Mwangi",
+    "role": "non_teaching",
+    "employment_type": "contract",
+    "department": 1,
+    "is_hr": false,
+    "is_vc": false,
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.customuser",
+  "pk": 21,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$DuMYRmK3xSvWBPp6G4rylh$c0OmFLs9nt66wk9lHFK04WzRT4nBsNv4DGu+A3eI+mQ=",
+    "last_login": "2025-11-26T08:53:21.095Z",
+    "is_superuser": false,
+    "pf_number": "004",
+    "email": "Millicent@kyu.ac.ke",
+    "first_name": "Millicent",
+    "last_name": "Wambui",
+    "role": "non_teaching",
+    "employment_type": "contract",
+    "department": 1,
+    "is_hr": false,
+    "is_vc": false,
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.customuser",
+  "pk": 22,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$XPn05e9F5YE3Ar4VfTJv4W$Zz7XPwjmCmzSD86e76bR8GnzTqBOEGsm84QBdF5TU8g=",
+    "last_login": "2025-11-28T05:21:56.536Z",
+    "is_superuser": false,
+    "pf_number": "070",
+    "email": "Education@gmail.com",
+    "first_name": "John",
+    "last_name": "Doe",
+    "role": "supervisor",
+    "employment_type": "permanent",
+    "department": 2,
+    "is_hr": false,
+    "is_vc": false,
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.customuser",
+  "pk": 23,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$tPEinXz9RTlZiCDB3HEteH$tZ+O6unqELSD+uH7NYKPYxQdCz1/0L1bFA0Lnf2w/9g=",
+    "last_login": "2025-12-01T07:20:29.894Z",
+    "is_superuser": false,
+    "pf_number": "490",
+    "email": "Inyaga@kyu.ac.ke",
+    "first_name": "Ian",
+    "last_name": "Nyaga",
+    "role": "non_teaching",
+    "employment_type": "permanent",
+    "department": 1,
+    "is_hr": false,
+    "is_vc": false,
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.customuser",
+  "pk": 24,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$a6vygUgTd52CRvEFsp1QEE$Ku81DD3GoYeL9QLjvOB7Fu5ebRBSzBnxsgWK+lTWB9o=",
+    "last_login": "2025-11-27T08:15:09.831Z",
+    "is_superuser": false,
+    "pf_number": "981",
+    "email": "Hr@kyu.ac.ke",
+    "first_name": "Hr",
+    "last_name": "manager",
+    "role": "supervisor",
+    "employment_type": "permanent",
+    "department": 3,
+    "is_hr": false,
+    "is_vc": false,
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.customuser",
+  "pk": 25,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$rVVQxmSSU4EpxJomYpmCDL$d+dreKoGB+oepr9Suwj+utQyw/QHV4EglC1vfE5UygY=",
+    "last_login": "2025-11-28T05:27:30.144Z",
+    "is_superuser": false,
+    "pf_number": "078",
+    "email": "Beatrice@gmail.com",
+    "first_name": "Beatrice",
+    "last_name": "Mburu",
+    "role": "teaching",
+    "employment_type": "permanent",
+    "department": 2,
+    "is_hr": false,
+    "is_vc": false,
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.customuser",
+  "pk": 26,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$pAy08crfkeyYz4pw8P2sbU$fH8N5+K4fdCjdKejJkzEk2gf8lTEJZlMD7BEVU+XWa0=",
+    "last_login": "2025-12-02T07:08:22.460Z",
+    "is_superuser": false,
+    "pf_number": "010",
+    "email": "Finance@gmail.com",
+    "first_name": "finance",
+    "last_name": "x",
+    "role": "supervisor",
+    "employment_type": "permanent",
+    "department": 4,
+    "is_hr": false,
+    "is_vc": false,
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.customuser",
+  "pk": 27,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$waTS3r0jnJpfhkCuVK8fcx$wxCdj77ISZN2VTZAfe+T302/ebapV36baBV48hngDLc=",
+    "last_login": "2025-12-02T06:45:20.647Z",
+    "is_superuser": false,
+    "pf_number": "011",
+    "email": "Finance2@gmail.com",
+    "first_name": "finance",
+    "last_name": "B",
+    "role": "non_teaching",
+    "employment_type": "permanent",
+    "department": 4,
+    "is_hr": false,
+    "is_vc": false,
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.customuser",
+  "pk": 28,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$8W3TYMI8QAiwMcedkYqs7I$JL1UuPyTGFKCO+BjOXpVm/+0H0nVnp/VzaxOYElask4=",
+    "last_login": "2025-12-02T07:16:54.872Z",
+    "is_superuser": false,
+    "pf_number": "002",
+    "email": "Dvc@kyu.ac.ke",
+    "first_name": "N",
+    "last_name": "N",
+    "role": "supervisor",
+    "employment_type": "permanent",
+    "department": 5,
+    "is_hr": false,
+    "is_vc": false,
+    "is_active": true,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.staffprofile",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "designation": "",
+    "department": 4,
+    "current_appraisal": null
+  }
+},
+{
+  "model": "users.staffprofile",
+  "pk": 10,
+  "fields": {
+    "user": 10,
+    "designation": "Staff Member",
+    "department": 1,
+    "current_appraisal": null
+  }
+},
+{
+  "model": "users.staffprofile",
+  "pk": 11,
+  "fields": {
+    "user": 11,
+    "designation": "Staff Member",
+    "department": 1,
+    "current_appraisal": 5
+  }
+},
+{
+  "model": "users.staffprofile",
+  "pk": 12,
+  "fields": {
+    "user": 12,
+    "designation": "Staff Member",
+    "department": 3,
+    "current_appraisal": null
+  }
+},
+{
+  "model": "users.staffprofile",
+  "pk": 18,
+  "fields": {
+    "user": 18,
+    "designation": "Staff Member",
+    "department": null,
+    "current_appraisal": null
+  }
+},
+{
+  "model": "users.staffprofile",
+  "pk": 19,
+  "fields": {
+    "user": 19,
+    "designation": "Staff Member",
+    "department": 1,
+    "current_appraisal": 13
+  }
+},
+{
+  "model": "users.staffprofile",
+  "pk": 21,
+  "fields": {
+    "user": 21,
+    "designation": "Staff Member",
+    "department": 1,
+    "current_appraisal": 15
+  }
+},
+{
+  "model": "users.staffprofile",
+  "pk": 22,
+  "fields": {
+    "user": 22,
+    "designation": "Staff Member",
+    "department": 2,
+    "current_appraisal": null
+  }
+},
+{
+  "model": "users.staffprofile",
+  "pk": 23,
+  "fields": {
+    "user": 23,
+    "designation": "Ict Officer III",
+    "department": 1,
+    "current_appraisal": 16
+  }
+},
+{
+  "model": "users.staffprofile",
+  "pk": 24,
+  "fields": {
+    "user": 24,
+    "designation": "Staff Member",
+    "department": 3,
+    "current_appraisal": null
+  }
+},
+{
+  "model": "users.staffprofile",
+  "pk": 25,
+  "fields": {
+    "user": 25,
+    "designation": "Lecturer",
+    "department": 2,
+    "current_appraisal": 17
+  }
+},
+{
+  "model": "users.staffprofile",
+  "pk": 26,
+  "fields": {
+    "user": 26,
+    "designation": "Staff Member",
+    "department": 4,
+    "current_appraisal": null
+  }
+},
+{
+  "model": "users.staffprofile",
+  "pk": 27,
+  "fields": {
+    "user": 27,
+    "designation": "Staff Member",
+    "department": 4,
+    "current_appraisal": 18
+  }
+},
+{
+  "model": "users.staffprofile",
+  "pk": 28,
+  "fields": {
+    "user": 28,
+    "designation": "Staff Member",
+    "department": 5,
+    "current_appraisal": null
+  }
+},
+{
+  "model": "users.staffappraisal",
+  "pk": 5,
+  "fields": {
+    "profile": 11,
+    "period": 1,
+    "supervisor_name": "",
+    "supervisor_designation": "",
+    "date_of_appointment": "2013-01-01",
+    "acting_appointment": null,
+    "years_experience_kyu": 12,
+    "years_experience_elsewhere": 0,
+    "length_of_service": "12",
+    "years_in_equivalent_position": "3",
+    "acting_or_special_duty": "ICT head",
+    "appraisal_date": null,
+    "overall_score": null,
+    "status": "draft",
+    "created_at": "2025-11-14T11:42:21.481Z",
+    "updated_at": "2025-11-14T11:42:21.489Z"
+  }
+},
+{
+  "model": "users.staffappraisal",
+  "pk": 13,
+  "fields": {
+    "profile": 19,
+    "period": 1,
+    "supervisor_name": "",
+    "supervisor_designation": "",
+    "date_of_appointment": "2025-11-01",
+    "acting_appointment": null,
+    "years_experience_kyu": 7,
+    "years_experience_elsewhere": 8,
+    "length_of_service": "9",
+    "years_in_equivalent_position": "8",
+    "acting_or_special_duty": "N/a",
+    "appraisal_date": null,
+    "overall_score": "75.38",
+    "status": "reviewed",
+    "created_at": "2025-11-25T08:57:40.664Z",
+    "updated_at": "2025-12-05T10:07:36.199Z"
+  }
+},
+{
+  "model": "users.staffappraisal",
+  "pk": 15,
+  "fields": {
+    "profile": 21,
+    "period": 1,
+    "supervisor_name": "",
+    "supervisor_designation": "",
+    "date_of_appointment": "2025-11-04",
+    "acting_appointment": null,
+    "years_experience_kyu": 2,
+    "years_experience_elsewhere": 4,
+    "length_of_service": "5",
+    "years_in_equivalent_position": "6",
+    "acting_or_special_duty": "NO",
+    "appraisal_date": null,
+    "overall_score": "81.25",
+    "status": "reviewed",
+    "created_at": "2025-11-26T01:50:10.253Z",
+    "updated_at": "2025-12-05T06:57:49.549Z"
+  }
+},
+{
+  "model": "users.staffappraisal",
+  "pk": 16,
+  "fields": {
+    "profile": 23,
+    "period": 1,
+    "supervisor_name": "",
+    "supervisor_designation": "",
+    "date_of_appointment": "2025-10-01",
+    "acting_appointment": null,
+    "years_experience_kyu": 2,
+    "years_experience_elsewhere": 0,
+    "length_of_service": "2 years",
+    "years_in_equivalent_position": "2",
+    "acting_or_special_duty": "N/A",
+    "appraisal_date": null,
+    "overall_score": "88.06",
+    "status": "reviewed",
+    "created_at": "2025-11-27T06:39:07.084Z",
+    "updated_at": "2025-12-05T10:08:26.493Z"
+  }
+},
+{
+  "model": "users.staffappraisal",
+  "pk": 17,
+  "fields": {
+    "profile": 25,
+    "period": 1,
+    "supervisor_name": "",
+    "supervisor_designation": "",
+    "date_of_appointment": "2025-11-05",
+    "acting_appointment": null,
+    "years_experience_kyu": 2,
+    "years_experience_elsewhere": 1,
+    "length_of_service": "3",
+    "years_in_equivalent_position": "1",
+    "acting_or_special_duty": "N/A",
+    "appraisal_date": null,
+    "overall_score": "82.00",
+    "status": "reviewed",
+    "created_at": "2025-11-27T13:38:08.160Z",
+    "updated_at": "2025-12-05T09:08:22.022Z"
+  }
+},
+{
+  "model": "users.staffappraisal",
+  "pk": 18,
+  "fields": {
+    "profile": 27,
+    "period": 1,
+    "supervisor_name": "",
+    "supervisor_designation": "",
+    "date_of_appointment": "2025-12-02",
+    "acting_appointment": null,
+    "years_experience_kyu": 2,
+    "years_experience_elsewhere": 5,
+    "length_of_service": "5",
+    "years_in_equivalent_position": "5",
+    "acting_or_special_duty": "N/A",
+    "appraisal_date": null,
+    "overall_score": null,
+    "status": "draft",
+    "created_at": "2025-12-01T09:13:16.149Z",
+    "updated_at": "2025-12-01T09:13:16.164Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 51,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "target_number": 1,
+    "description": "Improve System Performance",
+    "success_measures": "Ensure fast, reliable access to applications and networks.",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": null,
+    "approved_at": "2025-11-25T09:19:08.470Z",
+    "performance_rating": "80.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-25T11:10:59.024Z",
+    "evaluated_by": null,
+    "rating_scale": 4,
+    "created_at": "2025-11-25T09:00:49.920Z",
+    "updated_at": "2025-11-25T11:10:59.025Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 52,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "target_number": 2,
+    "description": "Enhance Cybersecurity",
+    "success_measures": "Reduce vulnerability and protect data from breaches.",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": null,
+    "approved_at": "2025-11-25T09:19:05.140Z",
+    "performance_rating": "100.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-25T11:10:59.029Z",
+    "evaluated_by": null,
+    "rating_scale": 5,
+    "created_at": "2025-11-25T09:00:49.931Z",
+    "updated_at": "2025-11-25T11:10:59.030Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 53,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "target_number": 3,
+    "description": "Increase User Productivity",
+    "success_measures": "Make technology easier and faster for employees/students/customers.",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": null,
+    "approved_at": "2025-11-25T09:19:01.445Z",
+    "performance_rating": "80.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-25T11:10:59.033Z",
+    "evaluated_by": null,
+    "rating_scale": 4,
+    "created_at": "2025-11-25T09:00:49.934Z",
+    "updated_at": "2025-11-25T11:10:59.034Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 54,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "target_number": 4,
+    "description": "Improve ICT Service Delivery",
+    "success_measures": "Faster support, fewer disruptions, better customer satisfaction.",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": null,
+    "approved_at": "2025-11-25T09:18:36.132Z",
+    "performance_rating": "20.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-25T11:10:59.037Z",
+    "evaluated_by": null,
+    "rating_scale": 1,
+    "created_at": "2025-11-25T09:00:49.936Z",
+    "updated_at": "2025-11-25T11:10:59.038Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 55,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "target_number": 5,
+    "description": "Reduce ICT Costs",
+    "success_measures": "Optimize hardware, software, cloud resources, and licensing.",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": null,
+    "approved_at": "2025-11-25T09:18:29.587Z",
+    "performance_rating": "80.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-25T11:10:59.040Z",
+    "evaluated_by": null,
+    "rating_scale": 4,
+    "created_at": "2025-11-25T09:00:49.938Z",
+    "updated_at": "2025-11-25T11:10:59.041Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 61,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "target_number": 1,
+    "description": "Data Integrity & Backup",
+    "success_measures": "Backup success rate (100%)",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": 10,
+    "approved_at": "2025-11-26T02:34:33.520Z",
+    "performance_rating": "80.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-26T02:43:31.529Z",
+    "evaluated_by": 10,
+    "rating_scale": 4,
+    "created_at": "2025-11-26T02:32:42.379Z",
+    "updated_at": "2025-11-26T02:43:31.530Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 62,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "target_number": 2,
+    "description": "ICT Service Desk",
+    "success_measures": "Average response time to support tickets",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": 10,
+    "approved_at": "2025-11-26T02:34:39.051Z",
+    "performance_rating": "80.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-26T02:43:31.537Z",
+    "evaluated_by": 10,
+    "rating_scale": 4,
+    "created_at": "2025-11-26T02:32:42.396Z",
+    "updated_at": "2025-11-26T02:43:31.538Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 63,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "target_number": 3,
+    "description": "Cost Control",
+    "success_measures": "ICT budget variance (%)",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": 10,
+    "approved_at": "2025-11-26T02:34:45.406Z",
+    "performance_rating": "80.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-26T02:43:31.541Z",
+    "evaluated_by": 10,
+    "rating_scale": 4,
+    "created_at": "2025-11-26T02:32:42.407Z",
+    "updated_at": "2025-11-26T02:43:31.542Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 64,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "target_number": 4,
+    "description": "Cybersecurity",
+    "success_measures": "Number of security incidents per quarter",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": 10,
+    "approved_at": "2025-11-26T02:34:54.349Z",
+    "performance_rating": "80.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-26T02:43:31.546Z",
+    "evaluated_by": 10,
+    "rating_scale": 4,
+    "created_at": "2025-11-26T02:32:42.420Z",
+    "updated_at": "2025-11-26T02:43:31.546Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 65,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "target_number": 5,
+    "description": "System Performance",
+    "success_measures": "Server downtime incidents: 0–2 per month",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": 10,
+    "approved_at": "2025-11-26T02:35:02.498Z",
+    "performance_rating": "80.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-26T02:43:31.552Z",
+    "evaluated_by": 10,
+    "rating_scale": 4,
+    "created_at": "2025-11-26T02:32:42.431Z",
+    "updated_at": "2025-11-26T02:43:31.553Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 66,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "target_number": 1,
+    "description": "1. Improve System Uptime and Reliability\r\n\r\nTarget: Maintain at least 99% uptime for all critical university/organization systems (ERP, emails, network infrastructure).",
+    "success_measures": "Measure: Monthly uptime reports and incident logs.",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": null,
+    "approved_at": null,
+    "performance_rating": "80.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-27T12:20:41.878Z",
+    "evaluated_by": 10,
+    "rating_scale": 4,
+    "created_at": "2025-11-27T06:43:00.717Z",
+    "updated_at": "2025-11-27T12:20:41.879Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 67,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "target_number": 2,
+    "description": "2. Enhance Cybersecurity and Data Protection\r\n\r\nTarget: Implement at least three new security measures (e.g., MFA, firewall updates, endpoint protection) and conduct one cybersecurity awareness training per quarter.",
+    "success_measures": "Measure: Security audit reports and training attendance records.",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": null,
+    "approved_at": null,
+    "performance_rating": "100.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-27T12:20:41.886Z",
+    "evaluated_by": 10,
+    "rating_scale": 5,
+    "created_at": "2025-11-27T06:43:00.730Z",
+    "updated_at": "2025-11-27T12:20:41.887Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 68,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "target_number": 3,
+    "description": "3. Support ICT Service Delivery and User Satisfaction\r\n\r\nTarget: Resolve 90% of ICT support tickets within the agreed SLA timelines and reduce recurring issues through preventive action.",
+    "success_measures": "Measure: Ticketing system reports and user feedback surveys.",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": null,
+    "approved_at": null,
+    "performance_rating": "80.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-27T12:20:41.889Z",
+    "evaluated_by": 10,
+    "rating_scale": 4,
+    "created_at": "2025-11-27T06:43:00.736Z",
+    "updated_at": "2025-11-27T12:20:41.890Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 69,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "target_number": 4,
+    "description": "4. Drive Digitalization and Automation Projects\r\n\r\nTarget: Successfully automate or digitalize at least two manual processes within the financial year to improve service delivery and efficiency.",
+    "success_measures": "Measure: Project reports and adoption levels of new digital tools.",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": null,
+    "approved_at": null,
+    "performance_rating": "100.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-27T12:20:41.891Z",
+    "evaluated_by": 10,
+    "rating_scale": 5,
+    "created_at": "2025-11-27T06:43:00.742Z",
+    "updated_at": "2025-11-27T12:20:41.892Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 70,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "target_number": 5,
+    "description": "5. Strengthen ICT Infrastructure\r\n\r\nTarget: Upgrade or maintain key network components (servers, switches, routers, and backup systems) and ensure 100% compliance with scheduled maintenance cycles.",
+    "success_measures": "Measure: Infrastructure maintenance logs and upgrade completion reports.",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": null,
+    "approved_at": null,
+    "performance_rating": "80.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-27T12:20:41.893Z",
+    "evaluated_by": 10,
+    "rating_scale": 4,
+    "created_at": "2025-11-27T06:43:00.748Z",
+    "updated_at": "2025-11-27T12:20:41.894Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 71,
+  "fields": {
+    "staff": 25,
+    "period": 1,
+    "target_number": 1,
+    "description": "Course delivery",
+    "success_measures": "100% of scheduled classes taught",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": 22,
+    "approved_at": "2025-11-27T13:36:44.259Z",
+    "performance_rating": "80.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-27T13:39:27.285Z",
+    "evaluated_by": 22,
+    "rating_scale": 4,
+    "created_at": "2025-11-27T13:18:33.657Z",
+    "updated_at": "2025-11-27T13:39:27.285Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 72,
+  "fields": {
+    "staff": 25,
+    "period": 1,
+    "target_number": 2,
+    "description": "Lesson planning",
+    "success_measures": "Upload lesson plans before start of semester",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": null,
+    "approved_at": null,
+    "performance_rating": "60.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-27T13:39:27.289Z",
+    "evaluated_by": 22,
+    "rating_scale": 3,
+    "created_at": "2025-11-27T13:18:33.679Z",
+    "updated_at": "2025-11-27T13:39:27.289Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 73,
+  "fields": {
+    "staff": 25,
+    "period": 1,
+    "target_number": 3,
+    "description": "Student feedback rating",
+    "success_measures": "≥ 4.0/5 average teaching evaluation",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": null,
+    "approved_at": null,
+    "performance_rating": "80.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-27T13:39:27.292Z",
+    "evaluated_by": 22,
+    "rating_scale": 4,
+    "created_at": "2025-11-27T13:18:33.693Z",
+    "updated_at": "2025-11-27T13:39:27.292Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 74,
+  "fields": {
+    "staff": 25,
+    "period": 1,
+    "target_number": 4,
+    "description": "Assessment turnaround time",
+    "success_measures": "Mark and release results within 14 days of exam",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": null,
+    "approved_at": null,
+    "performance_rating": "100.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-27T13:39:27.295Z",
+    "evaluated_by": 22,
+    "rating_scale": 5,
+    "created_at": "2025-11-27T13:18:33.705Z",
+    "updated_at": "2025-11-27T13:39:27.296Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 75,
+  "fields": {
+    "staff": 25,
+    "period": 1,
+    "target_number": 5,
+    "description": "Curriculum compliance",
+    "success_measures": "100% adherence to approved curriculum",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": null,
+    "approved_at": null,
+    "performance_rating": "100.00",
+    "supervisor_comments": "",
+    "evaluated_at": "2025-11-27T13:39:27.298Z",
+    "evaluated_by": 22,
+    "rating_scale": 5,
+    "created_at": "2025-11-27T13:18:33.716Z",
+    "updated_at": "2025-11-27T13:39:27.299Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 76,
+  "fields": {
+    "staff": 27,
+    "period": 1,
+    "target_number": 1,
+    "description": "Maintain accurate and timely financial reporting",
+    "success_measures": "Reports submitted on schedule with 100% compliance and minimal corrections",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": 26,
+    "approved_at": "2025-12-01T13:29:56.021Z",
+    "performance_rating": null,
+    "supervisor_comments": "",
+    "evaluated_at": null,
+    "evaluated_by": null,
+    "rating_scale": null,
+    "created_at": "2025-12-01T09:15:17.615Z",
+    "updated_at": "2025-12-01T13:29:56.021Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 77,
+  "fields": {
+    "staff": 27,
+    "period": 1,
+    "target_number": 2,
+    "description": "Strengthen budget planning and control",
+    "success_measures": "Variance between budget and actual spending maintained within ±5%",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": 26,
+    "approved_at": "2025-12-01T13:29:26.703Z",
+    "performance_rating": null,
+    "supervisor_comments": "",
+    "evaluated_at": null,
+    "evaluated_by": null,
+    "rating_scale": null,
+    "created_at": "2025-12-01T09:15:17.639Z",
+    "updated_at": "2025-12-01T13:29:26.705Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 78,
+  "fields": {
+    "staff": 27,
+    "period": 1,
+    "target_number": 3,
+    "description": "Improve cash flow management",
+    "success_measures": "Monthly cash flow statements prepared and reviewed; positive cash position maintained",
+    "status": "approved",
+    "rejection_reason": "Not sufficient",
+    "rejected_by": 26,
+    "rejected_at": "2025-12-01T13:29:49.473Z",
+    "approved_by": 26,
+    "approved_at": "2025-12-02T05:43:06.095Z",
+    "performance_rating": null,
+    "supervisor_comments": "",
+    "evaluated_at": null,
+    "evaluated_by": null,
+    "rating_scale": null,
+    "created_at": "2025-12-01T09:15:17.652Z",
+    "updated_at": "2025-12-02T05:43:06.096Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 79,
+  "fields": {
+    "staff": 27,
+    "period": 1,
+    "target_number": 4,
+    "description": "Enhance financial data accuracy",
+    "success_measures": "Reduction in errors in financial transactions and reconciliations",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": 26,
+    "approved_at": "2025-12-01T13:29:56.027Z",
+    "performance_rating": null,
+    "supervisor_comments": "",
+    "evaluated_at": null,
+    "evaluated_by": null,
+    "rating_scale": null,
+    "created_at": "2025-12-01T09:15:17.658Z",
+    "updated_at": "2025-12-01T13:29:56.028Z"
+  }
+},
+{
+  "model": "users.performancetarget",
+  "pk": 80,
+  "fields": {
+    "staff": 27,
+    "period": 1,
+    "target_number": 5,
+    "description": "Ensure compliance with financial regulations and policies",
+    "success_measures": "Zero audit flags or compliance findings",
+    "status": "approved",
+    "rejection_reason": "",
+    "rejected_by": null,
+    "rejected_at": null,
+    "approved_by": 26,
+    "approved_at": "2025-12-01T13:29:56.032Z",
+    "performance_rating": null,
+    "supervisor_comments": "",
+    "evaluated_at": null,
+    "evaluated_by": null,
+    "rating_scale": null,
+    "created_at": "2025-12-01T09:15:17.672Z",
+    "updated_at": "2025-12-01T13:29:56.033Z"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 1,
+  "fields": {
+    "action_time": "2025-11-11T09:19:59.406Z",
+    "user": 1,
+    "content_type": 1,
+    "object_id": "1",
+    "object_repr": "ICT (Non-Teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 2,
+  "fields": {
+    "action_time": "2025-11-11T09:20:55.344Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "2",
+    "object_repr": "B M (supervisor)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 3,
+  "fields": {
+    "action_time": "2025-11-11T09:21:28.106Z",
+    "user": 1,
+    "content_type": 19,
+    "object_id": "1",
+    "object_repr": "Test (2025-11-03 - 2026-01-24)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 4,
+  "fields": {
+    "action_time": "2025-11-11T09:22:13.176Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "3",
+    "object_repr": "nb fd (non_teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 5,
+  "fields": {
+    "action_time": "2025-11-11T11:07:11.883Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "4",
+    "object_repr": "st bn (non_teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 6,
+  "fields": {
+    "action_time": "2025-11-12T05:13:54.334Z",
+    "user": 1,
+    "content_type": 1,
+    "object_id": "2",
+    "object_repr": "Education (Teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 7,
+  "fields": {
+    "action_time": "2025-11-12T05:14:47.524Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "5",
+    "object_repr": "supervisor b (teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 8,
+  "fields": {
+    "action_time": "2025-11-12T05:15:39.209Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "6",
+    "object_repr": "education user (teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 9,
+  "fields": {
+    "action_time": "2025-11-12T05:27:38.169Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "7",
+    "object_repr": "df f (supervisor)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 10,
+  "fields": {
+    "action_time": "2025-11-12T07:31:36.628Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "7",
+    "object_repr": "df f (supervisor)",
+    "action_flag": 2,
+    "change_message": "[]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 11,
+  "fields": {
+    "action_time": "2025-11-12T07:43:56.766Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "8",
+    "object_repr": "nh m (supervisor)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 12,
+  "fields": {
+    "action_time": "2025-11-12T07:53:44.340Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "7",
+    "object_repr": "df f (supervisor)",
+    "action_flag": 2,
+    "change_message": "[]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 13,
+  "fields": {
+    "action_time": "2025-11-12T08:18:20.720Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "9",
+    "object_repr": "d cx (non_teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 14,
+  "fields": {
+    "action_time": "2025-11-14T06:22:57.271Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "10",
+    "object_repr": "Admin ICT (supervisor)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 15,
+  "fields": {
+    "action_time": "2025-11-14T11:40:03.523Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "11",
+    "object_repr": "ISAAC KAIRU (non_teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 16,
+  "fields": {
+    "action_time": "2025-11-14T13:24:45.096Z",
+    "user": 1,
+    "content_type": 1,
+    "object_id": "3",
+    "object_repr": "Hr (HR)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 17,
+  "fields": {
+    "action_time": "2025-11-14T13:25:55.796Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "12",
+    "object_repr": "Hr admin (hr)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 18,
+  "fields": {
+    "action_time": "2025-11-17T11:28:50.094Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "13",
+    "object_repr": "yyh y (non_teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 19,
+  "fields": {
+    "action_time": "2025-11-18T13:38:48.158Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "14",
+    "object_repr": "bvv vbb (non_teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 20,
+  "fields": {
+    "action_time": "2025-11-18T13:48:26.564Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "15",
+    "object_repr": "xc s (non_teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 21,
+  "fields": {
+    "action_time": "2025-11-18T17:32:53.863Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "16",
+    "object_repr": "just testing (non_teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 22,
+  "fields": {
+    "action_time": "2025-11-18T19:08:40.861Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "17",
+    "object_repr": "444 w (teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 23,
+  "fields": {
+    "action_time": "2025-11-19T08:47:41.199Z",
+    "user": 1,
+    "content_type": 22,
+    "object_id": "15",
+    "object_repr": "444 w (teaching) - test (Communication Skills)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 24,
+  "fields": {
+    "action_time": "2025-11-19T08:47:41.199Z",
+    "user": 1,
+    "content_type": 22,
+    "object_id": "14",
+    "object_repr": "444 w (teaching) - test (Communication Skills)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 25,
+  "fields": {
+    "action_time": "2025-11-19T08:47:41.199Z",
+    "user": 1,
+    "content_type": 22,
+    "object_id": "13",
+    "object_repr": "444 w (teaching) - test (Communication Skills)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 26,
+  "fields": {
+    "action_time": "2025-11-19T08:47:41.199Z",
+    "user": 1,
+    "content_type": 22,
+    "object_id": "12",
+    "object_repr": "444 w (teaching) - test (Communication Skills)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 27,
+  "fields": {
+    "action_time": "2025-11-19T08:47:41.199Z",
+    "user": 1,
+    "content_type": 22,
+    "object_id": "11",
+    "object_repr": "444 w (teaching) - test (Integrity)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 28,
+  "fields": {
+    "action_time": "2025-11-19T08:47:41.199Z",
+    "user": 1,
+    "content_type": 22,
+    "object_id": "10",
+    "object_repr": "444 w (teaching) - test (Technical Expertise)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 29,
+  "fields": {
+    "action_time": "2025-11-19T08:47:41.199Z",
+    "user": 1,
+    "content_type": 22,
+    "object_id": "9",
+    "object_repr": "444 w (teaching) - test (Leadership & Initiative)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 30,
+  "fields": {
+    "action_time": "2025-11-19T08:47:41.199Z",
+    "user": 1,
+    "content_type": 22,
+    "object_id": "8",
+    "object_repr": "444 w (teaching) - test (Leadership & Initiative)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 31,
+  "fields": {
+    "action_time": "2025-11-19T08:47:41.199Z",
+    "user": 1,
+    "content_type": 22,
+    "object_id": "7",
+    "object_repr": "444 w (teaching) - test (Teamwork & Collaboration)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 32,
+  "fields": {
+    "action_time": "2025-11-20T05:56:50.959Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "18",
+    "object_repr": "Just testing (vc)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 33,
+  "fields": {
+    "action_time": "2025-11-25T08:56:46.056Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "19",
+    "object_repr": "we w (non_teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 34,
+  "fields": {
+    "action_time": "2025-11-25T09:21:48.435Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "20",
+    "object_repr": "kdm 9 (teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 35,
+  "fields": {
+    "action_time": "2025-11-25T13:09:27.134Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "8",
+    "object_repr": "nh m (supervisor)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 36,
+  "fields": {
+    "action_time": "2025-11-25T13:09:27.134Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "7",
+    "object_repr": "df f (supervisor)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 37,
+  "fields": {
+    "action_time": "2025-11-25T13:09:27.134Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "6",
+    "object_repr": "education user (teaching)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 38,
+  "fields": {
+    "action_time": "2025-11-25T13:09:27.134Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "5",
+    "object_repr": "supervisor b (teaching)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 39,
+  "fields": {
+    "action_time": "2025-11-25T13:09:27.134Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "14",
+    "object_repr": "bvv vbb (non_teaching)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 40,
+  "fields": {
+    "action_time": "2025-11-25T13:09:27.134Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "20",
+    "object_repr": "kdm 9 (teaching)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 41,
+  "fields": {
+    "action_time": "2025-11-25T13:09:27.134Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "15",
+    "object_repr": "xc s (non_teaching)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 42,
+  "fields": {
+    "action_time": "2025-11-25T13:09:27.134Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "13",
+    "object_repr": "yyh y (non_teaching)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 43,
+  "fields": {
+    "action_time": "2025-11-25T13:09:27.134Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "17",
+    "object_repr": "444 w (teaching)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 44,
+  "fields": {
+    "action_time": "2025-11-25T13:09:27.134Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "16",
+    "object_repr": "just testing (non_teaching)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 45,
+  "fields": {
+    "action_time": "2025-11-25T13:09:27.134Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "3",
+    "object_repr": "nb fd (non_teaching)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 46,
+  "fields": {
+    "action_time": "2025-11-25T13:09:27.134Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "4",
+    "object_repr": "st bn (non_teaching)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 47,
+  "fields": {
+    "action_time": "2025-11-25T13:09:27.134Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "9",
+    "object_repr": "d cx (non_teaching)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 48,
+  "fields": {
+    "action_time": "2025-11-25T13:09:58.356Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "2",
+    "object_repr": "B M (supervisor)",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 49,
+  "fields": {
+    "action_time": "2025-11-26T01:37:00.140Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "19",
+    "object_repr": "Paul Mwangi (non_teaching)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Email\", \"Pf number\", \"First name\", \"Last name\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 50,
+  "fields": {
+    "action_time": "2025-11-26T01:39:36.141Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "18",
+    "object_repr": "Prof. Mary Ndung'u (vc)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Email\", \"First name\", \"Last name\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 51,
+  "fields": {
+    "action_time": "2025-11-26T01:42:49.257Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "11",
+    "object_repr": "Linet Kyalo (non_teaching)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Email\", \"First name\", \"Last name\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 52,
+  "fields": {
+    "action_time": "2025-11-26T01:43:44.487Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "10",
+    "object_repr": "Isaac Kairu (supervisor)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Email\", \"First name\", \"Last name\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 53,
+  "fields": {
+    "action_time": "2025-11-26T01:44:23.270Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "10",
+    "object_repr": "Isaac Kairu (supervisor)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Pf number\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 54,
+  "fields": {
+    "action_time": "2025-11-26T01:49:11.252Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "21",
+    "object_repr": "test 4 (non_teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 55,
+  "fields": {
+    "action_time": "2025-11-26T03:45:46.499Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "21",
+    "object_repr": "Millicent Wambui (non_teaching)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Email\", \"First name\", \"Last name\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 56,
+  "fields": {
+    "action_time": "2025-11-26T03:46:57.853Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "22",
+    "object_repr": "John Doe (supervisor)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 57,
+  "fields": {
+    "action_time": "2025-11-27T06:33:35.900Z",
+    "user": 1,
+    "content_type": 1,
+    "object_id": "4",
+    "object_repr": "Finance (Non-Teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 58,
+  "fields": {
+    "action_time": "2025-11-27T06:34:25.049Z",
+    "user": 1,
+    "content_type": 1,
+    "object_id": "5",
+    "object_repr": "DVC ARSA (Non-Teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 59,
+  "fields": {
+    "action_time": "2025-11-27T06:37:08.341Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "23",
+    "object_repr": "Ian Nyaga (non_teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 60,
+  "fields": {
+    "action_time": "2025-11-27T07:52:21.100Z",
+    "user": 1,
+    "content_type": 1,
+    "object_id": "3",
+    "object_repr": "Hr (HR)",
+    "action_flag": 2,
+    "change_message": "[{\"added\": {\"name\": \"custom user\", \"object\": \"Hr manager (supervisor)\"}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 61,
+  "fields": {
+    "action_time": "2025-11-27T07:54:36.529Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "24",
+    "object_repr": "Hr manager (supervisor)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"password\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 62,
+  "fields": {
+    "action_time": "2025-11-27T09:55:03.581Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "25",
+    "object_repr": "Beatrice Mburu (teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 63,
+  "fields": {
+    "action_time": "2025-12-01T05:13:38.761Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "11",
+    "object_repr": "Linet Kyalo (non_teaching)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Pf number\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 64,
+  "fields": {
+    "action_time": "2025-12-01T05:13:55.469Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "10",
+    "object_repr": "Isaac Kairu (supervisor)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Pf number\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 65,
+  "fields": {
+    "action_time": "2025-12-01T09:11:18.317Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "26",
+    "object_repr": "finance x (non_teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 66,
+  "fields": {
+    "action_time": "2025-12-01T09:12:28.699Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "27",
+    "object_repr": "finance B (non_teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 67,
+  "fields": {
+    "action_time": "2025-12-01T09:16:35.514Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "26",
+    "object_repr": "finance x (supervisor)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Role\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 68,
+  "fields": {
+    "action_time": "2025-12-02T07:02:00.126Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "28",
+    "object_repr": "N N (non_teaching)",
+    "action_flag": 1,
+    "change_message": "[{\"added\": {}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 69,
+  "fields": {
+    "action_time": "2025-12-02T07:03:13.935Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "28",
+    "object_repr": "N N (supervisor)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Role\"]}}]"
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 70,
+  "fields": {
+    "action_time": "2025-12-02T07:07:13.133Z",
+    "user": 1,
+    "content_type": 2,
+    "object_id": "1",
+    "object_repr": "Peter Mburu (supervisor)",
+    "action_flag": 2,
+    "change_message": "[{\"changed\": {\"fields\": [\"Department\"]}}]"
+  }
+},
+{
+  "model": "spe.speperiod",
+  "pk": 1,
+  "fields": {
+    "name": "test",
+    "start_date": "2025-11-03",
+    "end_date": "2026-01-24",
+    "is_active": true,
+    "is_locked": false,
+    "current_phase": "target_submission",
+    "target_submission_start": null,
+    "target_submission_end": null,
+    "evaluation_start": null,
+    "evaluation_end": null,
+    "forms_status": "ready"
+  }
+},
+{
+  "model": "spe.speattribute",
+  "pk": 19,
+  "fields": {
+    "name": "Communication Skills",
+    "period": 1,
+    "department": null,
+    "created_by": 12,
+    "staff_type": "teaching"
+  }
+},
+{
+  "model": "spe.speattribute",
+  "pk": 20,
+  "fields": {
+    "name": "Teamwork & Collaboration",
+    "period": 1,
+    "department": null,
+    "created_by": 12,
+    "staff_type": "teaching"
+  }
+},
+{
+  "model": "spe.speattribute",
+  "pk": 21,
+  "fields": {
+    "name": "Communication Skills",
+    "period": 1,
+    "department": null,
+    "created_by": 12,
+    "staff_type": "non_teaching"
+  }
+},
+{
+  "model": "spe.speattribute",
+  "pk": 22,
+  "fields": {
+    "name": "Teamwork & Collaboration",
+    "period": 1,
+    "department": null,
+    "created_by": 12,
+    "staff_type": "non_teaching"
+  }
+},
+{
+  "model": "spe.speattribute",
+  "pk": 23,
+  "fields": {
+    "name": "Leadership & Initiative",
+    "period": 1,
+    "department": null,
+    "created_by": 12,
+    "staff_type": "non_teaching"
+  }
+},
+{
+  "model": "spe.speattribute",
+  "pk": 24,
+  "fields": {
+    "name": "Technical Expertise",
+    "period": 1,
+    "department": null,
+    "created_by": 12,
+    "staff_type": "non_teaching"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 32,
+  "fields": {
+    "attribute": 19,
+    "description": "Clearly articulates ideas and information"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 33,
+  "fields": {
+    "attribute": 19,
+    "description": "Listens actively and responds appropriately"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 34,
+  "fields": {
+    "attribute": 19,
+    "description": "Adapts communication style to audience"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 36,
+  "fields": {
+    "attribute": 20,
+    "description": "Works effectively with team members"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 37,
+  "fields": {
+    "attribute": 20,
+    "description": "Supports colleagues and shares workload"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 38,
+  "fields": {
+    "attribute": 20,
+    "description": "Respects diverse perspectives and opinions"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 39,
+  "fields": {
+    "attribute": 20,
+    "description": "Contributes to positive team environment"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 40,
+  "fields": {
+    "attribute": 21,
+    "description": "Clearly articulates ideas and information"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 41,
+  "fields": {
+    "attribute": 21,
+    "description": "Listens actively and responds appropriately"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 42,
+  "fields": {
+    "attribute": 21,
+    "description": "Adapts communication style to audience"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 43,
+  "fields": {
+    "attribute": 21,
+    "description": "Provides constructive feedback"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 44,
+  "fields": {
+    "attribute": 22,
+    "description": "Works effectively with team members"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 45,
+  "fields": {
+    "attribute": 22,
+    "description": "Supports colleagues and shares workload"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 46,
+  "fields": {
+    "attribute": 22,
+    "description": "Respects diverse perspectives and opinions"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 47,
+  "fields": {
+    "attribute": 22,
+    "description": "Contributes to positive team environment"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 48,
+  "fields": {
+    "attribute": 23,
+    "description": "Takes initiative without being asked"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 49,
+  "fields": {
+    "attribute": 23,
+    "description": "Motivates and inspires team members"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 50,
+  "fields": {
+    "attribute": 23,
+    "description": "Makes sound decisions under pressure"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 51,
+  "fields": {
+    "attribute": 23,
+    "description": "Takes responsibility for outcomes"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 52,
+  "fields": {
+    "attribute": 24,
+    "description": "Demonstrates proficiency in required technical skills"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 53,
+  "fields": {
+    "attribute": 24,
+    "description": "Applies technical knowledge to solve problems"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 54,
+  "fields": {
+    "attribute": 24,
+    "description": "Stays updated with industry developments"
+  }
+},
+{
+  "model": "spe.speindicator",
+  "pk": 55,
+  "fields": {
+    "attribute": 24,
+    "description": "Shares technical knowledge with team members"
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 83,
+  "fields": {
+    "period": 1,
+    "attribute": 21,
+    "indicator": 40,
+    "rating": 3,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:05.763Z",
+    "created_at": "2025-11-25T11:12:17.561Z",
+    "updated_at": "2025-11-26T02:58:05.792Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 84,
+  "fields": {
+    "period": 1,
+    "attribute": 21,
+    "indicator": 41,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:05.828Z",
+    "created_at": "2025-11-25T11:12:17.617Z",
+    "updated_at": "2025-11-26T02:58:05.848Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 85,
+  "fields": {
+    "period": 1,
+    "attribute": 21,
+    "indicator": 42,
+    "rating": 2,
+    "remarks": null,
+    "total_raw_score": 3.0,
+    "mean_raw_score": 3.0,
+    "percent_score": 60.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:05.873Z",
+    "created_at": "2025-11-25T11:12:17.680Z",
+    "updated_at": "2025-11-26T02:58:05.888Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 86,
+  "fields": {
+    "period": 1,
+    "attribute": 21,
+    "indicator": 43,
+    "rating": 3,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:05.918Z",
+    "created_at": "2025-11-25T11:12:17.730Z",
+    "updated_at": "2025-11-26T02:58:05.934Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 87,
+  "fields": {
+    "period": 1,
+    "attribute": 21,
+    "indicator": 40,
+    "rating": 3,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:25.634Z",
+    "created_at": "2025-11-26T02:42:25.649Z",
+    "updated_at": "2025-11-26T02:42:25.649Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 88,
+  "fields": {
+    "period": 1,
+    "attribute": 21,
+    "indicator": 41,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:25.688Z",
+    "created_at": "2025-11-26T02:42:25.705Z",
+    "updated_at": "2025-11-26T02:42:25.705Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 89,
+  "fields": {
+    "period": 1,
+    "attribute": 21,
+    "indicator": 42,
+    "rating": 5,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:25.742Z",
+    "created_at": "2025-11-26T02:42:25.754Z",
+    "updated_at": "2025-11-26T02:42:25.754Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 90,
+  "fields": {
+    "period": 1,
+    "attribute": 21,
+    "indicator": 43,
+    "rating": 3,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:25.783Z",
+    "created_at": "2025-11-26T02:42:25.796Z",
+    "updated_at": "2025-11-26T02:42:25.796Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 91,
+  "fields": {
+    "period": 1,
+    "attribute": 22,
+    "indicator": 44,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:25.832Z",
+    "created_at": "2025-11-26T02:42:25.844Z",
+    "updated_at": "2025-11-26T02:42:25.844Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 92,
+  "fields": {
+    "period": 1,
+    "attribute": 22,
+    "indicator": 45,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:25.875Z",
+    "created_at": "2025-11-26T02:42:25.886Z",
+    "updated_at": "2025-11-26T02:42:25.886Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 93,
+  "fields": {
+    "period": 1,
+    "attribute": 22,
+    "indicator": 46,
+    "rating": 5,
+    "remarks": null,
+    "total_raw_score": 5.0,
+    "mean_raw_score": 5.0,
+    "percent_score": 100.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:25.918Z",
+    "created_at": "2025-11-26T02:42:25.932Z",
+    "updated_at": "2025-11-26T02:42:25.932Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 94,
+  "fields": {
+    "period": 1,
+    "attribute": 22,
+    "indicator": 47,
+    "rating": 5,
+    "remarks": null,
+    "total_raw_score": 5.0,
+    "mean_raw_score": 5.0,
+    "percent_score": 100.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:25.954Z",
+    "created_at": "2025-11-26T02:42:25.966Z",
+    "updated_at": "2025-11-26T02:42:25.966Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 95,
+  "fields": {
+    "period": 1,
+    "attribute": 23,
+    "indicator": 48,
+    "rating": 3,
+    "remarks": null,
+    "total_raw_score": 3.5,
+    "mean_raw_score": 3.5,
+    "percent_score": 70.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:25.999Z",
+    "created_at": "2025-11-26T02:42:26.011Z",
+    "updated_at": "2025-11-26T02:42:26.011Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 96,
+  "fields": {
+    "period": 1,
+    "attribute": 23,
+    "indicator": 49,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:26.042Z",
+    "created_at": "2025-11-26T02:42:26.058Z",
+    "updated_at": "2025-11-26T02:42:26.058Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 97,
+  "fields": {
+    "period": 1,
+    "attribute": 23,
+    "indicator": 50,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 3.0,
+    "mean_raw_score": 3.0,
+    "percent_score": 60.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:26.087Z",
+    "created_at": "2025-11-26T02:42:26.096Z",
+    "updated_at": "2025-11-26T02:42:26.096Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 98,
+  "fields": {
+    "period": 1,
+    "attribute": 23,
+    "indicator": 51,
+    "rating": 5,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:26.126Z",
+    "created_at": "2025-11-26T02:42:26.136Z",
+    "updated_at": "2025-11-26T02:42:26.136Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 99,
+  "fields": {
+    "period": 1,
+    "attribute": 24,
+    "indicator": 52,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:26.168Z",
+    "created_at": "2025-11-26T02:42:26.182Z",
+    "updated_at": "2025-11-26T02:42:26.183Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 100,
+  "fields": {
+    "period": 1,
+    "attribute": 24,
+    "indicator": 53,
+    "rating": 2,
+    "remarks": null,
+    "total_raw_score": 3.0,
+    "mean_raw_score": 3.0,
+    "percent_score": 60.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:26.218Z",
+    "created_at": "2025-11-26T02:42:26.228Z",
+    "updated_at": "2025-11-26T02:42:26.228Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 101,
+  "fields": {
+    "period": 1,
+    "attribute": 24,
+    "indicator": 54,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:26.258Z",
+    "created_at": "2025-11-26T02:42:26.267Z",
+    "updated_at": "2025-11-26T02:42:26.267Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 102,
+  "fields": {
+    "period": 1,
+    "attribute": 24,
+    "indicator": 55,
+    "rating": 5,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:42:26.295Z",
+    "created_at": "2025-11-26T02:42:26.305Z",
+    "updated_at": "2025-11-26T02:42:26.305Z",
+    "staff": 21
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 103,
+  "fields": {
+    "period": 1,
+    "attribute": 22,
+    "indicator": 44,
+    "rating": 5,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:05.956Z",
+    "created_at": "2025-11-26T02:58:05.967Z",
+    "updated_at": "2025-11-26T02:58:05.967Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 104,
+  "fields": {
+    "period": 1,
+    "attribute": 22,
+    "indicator": 45,
+    "rating": 2,
+    "remarks": null,
+    "total_raw_score": 3.5,
+    "mean_raw_score": 3.5,
+    "percent_score": 70.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:05.988Z",
+    "created_at": "2025-11-26T02:58:05.998Z",
+    "updated_at": "2025-11-26T02:58:05.998Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 105,
+  "fields": {
+    "period": 1,
+    "attribute": 22,
+    "indicator": 46,
+    "rating": 2,
+    "remarks": null,
+    "total_raw_score": 3.5,
+    "mean_raw_score": 3.5,
+    "percent_score": 70.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:06.018Z",
+    "created_at": "2025-11-26T02:58:06.028Z",
+    "updated_at": "2025-11-26T02:58:06.029Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 106,
+  "fields": {
+    "period": 1,
+    "attribute": 22,
+    "indicator": 47,
+    "rating": 5,
+    "remarks": null,
+    "total_raw_score": 5.0,
+    "mean_raw_score": 5.0,
+    "percent_score": 100.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:06.048Z",
+    "created_at": "2025-11-26T02:58:06.057Z",
+    "updated_at": "2025-11-26T02:58:06.057Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 107,
+  "fields": {
+    "period": 1,
+    "attribute": 23,
+    "indicator": 48,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:06.078Z",
+    "created_at": "2025-11-26T02:58:06.087Z",
+    "updated_at": "2025-11-26T02:58:06.087Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 108,
+  "fields": {
+    "period": 1,
+    "attribute": 23,
+    "indicator": 49,
+    "rating": 2,
+    "remarks": null,
+    "total_raw_score": 3.5,
+    "mean_raw_score": 3.5,
+    "percent_score": 70.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:06.109Z",
+    "created_at": "2025-11-26T02:58:06.118Z",
+    "updated_at": "2025-11-26T02:58:06.118Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 109,
+  "fields": {
+    "period": 1,
+    "attribute": 23,
+    "indicator": 50,
+    "rating": 3,
+    "remarks": null,
+    "total_raw_score": 3.5,
+    "mean_raw_score": 3.5,
+    "percent_score": 70.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:06.137Z",
+    "created_at": "2025-11-26T02:58:06.148Z",
+    "updated_at": "2025-11-26T02:58:06.148Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 110,
+  "fields": {
+    "period": 1,
+    "attribute": 23,
+    "indicator": 51,
+    "rating": 5,
+    "remarks": null,
+    "total_raw_score": 5.0,
+    "mean_raw_score": 5.0,
+    "percent_score": 100.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:06.168Z",
+    "created_at": "2025-11-26T02:58:06.179Z",
+    "updated_at": "2025-11-26T02:58:06.179Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 111,
+  "fields": {
+    "period": 1,
+    "attribute": 24,
+    "indicator": 52,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 3.5,
+    "mean_raw_score": 3.5,
+    "percent_score": 70.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:06.198Z",
+    "created_at": "2025-11-26T02:58:06.207Z",
+    "updated_at": "2025-11-26T02:58:06.207Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 112,
+  "fields": {
+    "period": 1,
+    "attribute": 24,
+    "indicator": 53,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:06.228Z",
+    "created_at": "2025-11-26T02:58:06.237Z",
+    "updated_at": "2025-11-26T02:58:06.237Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 113,
+  "fields": {
+    "period": 1,
+    "attribute": 24,
+    "indicator": 54,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:06.258Z",
+    "created_at": "2025-11-26T02:58:06.267Z",
+    "updated_at": "2025-11-26T02:58:06.267Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 114,
+  "fields": {
+    "period": 1,
+    "attribute": 24,
+    "indicator": 55,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 3.0,
+    "mean_raw_score": 3.0,
+    "percent_score": 60.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-26T02:58:06.288Z",
+    "created_at": "2025-11-26T02:58:06.298Z",
+    "updated_at": "2025-11-26T02:58:06.299Z",
+    "staff": 19
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 115,
+  "fields": {
+    "period": 1,
+    "attribute": 21,
+    "indicator": 40,
+    "rating": 5,
+    "remarks": null,
+    "total_raw_score": 5.0,
+    "mean_raw_score": 5.0,
+    "percent_score": 100.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:51.382Z",
+    "created_at": "2025-11-27T06:58:51.396Z",
+    "updated_at": "2025-11-27T06:58:51.396Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 116,
+  "fields": {
+    "period": 1,
+    "attribute": 21,
+    "indicator": 41,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:51.427Z",
+    "created_at": "2025-11-27T06:58:51.441Z",
+    "updated_at": "2025-11-27T06:58:51.441Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 117,
+  "fields": {
+    "period": 1,
+    "attribute": 21,
+    "indicator": 42,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:51.478Z",
+    "created_at": "2025-11-27T06:58:51.490Z",
+    "updated_at": "2025-11-27T06:58:51.490Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 118,
+  "fields": {
+    "period": 1,
+    "attribute": 21,
+    "indicator": 43,
+    "rating": 3,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:51.527Z",
+    "created_at": "2025-11-27T06:58:51.540Z",
+    "updated_at": "2025-11-27T06:58:51.540Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 119,
+  "fields": {
+    "period": 1,
+    "attribute": 22,
+    "indicator": 44,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:51.583Z",
+    "created_at": "2025-11-27T06:58:51.595Z",
+    "updated_at": "2025-11-27T06:58:51.595Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 120,
+  "fields": {
+    "period": 1,
+    "attribute": 22,
+    "indicator": 45,
+    "rating": 5,
+    "remarks": null,
+    "total_raw_score": 5.0,
+    "mean_raw_score": 5.0,
+    "percent_score": 100.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:51.632Z",
+    "created_at": "2025-11-27T06:58:51.644Z",
+    "updated_at": "2025-11-27T06:58:51.644Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 121,
+  "fields": {
+    "period": 1,
+    "attribute": 22,
+    "indicator": 46,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:51.685Z",
+    "created_at": "2025-11-27T06:58:51.700Z",
+    "updated_at": "2025-11-27T06:58:51.700Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 122,
+  "fields": {
+    "period": 1,
+    "attribute": 22,
+    "indicator": 47,
+    "rating": 5,
+    "remarks": null,
+    "total_raw_score": 5.0,
+    "mean_raw_score": 5.0,
+    "percent_score": 100.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:51.733Z",
+    "created_at": "2025-11-27T06:58:51.743Z",
+    "updated_at": "2025-11-27T06:58:51.744Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 123,
+  "fields": {
+    "period": 1,
+    "attribute": 23,
+    "indicator": 48,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:51.786Z",
+    "created_at": "2025-11-27T06:58:51.802Z",
+    "updated_at": "2025-11-27T06:58:51.802Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 124,
+  "fields": {
+    "period": 1,
+    "attribute": 23,
+    "indicator": 49,
+    "rating": 5,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:51.829Z",
+    "created_at": "2025-11-27T06:58:51.840Z",
+    "updated_at": "2025-11-27T06:58:51.840Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 125,
+  "fields": {
+    "period": 1,
+    "attribute": 23,
+    "indicator": 50,
+    "rating": 3,
+    "remarks": null,
+    "total_raw_score": 3.5,
+    "mean_raw_score": 3.5,
+    "percent_score": 70.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:51.869Z",
+    "created_at": "2025-11-27T06:58:51.879Z",
+    "updated_at": "2025-11-27T06:58:51.879Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 126,
+  "fields": {
+    "period": 1,
+    "attribute": 23,
+    "indicator": 51,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:51.906Z",
+    "created_at": "2025-11-27T06:58:51.916Z",
+    "updated_at": "2025-11-27T06:58:51.916Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 127,
+  "fields": {
+    "period": 1,
+    "attribute": 24,
+    "indicator": 52,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:51.942Z",
+    "created_at": "2025-11-27T06:58:51.954Z",
+    "updated_at": "2025-11-27T06:58:51.954Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 128,
+  "fields": {
+    "period": 1,
+    "attribute": 24,
+    "indicator": 53,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:51.981Z",
+    "created_at": "2025-11-27T06:58:51.992Z",
+    "updated_at": "2025-11-27T06:58:51.992Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 129,
+  "fields": {
+    "period": 1,
+    "attribute": 24,
+    "indicator": 54,
+    "rating": 5,
+    "remarks": null,
+    "total_raw_score": 5.0,
+    "mean_raw_score": 5.0,
+    "percent_score": 100.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:52.020Z",
+    "created_at": "2025-11-27T06:58:52.031Z",
+    "updated_at": "2025-11-27T06:58:52.031Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.nonteachingstaffevaluation",
+  "pk": 130,
+  "fields": {
+    "period": 1,
+    "attribute": 24,
+    "indicator": 55,
+    "rating": 3,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 10,
+    "reviewed_at": "2025-11-27T06:58:52.065Z",
+    "created_at": "2025-11-27T06:58:52.077Z",
+    "updated_at": "2025-11-27T06:58:52.077Z",
+    "staff": 23
+  }
+},
+{
+  "model": "spe.teachingstaffevaluation",
+  "pk": 32,
+  "fields": {
+    "period": 1,
+    "attribute": 19,
+    "indicator": 32,
+    "rating": 3,
+    "remarks": null,
+    "total_raw_score": 4.0,
+    "mean_raw_score": 4.0,
+    "percent_score": 80.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 22,
+    "reviewed_at": "2025-11-27T13:40:28.254Z",
+    "created_at": "2025-11-27T13:40:28.271Z",
+    "updated_at": "2025-11-27T13:40:28.271Z",
+    "staff": 25
+  }
+},
+{
+  "model": "spe.teachingstaffevaluation",
+  "pk": 33,
+  "fields": {
+    "period": 1,
+    "attribute": 19,
+    "indicator": 33,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 3.5,
+    "mean_raw_score": 3.5,
+    "percent_score": 70.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 22,
+    "reviewed_at": "2025-11-27T13:40:28.310Z",
+    "created_at": "2025-11-27T13:40:28.321Z",
+    "updated_at": "2025-11-27T13:40:28.321Z",
+    "staff": 25
+  }
+},
+{
+  "model": "spe.teachingstaffevaluation",
+  "pk": 34,
+  "fields": {
+    "period": 1,
+    "attribute": 19,
+    "indicator": 34,
+    "rating": 3,
+    "remarks": null,
+    "total_raw_score": 3.5,
+    "mean_raw_score": 3.5,
+    "percent_score": 70.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 22,
+    "reviewed_at": "2025-11-27T13:40:28.356Z",
+    "created_at": "2025-11-27T13:40:28.370Z",
+    "updated_at": "2025-11-27T13:40:28.370Z",
+    "staff": 25
+  }
+},
+{
+  "model": "spe.teachingstaffevaluation",
+  "pk": 36,
+  "fields": {
+    "period": 1,
+    "attribute": 20,
+    "indicator": 36,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 3.5,
+    "mean_raw_score": 3.5,
+    "percent_score": 70.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 22,
+    "reviewed_at": "2025-11-27T13:40:28.428Z",
+    "created_at": "2025-11-27T13:40:28.436Z",
+    "updated_at": "2025-11-27T13:40:28.436Z",
+    "staff": 25
+  }
+},
+{
+  "model": "spe.teachingstaffevaluation",
+  "pk": 37,
+  "fields": {
+    "period": 1,
+    "attribute": 20,
+    "indicator": 37,
+    "rating": 5,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 22,
+    "reviewed_at": "2025-11-27T13:40:28.455Z",
+    "created_at": "2025-11-27T13:40:28.468Z",
+    "updated_at": "2025-11-27T13:40:28.468Z",
+    "staff": 25
+  }
+},
+{
+  "model": "spe.teachingstaffevaluation",
+  "pk": 38,
+  "fields": {
+    "period": 1,
+    "attribute": 20,
+    "indicator": 38,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 22,
+    "reviewed_at": "2025-11-27T13:40:28.487Z",
+    "created_at": "2025-11-27T13:40:28.498Z",
+    "updated_at": "2025-11-27T13:40:28.499Z",
+    "staff": 25
+  }
+},
+{
+  "model": "spe.teachingstaffevaluation",
+  "pk": 39,
+  "fields": {
+    "period": 1,
+    "attribute": 20,
+    "indicator": 39,
+    "rating": 4,
+    "remarks": null,
+    "total_raw_score": 4.5,
+    "mean_raw_score": 4.5,
+    "percent_score": 90.0,
+    "is_submitted": true,
+    "status": "reviewed",
+    "reviewed_by": 22,
+    "reviewed_at": "2025-11-27T13:40:28.518Z",
+    "created_at": "2025-11-27T13:40:28.527Z",
+    "updated_at": "2025-11-27T13:40:28.527Z",
+    "staff": 25
+  }
+},
+{
+  "model": "spe.staffresult",
+  "pk": 10,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "overall_score": 75.625,
+    "created_at": "2025-11-25T11:12:17.573Z"
+  }
+},
+{
+  "model": "spe.staffresult",
+  "pk": 12,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "overall_score": 74.16666666666667,
+    "created_at": "2025-11-26T02:42:25.656Z"
+  }
+},
+{
+  "model": "spe.staffresult",
+  "pk": 13,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "overall_score": 85.0,
+    "created_at": "2025-11-27T06:58:51.405Z"
+  }
+},
+{
+  "model": "spe.staffresult",
+  "pk": 14,
+  "fields": {
+    "staff": 25,
+    "period": 1,
+    "overall_score": 76.04166666666667,
+    "created_at": "2025-11-27T13:40:28.282Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 118,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 21,
+    "indicator": 40,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.116Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 119,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 21,
+    "indicator": 41,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.143Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 120,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 21,
+    "indicator": 42,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.160Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 121,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 21,
+    "indicator": 43,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.181Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 122,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 22,
+    "indicator": 44,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.198Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 123,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 22,
+    "indicator": 45,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.223Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 124,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 22,
+    "indicator": 46,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.244Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 125,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 22,
+    "indicator": 47,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.269Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 126,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 23,
+    "indicator": 48,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.286Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 127,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 23,
+    "indicator": 49,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.303Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 128,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 23,
+    "indicator": 50,
+    "self_rating": 2,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.319Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 129,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 23,
+    "indicator": 51,
+    "self_rating": 3,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.343Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 130,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 24,
+    "indicator": 52,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.365Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 131,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 24,
+    "indicator": 53,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.389Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 132,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 24,
+    "indicator": 54,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.412Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 133,
+  "fields": {
+    "staff": 21,
+    "period": 1,
+    "attribute": 24,
+    "indicator": 55,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:40:43.432Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 134,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 21,
+    "indicator": 40,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:13.809Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 135,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 21,
+    "indicator": 41,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:13.850Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 136,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 21,
+    "indicator": 42,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:13.874Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 137,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 21,
+    "indicator": 43,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:13.900Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 138,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 22,
+    "indicator": 44,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:13.921Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 139,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 22,
+    "indicator": 45,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:13.936Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 140,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 22,
+    "indicator": 46,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:13.953Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 141,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 22,
+    "indicator": 47,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:13.974Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 142,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 23,
+    "indicator": 48,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:13.998Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 143,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 23,
+    "indicator": 49,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:14.022Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 144,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 23,
+    "indicator": 50,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:14.042Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 145,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 23,
+    "indicator": 51,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:14.055Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 146,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 24,
+    "indicator": 52,
+    "self_rating": 3,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:14.068Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 147,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 24,
+    "indicator": 53,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:14.086Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 148,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 24,
+    "indicator": 54,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:14.113Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 149,
+  "fields": {
+    "staff": 19,
+    "period": 1,
+    "attribute": 24,
+    "indicator": 55,
+    "self_rating": 2,
+    "remarks": "",
+    "submitted_at": "2025-11-26T02:56:14.143Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 150,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 21,
+    "indicator": 40,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.459Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 151,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 21,
+    "indicator": 41,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.477Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 152,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 21,
+    "indicator": 42,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.491Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 153,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 21,
+    "indicator": 43,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.517Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 154,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 22,
+    "indicator": 44,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.541Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 155,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 22,
+    "indicator": 45,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.569Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 156,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 22,
+    "indicator": 46,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.589Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 157,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 22,
+    "indicator": 47,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.604Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 158,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 23,
+    "indicator": 48,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.619Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 159,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 23,
+    "indicator": 49,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.635Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 160,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 23,
+    "indicator": 50,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.657Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 161,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 23,
+    "indicator": 51,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.678Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 162,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 24,
+    "indicator": 52,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.698Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 163,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 24,
+    "indicator": 53,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.712Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 164,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 24,
+    "indicator": 54,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.727Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 165,
+  "fields": {
+    "staff": 23,
+    "period": 1,
+    "attribute": 24,
+    "indicator": 55,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-27T06:49:02.742Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 166,
+  "fields": {
+    "staff": 25,
+    "period": 1,
+    "attribute": 19,
+    "indicator": 32,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-27T13:38:41.490Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 167,
+  "fields": {
+    "staff": 25,
+    "period": 1,
+    "attribute": 19,
+    "indicator": 33,
+    "self_rating": 3,
+    "remarks": "",
+    "submitted_at": "2025-11-27T13:38:41.517Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 168,
+  "fields": {
+    "staff": 25,
+    "period": 1,
+    "attribute": 19,
+    "indicator": 34,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-27T13:38:41.543Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 170,
+  "fields": {
+    "staff": 25,
+    "period": 1,
+    "attribute": 20,
+    "indicator": 36,
+    "self_rating": 3,
+    "remarks": "",
+    "submitted_at": "2025-11-27T13:38:41.598Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 171,
+  "fields": {
+    "staff": 25,
+    "period": 1,
+    "attribute": 20,
+    "indicator": 37,
+    "self_rating": 4,
+    "remarks": "",
+    "submitted_at": "2025-11-27T13:38:41.620Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 172,
+  "fields": {
+    "staff": 25,
+    "period": 1,
+    "attribute": 20,
+    "indicator": 38,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-27T13:38:41.642Z"
+  }
+},
+{
+  "model": "spe.selfassessment",
+  "pk": 173,
+  "fields": {
+    "staff": 25,
+    "period": 1,
+    "attribute": 20,
+    "indicator": 39,
+    "self_rating": 5,
+    "remarks": "",
+    "submitted_at": "2025-11-27T13:38:41.653Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 118,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 118,
+    "supervisor_rating": 3,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:25.621Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 119,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 119,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:25.686Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 120,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 120,
+    "supervisor_rating": 5,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:25.741Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 121,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 121,
+    "supervisor_rating": 3,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:25.782Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 122,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 122,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:25.830Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 123,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 123,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:25.873Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 124,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 124,
+    "supervisor_rating": 5,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:25.917Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 125,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 125,
+    "supervisor_rating": 5,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:25.953Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 126,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 126,
+    "supervisor_rating": 3,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:25.998Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 127,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 127,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:26.040Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 128,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 128,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:26.086Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 129,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 129,
+    "supervisor_rating": 5,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:26.124Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 130,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 130,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:26.167Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 131,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 131,
+    "supervisor_rating": 2,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:26.216Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 132,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 132,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:26.256Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 133,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 133,
+    "supervisor_rating": 5,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:42:26.293Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 134,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 134,
+    "supervisor_rating": 3,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:05.745Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 135,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 135,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:05.825Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 136,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 136,
+    "supervisor_rating": 2,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:05.871Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 137,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 137,
+    "supervisor_rating": 3,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:05.916Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 138,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 138,
+    "supervisor_rating": 5,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:05.954Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 139,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 139,
+    "supervisor_rating": 2,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:05.986Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 140,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 140,
+    "supervisor_rating": 2,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:06.017Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 141,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 141,
+    "supervisor_rating": 5,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:06.047Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 142,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 142,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:06.077Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 143,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 143,
+    "supervisor_rating": 2,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:06.107Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 144,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 144,
+    "supervisor_rating": 3,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:06.136Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 145,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 145,
+    "supervisor_rating": 5,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:06.166Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 146,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 146,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:06.197Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 147,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 147,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:06.227Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 148,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 148,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:06.257Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 149,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 149,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-26T02:58:06.287Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 150,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 150,
+    "supervisor_rating": 5,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:51.371Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 151,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 151,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:51.425Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 152,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 152,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:51.477Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 153,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 153,
+    "supervisor_rating": 3,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:51.525Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 154,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 154,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:51.581Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 155,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 155,
+    "supervisor_rating": 5,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:51.630Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 156,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 156,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:51.683Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 157,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 157,
+    "supervisor_rating": 5,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:51.731Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 158,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 158,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:51.784Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 159,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 159,
+    "supervisor_rating": 5,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:51.828Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 160,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 160,
+    "supervisor_rating": 3,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:51.867Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 161,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 161,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:51.905Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 162,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 162,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:51.941Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 163,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 163,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:51.980Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 164,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 164,
+    "supervisor_rating": 5,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:52.018Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 165,
+  "fields": {
+    "supervisor": 10,
+    "self_assessment": 165,
+    "supervisor_rating": 3,
+    "remarks": null,
+    "submitted_at": "2025-11-27T06:58:52.064Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 166,
+  "fields": {
+    "supervisor": 22,
+    "self_assessment": 166,
+    "supervisor_rating": 3,
+    "remarks": null,
+    "submitted_at": "2025-11-27T13:40:28.242Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 167,
+  "fields": {
+    "supervisor": 22,
+    "self_assessment": 167,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-27T13:40:28.309Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 168,
+  "fields": {
+    "supervisor": 22,
+    "self_assessment": 168,
+    "supervisor_rating": 3,
+    "remarks": null,
+    "submitted_at": "2025-11-27T13:40:28.355Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 170,
+  "fields": {
+    "supervisor": 22,
+    "self_assessment": 170,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-27T13:40:28.427Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 171,
+  "fields": {
+    "supervisor": 22,
+    "self_assessment": 171,
+    "supervisor_rating": 5,
+    "remarks": null,
+    "submitted_at": "2025-11-27T13:40:28.454Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 172,
+  "fields": {
+    "supervisor": 22,
+    "self_assessment": 172,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-27T13:40:28.486Z"
+  }
+},
+{
+  "model": "spe.supervisorevaluation",
+  "pk": 173,
+  "fields": {
+    "supervisor": 22,
+    "self_assessment": 173,
+    "supervisor_rating": 4,
+    "remarks": null,
+    "submitted_at": "2025-11-27T13:40:28.516Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 33,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 17,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-26T02:47:13.060Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 34,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 18,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-11-26T02:47:13.082Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 35,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 19,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-26T02:47:13.095Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 36,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 20,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-11-26T02:47:13.108Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 37,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 21,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-26T02:47:13.125Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 38,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 22,
+    "rating": 3,
+    "comments": "",
+    "submitted_at": "2025-11-26T02:47:13.141Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 39,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 23,
+    "rating": 2,
+    "comments": "",
+    "submitted_at": "2025-11-26T02:47:13.160Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 40,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 24,
+    "rating": 3,
+    "comments": "",
+    "submitted_at": "2025-11-26T02:47:13.175Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 42,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 10,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-26T02:47:13.194Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 43,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 11,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-26T02:47:13.204Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 44,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 12,
+    "rating": 3,
+    "comments": "",
+    "submitted_at": "2025-11-26T02:47:13.225Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 45,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 13,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-26T02:47:13.242Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 47,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 15,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-11-26T02:47:13.272Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 48,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 16,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-11-26T02:47:13.280Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 49,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 17,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-26T03:54:07.246Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 50,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 18,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-26T03:54:07.264Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 51,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 19,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-11-26T03:54:07.275Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 52,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 20,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-11-26T03:54:07.290Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 53,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 21,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-11-26T03:54:07.309Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 54,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 22,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-26T03:54:07.327Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 55,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 23,
+    "rating": 3,
+    "comments": "",
+    "submitted_at": "2025-11-26T03:54:07.347Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 56,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 24,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-11-26T03:54:07.360Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 58,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 10,
+    "rating": 3,
+    "comments": "",
+    "submitted_at": "2025-11-26T03:54:07.389Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 59,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 11,
+    "rating": 3,
+    "comments": "",
+    "submitted_at": "2025-11-26T03:54:07.411Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 60,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 12,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-26T03:54:07.431Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 61,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 13,
+    "rating": 3,
+    "comments": "",
+    "submitted_at": "2025-11-26T03:54:07.454Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 63,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 15,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-11-26T03:54:07.492Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 64,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 16,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-26T03:54:07.511Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 65,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 17,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-27T08:12:17.812Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 66,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 18,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-11-27T08:12:17.826Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 67,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 19,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-27T08:12:17.842Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 68,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 20,
+    "rating": 3,
+    "comments": "",
+    "submitted_at": "2025-11-27T08:12:17.862Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 69,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 21,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-27T08:12:17.885Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 70,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 22,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-27T08:12:17.902Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 71,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 23,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-11-27T08:12:17.912Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 72,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 24,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-11-27T08:12:17.925Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 74,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 10,
+    "rating": 2,
+    "comments": "",
+    "submitted_at": "2025-11-27T08:12:17.958Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 75,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 11,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-11-27T08:12:17.978Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 76,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 12,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-27T08:12:17.995Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 77,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 13,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-27T08:12:18.008Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 79,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 15,
+    "rating": 3,
+    "comments": "",
+    "submitted_at": "2025-11-27T08:12:18.032Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 80,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 16,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-11-27T08:12:18.040Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 81,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 17,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-12-02T07:49:38.087Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 82,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 18,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-12-02T07:49:38.102Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 83,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 19,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-12-02T07:49:38.120Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 84,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 20,
+    "rating": 2,
+    "comments": "",
+    "submitted_at": "2025-12-02T07:49:38.142Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 85,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 21,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-12-02T07:49:38.160Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 86,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 22,
+    "rating": 2,
+    "comments": "",
+    "submitted_at": "2025-12-02T07:49:38.173Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 87,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 23,
+    "rating": 3,
+    "comments": "",
+    "submitted_at": "2025-12-02T07:49:38.184Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 88,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 24,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-12-02T07:49:38.193Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 90,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 10,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-12-02T07:49:38.231Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 91,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 11,
+    "rating": 1,
+    "comments": "",
+    "submitted_at": "2025-12-02T07:49:38.253Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 92,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 12,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-12-02T07:49:38.274Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 93,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 13,
+    "rating": 4,
+    "comments": "",
+    "submitted_at": "2025-12-02T07:49:38.290Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 95,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 15,
+    "rating": 3,
+    "comments": "",
+    "submitted_at": "2025-12-02T07:49:38.316Z"
+  }
+},
+{
+  "model": "spe.supervisorrating",
+  "pk": 96,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 16,
+    "rating": 5,
+    "comments": "",
+    "submitted_at": "2025-12-02T07:49:38.329Z"
+  }
+},
+{
+  "model": "hr.supervisorattribute",
+  "pk": 4,
+  "fields": {
+    "category": "",
+    "name": "Leadership Skills",
+    "description": "",
+    "weight": 0,
+    "is_active": true,
+    "created_by": 12,
+    "created_at": "2025-11-17T08:23:35.909Z",
+    "updated_at": "2025-12-02T11:13:24.632Z"
+  }
+},
+{
+  "model": "hr.supervisorattribute",
+  "pk": 5,
+  "fields": {
+    "category": "",
+    "name": "Team Management",
+    "description": "",
+    "weight": 0,
+    "is_active": true,
+    "created_by": 12,
+    "created_at": "2025-11-17T08:23:42.367Z",
+    "updated_at": "2025-11-17T08:23:42.367Z"
+  }
+},
+{
+  "model": "hr.supervisorattribute",
+  "pk": 6,
+  "fields": {
+    "category": "",
+    "name": "Communication Skills",
+    "description": "",
+    "weight": 0,
+    "is_active": true,
+    "created_by": 12,
+    "created_at": "2025-11-17T08:23:48.948Z",
+    "updated_at": "2025-11-17T08:23:48.948Z"
+  }
+},
+{
+  "model": "hr.supervisorattribute",
+  "pk": 7,
+  "fields": {
+    "category": "",
+    "name": "Decision Making",
+    "description": "",
+    "weight": 0,
+    "is_active": true,
+    "created_by": 12,
+    "created_at": "2025-11-17T08:23:52.609Z",
+    "updated_at": "2025-11-17T08:23:52.609Z"
+  }
+},
+{
+  "model": "hr.supervisorindicator",
+  "pk": 10,
+  "fields": {
+    "attribute": 4,
+    "description": "Motivates and inspires team members",
+    "example": "",
+    "is_active": true,
+    "order": 0,
+    "created_at": "2025-11-17T08:23:35.922Z",
+    "updated_at": "2025-11-17T08:23:35.923Z"
+  }
+},
+{
+  "model": "hr.supervisorindicator",
+  "pk": 11,
+  "fields": {
+    "attribute": 4,
+    "description": "Makes sound decisions under pressure",
+    "example": "",
+    "is_active": true,
+    "order": 0,
+    "created_at": "2025-11-17T08:23:35.931Z",
+    "updated_at": "2025-11-17T08:23:35.931Z"
+  }
+},
+{
+  "model": "hr.supervisorindicator",
+  "pk": 12,
+  "fields": {
+    "attribute": 4,
+    "description": "Takes responsibility for team outcomes",
+    "example": "",
+    "is_active": true,
+    "order": 0,
+    "created_at": "2025-11-17T08:23:35.943Z",
+    "updated_at": "2025-11-17T08:23:35.943Z"
+  }
+},
+{
+  "model": "hr.supervisorindicator",
+  "pk": 13,
+  "fields": {
+    "attribute": 5,
+    "description": "Fosters collaborative team environment",
+    "example": "",
+    "is_active": true,
+    "order": 0,
+    "created_at": "2025-11-17T08:23:42.383Z",
+    "updated_at": "2025-11-17T08:23:42.383Z"
+  }
+},
+{
+  "model": "hr.supervisorindicator",
+  "pk": 15,
+  "fields": {
+    "attribute": 5,
+    "description": "Manages team conflicts constructively",
+    "example": "",
+    "is_active": true,
+    "order": 0,
+    "created_at": "2025-11-17T08:23:42.409Z",
+    "updated_at": "2025-11-17T08:23:42.409Z"
+  }
+},
+{
+  "model": "hr.supervisorindicator",
+  "pk": 16,
+  "fields": {
+    "attribute": 5,
+    "description": "Recognizes and utilizes team strengths",
+    "example": "",
+    "is_active": true,
+    "order": 0,
+    "created_at": "2025-11-17T08:23:42.416Z",
+    "updated_at": "2025-11-17T08:23:42.417Z"
+  }
+},
+{
+  "model": "hr.supervisorindicator",
+  "pk": 17,
+  "fields": {
+    "attribute": 6,
+    "description": "Clearly articulates ideas and information",
+    "example": "",
+    "is_active": true,
+    "order": 0,
+    "created_at": "2025-11-17T08:23:48.961Z",
+    "updated_at": "2025-11-17T08:23:48.961Z"
+  }
+},
+{
+  "model": "hr.supervisorindicator",
+  "pk": 18,
+  "fields": {
+    "attribute": 6,
+    "description": "Listens actively and responds appropriately",
+    "example": "",
+    "is_active": true,
+    "order": 0,
+    "created_at": "2025-11-17T08:23:48.973Z",
+    "updated_at": "2025-11-17T08:23:48.973Z"
+  }
+},
+{
+  "model": "hr.supervisorindicator",
+  "pk": 19,
+  "fields": {
+    "attribute": 6,
+    "description": "Adapts communication style to audience",
+    "example": "",
+    "is_active": true,
+    "order": 0,
+    "created_at": "2025-11-17T08:23:48.986Z",
+    "updated_at": "2025-11-17T08:23:48.986Z"
+  }
+},
+{
+  "model": "hr.supervisorindicator",
+  "pk": 20,
+  "fields": {
+    "attribute": 6,
+    "description": "Provides constructive feedback to team members",
+    "example": "",
+    "is_active": true,
+    "order": 0,
+    "created_at": "2025-11-17T08:23:48.999Z",
+    "updated_at": "2025-11-17T08:23:48.999Z"
+  }
+},
+{
+  "model": "hr.supervisorindicator",
+  "pk": 21,
+  "fields": {
+    "attribute": 7,
+    "description": "Analyzes situations thoroughly before deciding",
+    "example": "",
+    "is_active": true,
+    "order": 0,
+    "created_at": "2025-11-17T08:23:52.623Z",
+    "updated_at": "2025-11-17T08:23:52.623Z"
+  }
+},
+{
+  "model": "hr.supervisorindicator",
+  "pk": 22,
+  "fields": {
+    "attribute": 7,
+    "description": "Considers multiple perspectives in decision process",
+    "example": "",
+    "is_active": true,
+    "order": 0,
+    "created_at": "2025-11-17T08:23:52.635Z",
+    "updated_at": "2025-11-17T08:23:52.635Z"
+  }
+},
+{
+  "model": "hr.supervisorindicator",
+  "pk": 23,
+  "fields": {
+    "attribute": 7,
+    "description": "Makes timely and effective decisions",
+    "example": "",
+    "is_active": true,
+    "order": 0,
+    "created_at": "2025-11-17T08:23:52.647Z",
+    "updated_at": "2025-11-17T08:23:52.648Z"
+  }
+},
+{
+  "model": "hr.supervisorindicator",
+  "pk": 24,
+  "fields": {
+    "attribute": 7,
+    "description": "Takes calculated risks when appropriate",
+    "example": "",
+    "is_active": true,
+    "order": 0,
+    "created_at": "2025-11-17T08:23:52.660Z",
+    "updated_at": "2025-11-17T08:23:52.661Z"
+  }
+},
+{
+  "model": "hr.supervisorappraisal",
+  "pk": 3,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "evaluated_by": 18,
+    "total_score": 79.0,
+    "average_score": 3.775,
+    "overall_score": 75.5,
+    "criteria_score": 3.75,
+    "target_score": 3.8,
+    "criteria_evaluated": 16,
+    "targets_evaluated": 5,
+    "target_achievement_rate": 76.0,
+    "status": "evaluated",
+    "evaluated_at": "2025-11-26T03:13:08.784Z"
+  }
+},
+{
+  "model": "hr.supervisorappraisal",
+  "pk": 5,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "evaluated_by": 18,
+    "total_score": 80.0,
+    "average_score": 3.94375,
+    "overall_score": 78.875,
+    "criteria_score": 3.6875,
+    "target_score": 4.2,
+    "criteria_evaluated": 16,
+    "targets_evaluated": 5,
+    "target_achievement_rate": 84.00000000000001,
+    "status": "evaluated",
+    "evaluated_at": "2025-11-26T06:08:48.817Z"
+  }
+},
+{
+  "model": "hr.supervisorappraisal",
+  "pk": 6,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "evaluated_by": 18,
+    "total_score": 83.0,
+    "average_score": 3.9,
+    "overall_score": 78.0,
+    "criteria_score": 4.0,
+    "target_score": 3.8,
+    "criteria_evaluated": 16,
+    "targets_evaluated": 5,
+    "target_achievement_rate": 76.0,
+    "status": "evaluated",
+    "evaluated_at": "2025-11-27T08:14:15.153Z"
+  }
+},
+{
+  "model": "hr.supervisorappraisal",
+  "pk": 7,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "evaluated_by": 18,
+    "total_score": 83.0,
+    "average_score": 3.9,
+    "overall_score": 78.0,
+    "criteria_score": 4.0,
+    "target_score": 3.8,
+    "criteria_evaluated": 16,
+    "targets_evaluated": 5,
+    "target_achievement_rate": 76.0,
+    "status": "evaluated",
+    "evaluated_at": "2025-12-02T09:13:24.914Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 33,
+  "fields": {
+    "supervisor": 10,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 17,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:13:08.552Z",
+    "updated_at": "2025-11-26T03:13:08.552Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 34,
+  "fields": {
+    "supervisor": 10,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 18,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:13:08.568Z",
+    "updated_at": "2025-11-26T03:13:08.568Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 35,
+  "fields": {
+    "supervisor": 10,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 19,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:13:08.580Z",
+    "updated_at": "2025-11-26T03:13:08.581Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 36,
+  "fields": {
+    "supervisor": 10,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 20,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:13:08.593Z",
+    "updated_at": "2025-11-26T03:13:08.593Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 37,
+  "fields": {
+    "supervisor": 10,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 21,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:13:08.602Z",
+    "updated_at": "2025-11-26T03:13:08.602Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 38,
+  "fields": {
+    "supervisor": 10,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 22,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:13:08.613Z",
+    "updated_at": "2025-11-26T03:13:08.613Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 39,
+  "fields": {
+    "supervisor": 10,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 23,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:13:08.627Z",
+    "updated_at": "2025-11-26T03:13:08.627Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 40,
+  "fields": {
+    "supervisor": 10,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 24,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:13:08.635Z",
+    "updated_at": "2025-11-26T03:13:08.635Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 42,
+  "fields": {
+    "supervisor": 10,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 10,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:13:08.662Z",
+    "updated_at": "2025-11-26T03:13:08.662Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 43,
+  "fields": {
+    "supervisor": 10,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 11,
+    "rating": 2,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:13:08.670Z",
+    "updated_at": "2025-11-26T03:13:08.670Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 44,
+  "fields": {
+    "supervisor": 10,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 12,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:13:08.684Z",
+    "updated_at": "2025-11-26T03:13:08.684Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 45,
+  "fields": {
+    "supervisor": 10,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 13,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:13:08.695Z",
+    "updated_at": "2025-11-26T03:13:08.695Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 47,
+  "fields": {
+    "supervisor": 10,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 15,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:13:08.713Z",
+    "updated_at": "2025-11-26T03:13:08.713Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 48,
+  "fields": {
+    "supervisor": 10,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 16,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:13:08.723Z",
+    "updated_at": "2025-11-26T03:13:08.723Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 49,
+  "fields": {
+    "supervisor": 22,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 17,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:55:54.394Z",
+    "updated_at": "2025-11-26T06:08:48.622Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 50,
+  "fields": {
+    "supervisor": 22,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 18,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:55:54.411Z",
+    "updated_at": "2025-11-26T06:08:48.630Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 51,
+  "fields": {
+    "supervisor": 22,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 19,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:55:54.419Z",
+    "updated_at": "2025-11-26T06:08:48.638Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 52,
+  "fields": {
+    "supervisor": 22,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 20,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:55:54.426Z",
+    "updated_at": "2025-11-26T06:08:48.646Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 53,
+  "fields": {
+    "supervisor": 22,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 21,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:55:54.438Z",
+    "updated_at": "2025-11-26T06:08:48.656Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 54,
+  "fields": {
+    "supervisor": 22,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 22,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:55:54.447Z",
+    "updated_at": "2025-11-26T06:08:48.663Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 55,
+  "fields": {
+    "supervisor": 22,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 23,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:55:54.456Z",
+    "updated_at": "2025-11-26T06:08:48.670Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 56,
+  "fields": {
+    "supervisor": 22,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 24,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:55:54.464Z",
+    "updated_at": "2025-11-26T06:08:48.678Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 58,
+  "fields": {
+    "supervisor": 22,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 10,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:55:54.490Z",
+    "updated_at": "2025-11-26T06:08:48.701Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 59,
+  "fields": {
+    "supervisor": 22,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 11,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:55:54.499Z",
+    "updated_at": "2025-11-26T06:08:48.712Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 60,
+  "fields": {
+    "supervisor": 22,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 12,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:55:54.512Z",
+    "updated_at": "2025-11-26T06:08:48.720Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 61,
+  "fields": {
+    "supervisor": 22,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 13,
+    "rating": 2,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:55:54.523Z",
+    "updated_at": "2025-11-26T06:08:48.729Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 63,
+  "fields": {
+    "supervisor": 22,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 15,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:55:54.545Z",
+    "updated_at": "2025-11-26T06:08:48.751Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 64,
+  "fields": {
+    "supervisor": 22,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 16,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-26T03:55:54.555Z",
+    "updated_at": "2025-11-26T06:08:48.761Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 65,
+  "fields": {
+    "supervisor": 24,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 17,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-27T08:14:15.003Z",
+    "updated_at": "2025-11-27T08:14:15.003Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 66,
+  "fields": {
+    "supervisor": 24,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 18,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-27T08:14:15.019Z",
+    "updated_at": "2025-11-27T08:14:15.019Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 67,
+  "fields": {
+    "supervisor": 24,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 19,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-27T08:14:15.027Z",
+    "updated_at": "2025-11-27T08:14:15.027Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 68,
+  "fields": {
+    "supervisor": 24,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 20,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-27T08:14:15.033Z",
+    "updated_at": "2025-11-27T08:14:15.033Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 69,
+  "fields": {
+    "supervisor": 24,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 21,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-27T08:14:15.038Z",
+    "updated_at": "2025-11-27T08:14:15.038Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 70,
+  "fields": {
+    "supervisor": 24,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 22,
+    "rating": 2,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-27T08:14:15.047Z",
+    "updated_at": "2025-11-27T08:14:15.047Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 71,
+  "fields": {
+    "supervisor": 24,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 23,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-27T08:14:15.055Z",
+    "updated_at": "2025-11-27T08:14:15.055Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 72,
+  "fields": {
+    "supervisor": 24,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 24,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-27T08:14:15.063Z",
+    "updated_at": "2025-11-27T08:14:15.063Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 74,
+  "fields": {
+    "supervisor": 24,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 10,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-27T08:14:15.075Z",
+    "updated_at": "2025-11-27T08:14:15.075Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 75,
+  "fields": {
+    "supervisor": 24,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 11,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-27T08:14:15.086Z",
+    "updated_at": "2025-11-27T08:14:15.086Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 76,
+  "fields": {
+    "supervisor": 24,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 12,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-27T08:14:15.096Z",
+    "updated_at": "2025-11-27T08:14:15.096Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 77,
+  "fields": {
+    "supervisor": 24,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 13,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-27T08:14:15.102Z",
+    "updated_at": "2025-11-27T08:14:15.102Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 79,
+  "fields": {
+    "supervisor": 24,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 15,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-27T08:14:15.119Z",
+    "updated_at": "2025-11-27T08:14:15.119Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 80,
+  "fields": {
+    "supervisor": 24,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 16,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-11-27T08:14:15.126Z",
+    "updated_at": "2025-11-27T08:14:15.126Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 81,
+  "fields": {
+    "supervisor": 1,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 17,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-12-02T09:13:24.761Z",
+    "updated_at": "2025-12-02T09:13:24.762Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 82,
+  "fields": {
+    "supervisor": 1,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 18,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-12-02T09:13:24.778Z",
+    "updated_at": "2025-12-02T09:13:24.778Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 83,
+  "fields": {
+    "supervisor": 1,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 19,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-12-02T09:13:24.786Z",
+    "updated_at": "2025-12-02T09:13:24.787Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 84,
+  "fields": {
+    "supervisor": 1,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 6,
+    "indicator": 20,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-12-02T09:13:24.793Z",
+    "updated_at": "2025-12-02T09:13:24.793Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 85,
+  "fields": {
+    "supervisor": 1,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 21,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-12-02T09:13:24.800Z",
+    "updated_at": "2025-12-02T09:13:24.800Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 86,
+  "fields": {
+    "supervisor": 1,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 22,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-12-02T09:13:24.807Z",
+    "updated_at": "2025-12-02T09:13:24.807Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 87,
+  "fields": {
+    "supervisor": 1,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 23,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-12-02T09:13:24.817Z",
+    "updated_at": "2025-12-02T09:13:24.817Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 88,
+  "fields": {
+    "supervisor": 1,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 7,
+    "indicator": 24,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-12-02T09:13:24.824Z",
+    "updated_at": "2025-12-02T09:13:24.824Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 90,
+  "fields": {
+    "supervisor": 1,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 10,
+    "rating": 3,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-12-02T09:13:24.838Z",
+    "updated_at": "2025-12-02T09:13:24.838Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 91,
+  "fields": {
+    "supervisor": 1,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 11,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-12-02T09:13:24.848Z",
+    "updated_at": "2025-12-02T09:13:24.849Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 92,
+  "fields": {
+    "supervisor": 1,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 4,
+    "indicator": 12,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-12-02T09:13:24.856Z",
+    "updated_at": "2025-12-02T09:13:24.856Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 93,
+  "fields": {
+    "supervisor": 1,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 13,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-12-02T09:13:24.863Z",
+    "updated_at": "2025-12-02T09:13:24.863Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 95,
+  "fields": {
+    "supervisor": 1,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 15,
+    "rating": 5,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-12-02T09:13:24.879Z",
+    "updated_at": "2025-12-02T09:13:24.880Z"
+  }
+},
+{
+  "model": "hr.supervisorevaluation",
+  "pk": 96,
+  "fields": {
+    "supervisor": 1,
+    "hr_user": 18,
+    "period": 1,
+    "attribute": 5,
+    "indicator": 16,
+    "rating": 4,
+    "comments": "",
+    "status": "approved",
+    "approved_by": null,
+    "approved_at": null,
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "submitted_at": "2025-12-02T09:13:24.887Z",
+    "updated_at": "2025-12-02T09:13:24.888Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 11,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "target_number": 1,
+    "description": "99%–99.9% uptime for all critical systems (network, servers, ERP, LMS, emails).",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-20T11:56:16.588Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "performance_rating": 4,
+    "performance_comments": "Rated by VC",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-26T03:23:53.333Z",
+    "created_at": "2025-11-20T11:55:34.749Z",
+    "updated_at": "2025-11-26T03:23:53.334Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 12,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "target_number": 2,
+    "description": "Maintain network latency and bandwidth at optimal levels.",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-20T11:56:19.510Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "performance_rating": 4,
+    "performance_comments": "Rated by VC",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-26T03:23:53.382Z",
+    "created_at": "2025-11-20T11:55:34.769Z",
+    "updated_at": "2025-11-26T03:23:53.383Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 13,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "target_number": 3,
+    "description": "Respond to all user tickets within 30 minutes – 2 hours depending on priority.",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-20T11:57:15.898Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "performance_rating": 4,
+    "performance_comments": "Rated by VC",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-26T03:23:53.421Z",
+    "created_at": "2025-11-20T11:55:34.778Z",
+    "updated_at": "2025-11-26T03:23:53.422Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 14,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "target_number": 4,
+    "description": "Zero critical security incidents.",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-20T11:57:18.011Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "performance_rating": 4,
+    "performance_comments": "Rated by VC",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-26T03:23:53.457Z",
+    "created_at": "2025-11-20T11:55:34.785Z",
+    "updated_at": "2025-11-26T03:23:53.458Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 15,
+  "fields": {
+    "supervisor": 10,
+    "period": 1,
+    "target_number": 5,
+    "description": "100% inventory accuracy for computers, routers, printers, etc.",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-20T11:57:20.191Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": null,
+    "performance_rating": 4,
+    "performance_comments": "Rated by VC",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-26T03:23:53.488Z",
+    "created_at": "2025-11-20T11:55:34.791Z",
+    "updated_at": "2025-11-26T03:23:53.489Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 21,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "target_number": 1,
+    "description": "Academic Quality & Curriculum Improvement",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-26T03:52:11.716Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 5,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-26T06:08:48.764Z",
+    "created_at": "2025-11-26T03:51:20.879Z",
+    "updated_at": "2025-11-26T06:08:48.765Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 22,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "target_number": 2,
+    "description": "Student Performance & Progression",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-26T03:52:22.717Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 4,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-26T06:08:48.776Z",
+    "created_at": "2025-11-26T03:51:20.896Z",
+    "updated_at": "2025-11-26T06:08:48.776Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 23,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "target_number": 3,
+    "description": "Teacher Professional Development",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-26T03:52:22.727Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 4,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-26T06:08:48.782Z",
+    "created_at": "2025-11-26T03:51:20.906Z",
+    "updated_at": "2025-11-26T06:08:48.782Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 24,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "target_number": 4,
+    "description": "Research, Publications & Innovation",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-26T03:52:22.736Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 5,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-26T06:08:48.787Z",
+    "created_at": "2025-11-26T03:51:20.912Z",
+    "updated_at": "2025-11-26T06:08:48.787Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 25,
+  "fields": {
+    "supervisor": 22,
+    "period": 1,
+    "target_number": 5,
+    "description": "Quality Teaching Practice (TP) Management",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-26T03:52:41.723Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 3,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-26T06:08:48.792Z",
+    "created_at": "2025-11-26T03:51:20.921Z",
+    "updated_at": "2025-11-26T06:08:48.793Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 26,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "target_number": 1,
+    "description": "Fill critical vacancies faster",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-27T07:59:50.580Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 5,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-27T08:14:15.130Z",
+    "created_at": "2025-11-27T07:58:18.008Z",
+    "updated_at": "2025-11-27T08:14:15.130Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 27,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "target_number": 2,
+    "description": "Improve staff appraisal completion",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-27T08:00:34.280Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 4,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-27T08:14:15.133Z",
+    "created_at": "2025-11-27T07:58:18.027Z",
+    "updated_at": "2025-11-27T08:14:15.133Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 28,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "target_number": 3,
+    "description": "Increase performance levels",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-27T08:00:46.538Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 5,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-27T08:14:15.135Z",
+    "created_at": "2025-11-27T07:58:18.041Z",
+    "updated_at": "2025-11-27T08:14:15.135Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 29,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "target_number": 4,
+    "description": "Reduce staff turnover",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-27T08:00:49.267Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 2,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-27T08:14:15.137Z",
+    "created_at": "2025-11-27T07:58:18.055Z",
+    "updated_at": "2025-11-27T08:14:15.137Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 30,
+  "fields": {
+    "supervisor": 24,
+    "period": 1,
+    "target_number": 5,
+    "description": "Resolve grievances quickly",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-11-27T08:09:34.802Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 3,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-11-27T08:14:15.139Z",
+    "created_at": "2025-11-27T07:58:18.068Z",
+    "updated_at": "2025-11-27T08:14:15.139Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 31,
+  "fields": {
+    "supervisor": 26,
+    "period": 1,
+    "target_number": 1,
+    "description": "Financial Reporting & Compliance",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T05:56:47.460Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": null,
+    "performance_comments": null,
+    "achievement_percentage": null,
+    "rated_by": null,
+    "rated_at": null,
+    "created_at": "2025-12-02T05:55:35.955Z",
+    "updated_at": "2025-12-02T05:56:47.460Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 32,
+  "fields": {
+    "supervisor": 26,
+    "period": 1,
+    "target_number": 2,
+    "description": "Budget Management",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T05:56:56.604Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": null,
+    "performance_comments": null,
+    "achievement_percentage": null,
+    "rated_by": null,
+    "rated_at": null,
+    "created_at": "2025-12-02T05:55:35.977Z",
+    "updated_at": "2025-12-02T05:56:56.604Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 33,
+  "fields": {
+    "supervisor": 26,
+    "period": 1,
+    "target_number": 3,
+    "description": "Revenue & Cost Efficiency",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T05:57:10.150Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": null,
+    "performance_comments": null,
+    "achievement_percentage": null,
+    "rated_by": null,
+    "rated_at": null,
+    "created_at": "2025-12-02T05:55:35.986Z",
+    "updated_at": "2025-12-02T05:57:10.151Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 34,
+  "fields": {
+    "supervisor": 26,
+    "period": 1,
+    "target_number": 4,
+    "description": "Cash Flow Management",
+    "success_measures": null,
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T07:05:59.073Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": null,
+    "performance_comments": "",
+    "achievement_percentage": null,
+    "rated_by": null,
+    "rated_at": null,
+    "created_at": "2025-12-02T05:55:35.999Z",
+    "updated_at": "2025-12-02T07:05:59.074Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 35,
+  "fields": {
+    "supervisor": 26,
+    "period": 1,
+    "target_number": 5,
+    "description": "Payroll & Accounts Payable/Receivable",
+    "success_measures": "Updated measures from shell test",
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T05:57:10.162Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": null,
+    "performance_comments": null,
+    "achievement_percentage": null,
+    "rated_by": null,
+    "rated_at": null,
+    "created_at": "2025-12-02T05:55:36.008Z",
+    "updated_at": "2025-12-02T06:59:43.324Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 39,
+  "fields": {
+    "supervisor": 28,
+    "period": 1,
+    "target_number": 1,
+    "description": "fhn",
+    "success_measures": "nhj",
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T07:17:31.745Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": null,
+    "performance_comments": null,
+    "achievement_percentage": null,
+    "rated_by": null,
+    "rated_at": null,
+    "created_at": "2025-12-02T07:03:52.152Z",
+    "updated_at": "2025-12-02T07:17:31.746Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 40,
+  "fields": {
+    "supervisor": 28,
+    "period": 1,
+    "target_number": 2,
+    "description": "hgghj",
+    "success_measures": "hh",
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T07:17:45.472Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": null,
+    "performance_comments": null,
+    "achievement_percentage": null,
+    "rated_by": null,
+    "rated_at": null,
+    "created_at": "2025-12-02T07:03:52.168Z",
+    "updated_at": "2025-12-02T07:17:45.473Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 41,
+  "fields": {
+    "supervisor": 28,
+    "period": 1,
+    "target_number": 3,
+    "description": "jkjk",
+    "success_measures": "jjj",
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T07:17:45.480Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": null,
+    "performance_comments": null,
+    "achievement_percentage": null,
+    "rated_by": null,
+    "rated_at": null,
+    "created_at": "2025-12-02T07:03:52.178Z",
+    "updated_at": "2025-12-02T07:17:45.481Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 42,
+  "fields": {
+    "supervisor": 28,
+    "period": 1,
+    "target_number": 4,
+    "description": "kkl",
+    "success_measures": "kk",
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T07:17:56.382Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": null,
+    "performance_comments": null,
+    "achievement_percentage": null,
+    "rated_by": null,
+    "rated_at": null,
+    "created_at": "2025-12-02T07:03:52.189Z",
+    "updated_at": "2025-12-02T07:17:56.383Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 43,
+  "fields": {
+    "supervisor": 28,
+    "period": 1,
+    "target_number": 5,
+    "description": "nm",
+    "success_measures": "jjk",
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T07:18:00.594Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": null,
+    "performance_comments": null,
+    "achievement_percentage": null,
+    "rated_by": null,
+    "rated_at": null,
+    "created_at": "2025-12-02T07:03:52.200Z",
+    "updated_at": "2025-12-02T07:18:00.595Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 44,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "target_number": 1,
+    "description": "u",
+    "success_measures": "hj",
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T07:11:10.693Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 3,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-12-02T09:13:24.889Z",
+    "created_at": "2025-12-02T07:07:56.892Z",
+    "updated_at": "2025-12-02T09:13:24.889Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 45,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "target_number": 2,
+    "description": "h",
+    "success_measures": "k",
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T07:11:10.710Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 4,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-12-02T09:13:24.894Z",
+    "created_at": "2025-12-02T07:07:56.903Z",
+    "updated_at": "2025-12-02T09:13:24.895Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 46,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "target_number": 3,
+    "description": "n",
+    "success_measures": "j",
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T07:11:10.718Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 4,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-12-02T09:13:24.897Z",
+    "created_at": "2025-12-02T07:07:56.909Z",
+    "updated_at": "2025-12-02T09:13:24.897Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 47,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "target_number": 4,
+    "description": "h",
+    "success_measures": "u",
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T07:11:21.668Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 5,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-12-02T09:13:24.900Z",
+    "created_at": "2025-12-02T07:07:56.918Z",
+    "updated_at": "2025-12-02T09:13:24.900Z"
+  }
+},
+{
+  "model": "hr.supervisorperformancetarget",
+  "pk": 48,
+  "fields": {
+    "supervisor": 1,
+    "period": 1,
+    "target_number": 5,
+    "description": "n",
+    "success_measures": "k",
+    "due_date": null,
+    "status": "approved",
+    "approved_by": 18,
+    "approved_at": "2025-12-02T07:11:21.692Z",
+    "rejected_by": null,
+    "rejected_at": null,
+    "rejection_reason": "",
+    "performance_rating": 3,
+    "performance_comments": "",
+    "achievement_percentage": 0.0,
+    "rated_by": 18,
+    "rated_at": "2025-12-02T09:13:24.902Z",
+    "created_at": "2025-12-02T07:07:56.923Z",
+    "updated_at": "2025-12-02T09:13:24.902Z"
+  }
+}
+]

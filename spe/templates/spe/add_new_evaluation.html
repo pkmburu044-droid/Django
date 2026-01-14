@@ -4,67 +4,110 @@
 
 {% block content %}
 <div class="container mt-4">
+
+    <!-- Back Button -->
+    <a href="{% url 'dashboards:supervisor_dashboard' %}" class="btn btn-secondary mb-3">
+        &larr; Back to Dashboard
+    </a>
+
     <div class="card shadow-lg">
         <div class="card-header bg-primary text-white">
             <h4 class="mb-0">Add New Evaluation Items</h4>
             <p class="mb-0">Supervisors can add Periods, Attributes, and Indicators here</p>
         </div>
         <div class="card-body">
+
             <!-- Period Form -->
-            <h5>Add Evaluation Period</h5>
-            <form method="POST">
+            <h5 class="text-primary">➕ Add Evaluation Period</h5>
+            <form method="POST" class="mb-3">
                 {% csrf_token %}
                 {{ period_form.as_p }}
                 <button type="submit" name="add_period" class="btn btn-success">Add Period</button>
             </form>
-            <hr>
-            <h6>Existing Periods:</h6>
-            <ul>
+
+            <h6>📌 Existing Periods</h6>
+            <ul class="list-group mb-4">
                 {% for p in periods %}
-                    <li>{{ p.name }} ({{ p.start_date }} - {{ p.end_date }})</li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ p.name }} ({{ p.start_date }} → {{ p.end_date }})
+                        {% if p.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                        <a href="{% url 'spe:edit_period' p.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    </li>
                 {% empty %}
-                    <li>No periods yet.</li>
+                    <li class="list-group-item text-muted">No periods yet.</li>
                 {% endfor %}
             </ul>
 
             <hr>
 
             <!-- Attribute Form -->
-            <h5>Add Attribute</h5>
-            <form method="POST">
+            <h5 class="text-primary">➕ Add Attribute</h5>
+            <form method="POST" class="mb-3">
                 {% csrf_token %}
                 {{ attribute_form.as_p }}
                 <button type="submit" name="add_attribute" class="btn btn-success">Add Attribute</button>
             </form>
-            <hr>
-            <h6>Existing Attributes:</h6>
-            <ul>
+
+            <h6>📌 Existing Attributes</h6>
+            <ul class="list-group mb-4">
                 {% for a in attributes %}
-                    <li>{{ a.name }}</li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ a.name }}</strong> 
+                            <span class="badge bg-info text-dark">{{ a.get_staff_type_display }}</span>
+                            {% if a.department %}
+                                <span class="badge bg-dark">{{ a.department.name }}</span>
+                            {% endif %}
+                            <small class="text-muted">({{ a.period.name }})</small>
+                        </div>
+                        <a href="{% url 'spe:edit_attribute' a.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    </li>
                 {% empty %}
-                    <li>No attributes yet.</li>
+                    <li class="list-group-item text-muted">No attributes yet.</li>
                 {% endfor %}
             </ul>
 
             <hr>
 
             <!-- Indicator Form -->
-            <h5>Add Indicator</h5>
-            <form method="POST">
+            <h5 class="text-primary">➕ Add Indicator</h5>
+            <form method="POST" class="mb-3">
                 {% csrf_token %}
                 {{ indicator_form.as_p }}
                 <button type="submit" name="add_indicator" class="btn btn-success">Add Indicator</button>
             </form>
-            <hr>
-            <h6>Existing Indicators:</h6>
-            <ul>
+
+            <h6>📌 Existing Indicators</h6>
+            <ul class="list-group">
                 {% for i in indicators %}
-                    <li>{{ i.attribute.name }} → {{ i.description }}</li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ i.attribute.name }}</strong> 
+                            <span class="badge bg-info text-dark">{{ i.attribute.get_staff_type_display }}</span> 
+                            {% if i.attribute.department %}
+                                <span class="badge bg-dark">{{ i.attribute.department.name }}</span>
+                            {% endif %}
+                            → {{ i.description }}
+                        </div>
+                        <a href="{% url 'spe:edit_indicator' i.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    </li>
                 {% empty %}
-                    <li>No indicators yet.</li>
+                    <li class="list-group-item text-muted">No indicators yet.</li>
                 {% endfor %}
             </ul>
+
         </div>
     </div>
 </div>
+
+<style>
+.list-group-item a.btn {
+    margin-left: 10px;
+}
+</style>
+
 {% endblock %}

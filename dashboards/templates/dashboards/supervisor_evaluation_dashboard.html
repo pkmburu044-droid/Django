@@ -1,0 +1,703 @@
+<!-- users/templates/users/supervisor_evaluation_dashboard.html -->
+{% extends 'dashboards/base.html' %}
+
+{% block title %}
+    {% if is_evaluation_form %}Evaluate {{ staff.get_full_name }} - {% endif %}
+    Performance Evaluation Dashboard - KyU Appraisal System
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    {% if is_evaluation_form %}
+    <!-- ===== INDIVIDUAL STAFF EVALUATION FORM ===== -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-clipboard-check me-2"></i>
+                    Evaluate Performance: {{ staff.get_full_name }}
+                </h4>
+                <a href="{% url 'users:evaluate_staff_targets' %}" class="btn btn-light btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- Staff Information -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6>Staff Information</h6>
+                            <p class="mb-1"><strong>Name:</strong> {{ staff.get_full_name }}</p>
+                            <p class="mb-1"><strong>Email:</strong> {{ staff.email }}</p>
+                            {% if staff.department %}
+                            <p class="mb-0"><strong>Department:</strong> {{ staff.department }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6>Evaluation Period</h6>
+                            <p class="mb-1"><strong>Period:</strong> {{ current_period.name }}</p>
+                            <p class="mb-0"><strong>Targets to Evaluate:</strong> {{ targets.count }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staff Selection Dropdown -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <label class="form-label"><strong>Select Staff Member:</strong></label>
+                            <select class="form-select" onchange="if (this.value) window.location.href = this.value;">
+                                <option value="">-- Select Staff Member --</option>
+                                {% for supervisee in supervisees %}
+                                <option value="{% url 'users:evaluate_staff_targets' supervisee.id %}" 
+                                        {% if staff.id == supervisee.id %}selected{% endif %}>
+                                    {{ supervisee.get_full_name }} 
+                                    {% if supervisee.department %} - {{ supervisee.department }}{% endif %}
+                                    ({{ supervisee.evaluated_targets }}/{{ supervisee.total_targets }} evaluated)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evaluation Progress Summary -->
+            {% if targets %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-info">
+                        <div class="card-body py-3">
+                            <div class="row text-center">
+                                <div class="col-md-3 border-end">
+                                    <h4 class="text-primary mb-1">{{ targets.count }}</h4>
+                                    <small class="text-muted">Total Targets</small>
+                                </div>
+                                <div class="col-md-3 border-end">
+                                    <h4 class="text-success mb-1">{{ targets_evaluated_count }}</h4>
+                                    <small class="text-muted">Evaluated</small>
+                                </div>
+                                <div class="col-md-3 border-end">
+                                    <h4 class="text-warning mb-1">{{ targets_pending_count }}</h4>
+                                    <small class="text-muted">Pending</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <h4 class="text-info mb-1">{{ average_score|default:0 }}%</h4>
+                                    <small class="text-muted">Avg Score</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Evaluation Form -->
+            <form method="post" id="evaluationForm">
+                {% csrf_token %}
+                
+                <div class="card">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0">
+                            <i class="bi bi-list-check me-2"></i>
+                            Performance Targets Evaluation
+                            {% if targets_evaluated_count > 0 %}
+                            <span class="badge bg-success ms-2">{{ targets_evaluated_count }}/{{ targets.count }} evaluated</span>
+                            {% endif %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for target in targets %}
+                        <div class="evaluation-item border-bottom pb-4 mb-4 {% if forloop.last %}border-bottom-0{% endif %}">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="text-primary mb-0">Target {{ target.target_number }}</h6>
+                                        {% if target.rating_scale %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>
+                                            Evaluated: {{ target.performance_rating }}%
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-warning">Pending Evaluation</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="mb-2"><strong>Description:</strong><br>{{ target.description }}</p>
+                                    {% if target.success_measures %}
+                                    <p class="mb-2"><strong>Success Measures:</strong><br>{{ target.success_measures }}</p>
+                                    {% endif %}
+                                    
+                                    <!-- Previous Evaluation Display -->
+                                    {% if target.rating_scale %}
+                                    <div class="alert alert-light border mt-3">
+                                        <h6 class="text-info mb-2">
+                                            <i class="bi bi-clock-history me-1"></i>Previous Evaluation
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <strong>Rating:</strong> 
+                                                <span class="badge bg-primary">
+                                                    {{ target.rating_scale }} - 
+                                                    {% for value, label in rating_choices %}
+                                                        {% if value == target.rating_scale %}{{ label }}{% endif %}
+                                                    {% endfor %}
+                                                </span>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Score:</strong> 
+                                                <span class="fw-bold text-success">{{ target.performance_rating }}%</span>
+                                            </div>
+                                        </div>
+                                        {% if target.supervisor_comments %}
+                                        <div class="mt-2">
+                                            <strong>Previous Comments:</strong><br>
+                                            <em>"{{ target.supervisor_comments }}"</em>
+                                        </div>
+                                        {% endif %}
+                                        {% if target.evaluated_at %}
+                                        <small class="text-muted mt-2 d-block">
+                                            Evaluated on: {{ target.evaluated_at|date:"M d, Y" }}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body py-3">
+                                            <!-- Rating Scale (1-5) -->
+                                            <div class="mb-3">
+                                                <label class="form-label"><strong>Rating Scale (1-5) *</strong></label>
+                                                <select name="rating_{{ target.id }}" class="form-select scale-select" required>
+                                                    <option value="">-- Select Rating --</option>
+                                                    {% for value, label in rating_choices %}
+                                                    <option value="{{ value }}" 
+                                                            {% if target.rating_scale == value %}selected{% endif %}>
+                                                        {{ value }} - {{ label }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                                <small class="text-muted">Select performance rating</small>
+                                            </div>
+
+                                            <!-- Auto-calculated Score Preview -->
+                                            <div class="mb-3 p-2 bg-white border rounded">
+                                                <small class="text-muted d-block">Calculated Score:</small>
+                                                <strong id="score-preview-{{ target.id }}" class="text-info">
+                                                    {% if target.rating_scale %}
+                                                        {{ target.performance_rating }}%
+                                                    {% else %}
+                                                        0%
+                                                    {% endif %}
+                                                </strong>
+                                                <small class="text-muted d-block">(Auto-calculated)</small>
+                                            </div>
+
+                                            <!-- Supervisor Comments -->
+                                            <div class="mb-0">
+                                                <label class="form-label"><strong>Comments & Feedback</strong></label>
+                                                <textarea name="comments_{{ target.id }}" 
+                                                          class="form-control" 
+                                                          rows="3" 
+                                                          placeholder="Provide constructive feedback, suggestions for improvement, or recognition of achievements...">{{ target.supervisor_comments|default:'' }}</textarea>
+                                                <small class="text-muted">Provide specific, actionable feedback</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-exclamation-triangle text-warning fa-2x mb-3"></i>
+                            <h5>No Approved Targets Found</h5>
+                            <p class="text-muted">This staff member doesn't have any approved targets for evaluation.</p>
+                            <a href="{% url 'users:evaluate_staff_targets' %}" class="btn btn-primary">
+                                <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                            </a>
+                        </div>
+                        {% endfor %}
+
+                        <!-- Form Actions -->
+                        {% if targets %}
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <div>
+                                <a href="{% url 'users:evaluate_staff_targets' %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                                </a>
+                                <button type="button" class="btn btn-outline-info" onclick="clearAllRatings()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>Clear All
+                                </button>
+                            </div>
+                            <div>
+                                <span class="text-muted me-3" id="completion-counter">
+                                    {{ targets_evaluated_count }}/{{ targets.count }} completed
+                                </span>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    {% if targets_evaluated_count == targets.count %}Update Evaluation{% else %}Submit Evaluation{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- ===== EVALUATION DASHBOARD ===== -->
+    <div class="card">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="bi bi-clipboard-data me-2"></i>Performance Evaluation Dashboard
+            </h4>
+            <div>
+                {% if current_period %}
+                <span class="badge bg-success fs-6">Evaluation Period Active</span>
+                {% else %}
+                <span class="badge bg-warning fs-6">Evaluation Period Inactive</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- Evaluation Period Info -->
+            {% if current_period %}
+            <div class="alert alert-info mb-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="mb-1">
+                            <i class="bi bi-calendar-check me-2"></i>
+                            Evaluation Period: {{ current_period.name }}
+                        </h5>
+                        {% if current_period.start_date and current_period.end_date %}
+                        <p class="mb-0">
+                            <strong>Evaluation Window:</strong> 
+                            {{ current_period.start_date|date:"M d, Y" }} to {{ current_period.end_date|date:"M d, Y" }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="alert alert-success mb-0 py-2">
+                            <i class="bi bi-check-circle me-2"></i>
+                            Evaluation period is active
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning mb-4">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                No active evaluation period found. Please contact administrator.
+            </div>
+            {% endif %}
+
+            <!-- Evaluation Progress Overview -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center border-0 bg-light">
+                        <div class="card-body">
+                            <h3 class="text-primary">{{ total_supervisees }}</h3>
+                            <p class="mb-0">Staff Members</p>
+                            <small class="text-muted">Under Supervision</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center border-0 bg-light">
+                        <div class="card-body">
+                            <h3 class="text-info">{{ total_targets_to_evaluate }}</h3>
+                            <p class="mb-0">Total Targets</p>
+                            <small class="text-muted">To Evaluate</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center border-0 bg-light">
+                        <div class="card-body">
+                            <h3 class="text-warning">{{ total_targets_evaluated }}</h3>
+                            <p class="mb-0">Evaluated</p>
+                            <small class="text-muted">Targets Completed</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center border-0 bg-light">
+                        <div class="card-body">
+                            <h3 class="text-success">{{ overall_completion_rate|floatformat:0 }}%</h3>
+                            <p class="mb-0">Completion Rate</p>
+                            <small class="text-muted">Overall Progress</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">Quick Actions:</h6>
+                                <div>
+                                    {% if evaluation_stats %}
+                                    <a href="#pending-evaluations" class="btn btn-sm btn-warning me-2">
+                                        <i class="bi bi-clock me-1"></i>View Pending ({{ pending_evaluations_count }})
+                                    </a>
+                                    <a href="#completed-evaluations" class="btn btn-sm btn-success">
+                                        <i class="bi bi-check-circle me-1"></i>View Completed ({{ completed_evaluations_count }})
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staff Evaluation Table -->
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people me-2"></i>Staff Evaluation Progress
+                    </h5>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary active" onclick="filterTable('all')">All</button>
+                        <button class="btn btn-outline-warning" onclick="filterTable('pending')">Pending</button>
+                        <button class="btn btn-outline-success" onclick="filterTable('completed')">Completed</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if not evaluation_stats %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-person-x fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Staff Assigned</h4>
+                        <p class="text-muted">You don't have any staff members assigned for evaluation.</p>
+                    </div>
+                    {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="evaluationTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Staff Member</th>
+                                    <th>Department</th>
+                                    <th>Targets</th>
+                                    <th>Evaluated</th>
+                                    <th>Completion</th>
+                                    <th>Avg Rating</th>
+                                    <th>Status</th>
+                                    <th>Last Evaluated</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in evaluation_stats %}
+                                <tr class="evaluation-row {% if stat.completion_rate == 100 %}table-success{% elif stat.completion_rate > 0 %}table-warning{% else %}table-light{% endif %}" 
+                                    data-status="{% if stat.completion_rate == 100 %}completed{% elif stat.completion_rate > 0 %}pending{% else %}pending{% endif %}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                                                <span class="text-white fw-bold">
+                                                    {{ stat.staff.first_name|first }}{{ stat.staff.last_name|first }}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <strong>{{ stat.staff.get_full_name }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ stat.staff.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if stat.staff.department %}
+                                            {{ stat.staff.department }}
+                                        {% else %}
+                                            <span class="text-muted">Not set</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ stat.total_targets }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ stat.evaluated_targets }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                                <div class="progress-bar 
+                                                    {% if stat.completion_rate == 100 %}bg-success
+                                                    {% elif stat.completion_rate > 0 %}bg-warning
+                                                    {% else %}bg-secondary{% endif %}" 
+                                                    style="width: {{ stat.completion_rate }}%">
+                                                </div>
+                                            </div>
+                                            <small>{{ stat.completion_rate|floatformat:0 }}%</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if stat.average_rating > 0 %}
+                                        <span class="badge bg-info">{{ stat.average_rating }}%</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if stat.completion_rate == 100 %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>Completed
+                                        </span>
+                                        {% elif stat.completion_rate > 0 %}
+                                        <span class="badge bg-warning">
+                                            <i class="bi bi-clock me-1"></i>In Progress
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="bi bi-dash-circle me-1"></i>Not Started
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if stat.latest_evaluation %}
+                                            <small>{{ stat.latest_evaluation|date:"M d, Y" }}</small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if stat.total_targets > 0 and stat.staff.id %}
+                                        <a href="{% url 'users:evaluate_staff_targets' stat.staff.id %}" 
+                                           class="btn btn-sm {% if stat.completion_rate == 100 %}btn-outline-success{% else %}btn-primary{% endif %}">
+                                            <i class="bi bi-clipboard-check me-1"></i>
+                                            {% if stat.completion_rate == 100 %}Review{% else %}Evaluate{% endif %}
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">No targets</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Evaluation Guidelines -->
+            {% if current_period %}
+            <div class="card mt-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightbulb me-2"></i>Evaluation Guidelines
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Rating Scale (1-5):</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>1 - Unsatisfactory:</strong> Did not meet expectations</li>
+                                <li><strong>2 - Needs Improvement:</strong> Partially met expectations</li>
+                                <li><strong>3 - Meets Expectations:</strong> Fully met expectations</li>
+                                <li><strong>4 - Exceeds Expectations:</strong> Exceeded expectations</li>
+                                <li><strong>5 - Outstanding:</strong> Significantly exceeded expectations</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Scoring System:</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Rating 1:</strong> 0-20% (Unsatisfactory)</li>
+                                <li><strong>Rating 2:</strong> 21-40% (Needs Improvement)</li>
+                                <li><strong>Rating 3:</strong> 41-60% (Meets Expectations)</li>
+                                <li><strong>Rating 4:</strong> 61-80% (Exceeds Expectations)</li>
+                                <li><strong>Rating 5:</strong> 81-100% (Outstanding)</li>
+                            </ul>
+                            <div class="alert alert-info mt-2">
+                                <small><strong>Note:</strong> Scores are automatically calculated based on ratings.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'dashboards:supervisor_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                </a>
+                
+                {% if not current_period %}
+                <div class="alert alert-warning d-inline-block mb-0 py-2">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Evaluation period is not currently active
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+}
+.progress {
+    min-width: 80px;
+}
+.evaluation-item {
+    transition: background-color 0.2s;
+}
+.evaluation-item:hover {
+    background-color: #f8f9fa;
+}
+.scale-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+.evaluation-row {
+    transition: all 0.3s ease;
+}
+.hidden-row {
+    display: none;
+}
+</style>
+
+<script>
+// Form validation and interactivity
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('evaluationForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            let hasRatings = false;
+            const ratingSelects = document.querySelectorAll('select[name^="rating_"]');
+            
+            ratingSelects.forEach(select => {
+                if (select.value.trim() !== '') {
+                    hasRatings = true;
+                }
+            });
+            
+            if (!hasRatings) {
+                e.preventDefault();
+                alert('Please provide ratings for at least one target before submitting.');
+            }
+        });
+
+        // Auto-update score preview when rating changes
+        const ratingSelects = document.querySelectorAll('select[name^="rating_"]');
+        ratingSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                const targetId = this.name.replace('rating_', '');
+                const scoreElement = document.getElementById('score-preview-' + targetId);
+                const rating = parseInt(this.value);
+                
+                if (rating) {
+                    // Calculate score based on rating (1=20%, 2=40%, 3=60%, 4=80%, 5=100%)
+                    const score = (rating - 1) * 20 + 20;
+                    scoreElement.textContent = score + '%';
+                    scoreElement.className = 'text-success fw-bold';
+                } else {
+                    scoreElement.textContent = '0%';
+                    scoreElement.className = 'text-info';
+                }
+                
+                updateCompletionCounter();
+            });
+        });
+
+        // Initialize score previews
+        ratingSelects.forEach(select => {
+            const targetId = select.name.replace('rating_', '');
+            const scoreElement = document.getElementById('score-preview-' + targetId);
+            const rating = parseInt(select.value);
+            
+            if (rating) {
+                const score = (rating - 1) * 20 + 20;
+                scoreElement.textContent = score + '%';
+                scoreElement.className = 'text-success fw-bold';
+            }
+        });
+
+        updateCompletionCounter();
+    }
+
+    // Table filtering
+    window.filterTable = function(status) {
+        const rows = document.querySelectorAll('.evaluation-row');
+        const buttons = document.querySelectorAll('.btn-group .btn');
+        
+        buttons.forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        rows.forEach(row => {
+            if (status === 'all') {
+                row.classList.remove('hidden-row');
+            } else {
+                if (row.getAttribute('data-status') === status) {
+                    row.classList.remove('hidden-row');
+                } else {
+                    row.classList.add('hidden-row');
+                }
+            }
+        });
+    }
+});
+
+function updateCompletionCounter() {
+    const ratingSelects = document.querySelectorAll('select[name^="rating_"]');
+    let completed = 0;
+    
+    ratingSelects.forEach(select => {
+        if (select.value.trim() !== '') {
+            completed++;
+        }
+    });
+    
+    const total = ratingSelects.length;
+    const counter = document.getElementById('completion-counter');
+    if (counter) {
+        counter.textContent = completed + '/' + total + ' completed';
+        counter.className = completed === total ? 'text-success fw-bold me-3' : 'text-warning me-3';
+    }
+}
+
+function clearAllRatings() {
+    if (confirm('Are you sure you want to clear all ratings and comments?')) {
+        const ratingSelects = document.querySelectorAll('select[name^="rating_"]');
+        const textareas = document.querySelectorAll('textarea[name^="comments_"]');
+        
+        ratingSelects.forEach(select => {
+            select.value = '';
+            const targetId = select.name.replace('rating_', '');
+            const scoreElement = document.getElementById('score-preview-' + targetId);
+            if (scoreElement) {
+                scoreElement.textContent = '0%';
+                scoreElement.className = 'text-info';
+            }
+        });
+        
+        textareas.forEach(textarea => {
+            textarea.value = '';
+        });
+        
+        updateCompletionCounter();
+    }
+}
+</script>
+{% endblock %}

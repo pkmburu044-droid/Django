@@ -1,0 +1,106 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module">
+        <h1>{{ title }}</h1>
+        
+        <!-- Staff Summary -->
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+            <h3>Staff: {{ staff.get_full_name }}</h3>
+            <p><strong>Email:</strong> {{ staff.email }} | <strong>Period:</strong> {{ period.name }}</p>
+        </div>
+
+        <!-- Detailed Evaluation Table -->
+        <table width="100%" style="border-collapse: collapse;">
+            <thead>
+                <tr style="background: #343a40; color: white;">
+                    <th style="padding: 12px; border: 1px solid #dee2e6;">Attribute</th>
+                    <th style="padding: 12px; border: 1px solid #dee2e6;">Indicator</th>
+                    <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Self Rating</th>
+                    <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Supervisor Rating</th>
+                    <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Final Rating</th>
+                    <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Percentage</th>
+                    <th style="padding: 12px; border: 1px solid #dee2e6;">Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for eval in evaluation_data %}
+                <tr style="border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 12px; border: 1px solid #dee2e6;"><strong>{{ eval.attribute }}</strong></td>
+                    <td style="padding: 12px; border: 1px solid #dee2e6;">{{ eval.indicator }}</td>
+                    
+                    <!-- Self Rating -->
+                    <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+                        {% if eval.self_rating %}
+                        <span style="background: #007bff; color: white; padding: 6px 10px; border-radius: 4px; font-weight: bold;">
+                            {{ eval.self_rating }}/5
+                        </span>
+                        {% else %}
+                        <span style="color: #6c757d;">-</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Supervisor Rating -->
+                    <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+                        {% if eval.supervisor_rating %}
+                        <span style="background: #28a745; color: white; padding: 6px 10px; border-radius: 4px; font-weight: bold;">
+                            {{ eval.supervisor_rating }}/5
+                        </span>
+                        {% else %}
+                        <span style="color: #6c757d;">-</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Final Rating -->
+                    <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+                        <span style="background: #fd7e14; color: white; padding: 6px 10px; border-radius: 4px; font-weight: bold;">
+                            {{ eval.final_rating }}/5
+                        </span>
+                    </td>
+                    
+                    <!-- Percentage -->
+                    <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+                        <span style="background: 
+                            {% if eval.percent_score >= 80 %}#198754
+                            {% elif eval.percent_score >= 60 %}#ffc107
+                            {% else %}#dc3545{% endif %}; 
+                            color: white; padding: 6px 10px; border-radius: 4px; font-weight: bold;">
+                            {{ eval.percent_score|floatformat:1 }}%
+                        </span>
+                    </td>
+                    
+                    <!-- Remarks -->
+                    <td style="padding: 12px; border: 1px solid #dee2e6; font-size: 12px;">
+                        {% if eval.self_remarks or eval.supervisor_remarks or eval.final_remarks %}
+                            {% if eval.self_remarks %}<div><strong>Self:</strong> {{ eval.self_remarks }}</div>{% endif %}
+                            {% if eval.supervisor_remarks %}<div><strong>Supervisor:</strong> {{ eval.supervisor_remarks }}</div>{% endif %}
+                            {% if eval.final_remarks %}<div><strong>Final:</strong> {{ eval.final_remarks }}</div>{% endif %}
+                        {% else %}
+                            <span style="color: #6c757d;">No remarks</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: #666;">
+                        <p>No evaluation data found for this staff member.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Navigation -->
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <a href="../" class="button" style="padding: 8px 16px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px;">
+                ← Back to Summary
+            </a>
+            <a href="?staff__id__exact={{ staff.id }}&period__id__exact={{ period.id }}" class="button" style="padding: 8px 16px; background: #17a2b8; color: white; text-decoration: none; border-radius: 4px;">
+                View Individual Records
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

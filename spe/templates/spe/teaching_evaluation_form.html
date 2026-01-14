@@ -12,38 +12,47 @@
         <div class="card-body">
             <form method="POST">
                 {% csrf_token %}
+
                 {% if form.errors %}
                     <div class="alert alert-danger">
                         Please fix the errors below.
                     </div>
                 {% endif %}
 
+                <!-- Evaluation Period -->
                 <div class="mb-3">
                     <label for="{{ form.period.id_for_label }}" class="form-label">Evaluation Period</label>
-                    {{ form.period }}
+                    {{ form.period|add_class:"form-select" }}
                 </div>
 
+                <!-- Attribute -->
                 <div class="mb-3">
                     <label for="{{ form.attribute.id_for_label }}" class="form-label">Attribute</label>
-                    {{ form.attribute }}
+                    {{ form.attribute|add_class:"form-select" }}
                 </div>
 
+                <!-- Indicator -->
                 <div class="mb-3">
                     <label for="{{ form.indicator.id_for_label }}" class="form-label">Indicator</label>
-                    {{ form.indicator }}
+                    {{ form.indicator|add_class:"form-select" }}
                 </div>
 
+                <!-- Rating -->
                 <div class="mb-3">
                     <label for="{{ form.rating.id_for_label }}" class="form-label">Rating (1-5)</label>
-                    {{ form.rating }}
+                    {{ form.rating|add_class:"form-control" }}
                 </div>
 
+                <!-- Remarks -->
                 <div class="mb-3">
                     <label for="{{ form.remarks.id_for_label }}" class="form-label">Remarks (optional)</label>
-                    {{ form.remarks }}
+                    {{ form.remarks|add_class:"form-control" }}
                 </div>
 
-                <button type="submit" class="btn btn-success">Submit Evaluation</button>
+                <!-- Submit -->
+                <div class="text-end">
+                    <button type="submit" class="btn btn-success">Submit Evaluation</button>
+                </div>
             </form>
         </div>
     </div>

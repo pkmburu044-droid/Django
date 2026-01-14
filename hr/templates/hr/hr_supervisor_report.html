@@ -1,0 +1,245 @@
+<!-- hr/templates/hr/hr_supervisor_report.html -->
+{% extends 'hr/base.html' %}
+
+{% block title %}Supervisor Report - {{ supervisor.get_full_name }}{% endblock %}
+{% block page_title %}Supervisor Evaluation Report: {{ supervisor.get_full_name }}{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="{% url 'hr:hr_view_reports' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Reports
+    </a>
+    <a href="?download=pdf" class="btn btn-sm btn-primary">
+        <i class="fas fa-file-pdf"></i> Download PDF
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-user-tie me-2"></i>Supervisor Evaluation Report
+            <span class="badge bg-primary ms-2">HR View</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        <!-- Basic Info -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h4 class="text-primary mb-3">{{ supervisor.get_full_name }}</h4>
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-muted d-block">Department</small>
+                        <strong>{{ supervisor.department.name|default:"Not assigned" }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Email</small>
+                        <strong>{{ supervisor.email|default:"N/A" }}</strong>
+                    </div>
+                    <div class="col-6 mt-3">
+                        <small class="text-muted d-block">Evaluation Period</small>
+                        <strong>{{ current_period.name }}</strong>
+                    </div>
+                    <div class="col-6 mt-3">
+                        <small class="text-muted d-block">Report Date</small>
+                        <strong>{{ report_date|date:"M d, Y" }}</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 border-start">
+                <div class="text-center">
+                    <small class="text-muted d-block mb-2">Overall Score</small>
+                    {% if appraisal.overall_score %}
+                    <div class="display-5 fw-bold 
+                        {% if appraisal.overall_score >= 80 %}text-success
+                        {% elif appraisal.overall_score >= 60 %}text-warning
+                        {% else %}text-danger{% endif %}">
+                        {{ appraisal.overall_score }}%
+                    </div>
+                    {% else %}
+                    <div class="text-muted">Not Evaluated</div>
+                    {% endif %}
+                    
+                    <div class="mt-3">
+                        <small class="text-muted d-block">Evaluated By</small>
+                        <strong>{{ evaluated_by }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Criteria -->
+        {% if criteria_data %}
+        <div class="card border mb-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-list-check me-2"></i>Performance Criteria Evaluation
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Attribute</th>
+                                <th>Indicator</th>
+                                <th class="text-center">Self Rating</th>
+                                <th class="text-center">VC Rating</th>
+                                <th class="text-center">Gap</th>
+                                <th>Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in criteria_data %}
+                            <tr>
+                                <td>{{ item.attribute.name }}</td>
+                                <td>{{ item.indicator.description|truncatechars:50 }}</td>
+                                <td class="text-center">
+                                    {% if item.self_rating %}
+                                    <span class="badge bg-success">{{ item.self_rating }}/5</span>
+                                    {% else %}-{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if item.vc_rating %}
+                                    <span class="badge bg-warning">{{ item.vc_rating }}/5</span>
+                                    {% else %}-{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if item.rating_gap is not None %}
+                                        {% if item.rating_gap > 0 %}
+                                        <span class="badge bg-info">+{{ item.rating_gap }}</span>
+                                        {% elif item.rating_gap < 0 %}
+                                        <span class="badge bg-danger">{{ item.rating_gap }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">0</span>
+                                        {% endif %}
+                                    {% else %}-{% endif %}
+                                </td>
+                                <td><small>{{ item.vc_comments|truncatechars:30|default:"-" }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if criteria_percentage > 0 %}
+                <div class="mt-3 text-center">
+                    <small class="text-muted">Criteria Score: </small>
+                    <strong>{{ criteria_percentage|floatformat:1 }}%</strong>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Performance Targets -->
+        {% if target_data %}
+        <div class="card border mb-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-bullseye me-2"></i>Performance Targets
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th width="10%">#</th>
+                                <th width="50%">Target Description</th>
+                                <th width="15%" class="text-center">Rating</th>
+                                <th width="25%">Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for target in target_data %}
+                            <tr>
+                                <td class="fw-bold">{{ target.target_number }}</td>
+                                <td>{{ target.description|truncatechars:80 }}</td>
+                                <td class="text-center">
+                                    {% if target.performance_rating %}
+                                    <span class="badge 
+                                        {% if target.performance_rating >= 80 %}bg-success
+                                        {% elif target.performance_rating >= 60 %}bg-warning
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ target.performance_rating }}%
+                                    </span>
+                                    {% else %}-{% endif %}
+                                </td>
+                                <td><small>{{ target.performance_comments|truncatechars:40|default:"-" }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if target_percentage > 0 %}
+                <div class="mt-3 text-center">
+                    <small class="text-muted">Targets Score: </small>
+                    <strong>{{ target_percentage|floatformat:1 }}%</strong>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Summary -->
+        <div class="card border">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-simple me-2"></i>Performance Summary
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 border rounded">
+                            <small class="text-muted d-block">Criteria Score</small>
+                            <div class="h3 
+                                {% if criteria_percentage >= 80 %}text-success
+                                {% elif criteria_percentage >= 60 %}text-warning
+                                {% else %}text-danger{% endif %}">
+                                {{ criteria_percentage|default:"0"|floatformat:1 }}%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 border rounded">
+                            <small class="text-muted d-block">Targets Score</small>
+                            <div class="h3 
+                                {% if target_percentage >= 80 %}text-success
+                                {% elif target_percentage >= 60 %}text-warning
+                                {% else %}text-danger{% endif %}">
+                                {{ target_percentage|default:"0"|floatformat:1 }}%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="p-3 border rounded">
+                            <small class="text-muted d-block">Overall Score</small>
+                            <div class="h3 
+                                {% if appraisal.overall_score >= 80 %}text-success
+                                {% elif appraisal.overall_score >= 60 %}text-warning
+                                {% else %}text-danger{% endif %}">
+                                {{ appraisal.overall_score|default:"0"|floatformat:1 }}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Evaluation Notes</h6>
+                        <p class="mb-0 small">
+                            • This report shows the VC's evaluation of the supervisor.<br>
+                            • Scores are calculated based on VC ratings and supervisor self-ratings.<br>
+                            • Overall score is a weighted average of criteria and targets scores.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,276 @@
+{% extends 'hr/base.html' %}
+
+{% block title %}Appraisal Details - {{ appraisal.profile.user.get_full_name }}{% endblock %}
+{% block page_title %}Appraisal Details: {{ appraisal.profile.user.get_full_name }}{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    {% if appraisal.status == 'submitted' %}
+    <form method="post" class="d-inline">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="approve_appraisal">
+        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Approve this appraisal?')">
+            <i class="fas fa-check"></i> Approve
+        </button>
+    </form>
+    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#returnModal">
+        <i class="fas fa-undo"></i> Return for Revision
+    </button>
+    {% endif %}
+    <a href="{% url 'hr:hr_appraisal_list' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to List
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Appraisal Summary -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-info-circle me-2"></i>Appraisal Summary
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Staff Member:</strong><br>
+                    {{ appraisal.profile.user.get_full_name }}<br>
+                    <small class="text-muted">{{ appraisal.profile.user.email }}</small>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Department:</strong><br>
+                    {% if appraisal.profile.user.department %}
+                        {{ appraisal.profile.user.department.name }}
+                    {% else %}
+                        <span class="text-muted">Not assigned</span>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <strong>Designation:</strong><br>
+                    {{ appraisal.profile.designation }}
+                </div>
+
+                <div class="mb-3">
+                    <strong>Appraisal Period:</strong><br>
+                    {{ appraisal.period.name }}
+                </div>
+
+                <div class="mb-3">
+                    <strong>Status:</strong><br>
+                    <span class="badge 
+                        {% if appraisal.status == 'reviewed' %}bg-success
+                        {% elif appraisal.status == 'finalized' %}bg-primary
+                        {% elif appraisal.status == 'submitted' %}bg-warning
+                        {% else %}bg-secondary{% endif %}">
+                        {{ appraisal.get_status_display }}
+                    </span>
+                </div>
+
+                {% if appraisal.overall_score %}
+                <div class="mb-3">
+                    <strong>Overall Score:</strong><br>
+                    <div class="d-flex align-items-center mt-1">
+                        <div class="progress flex-grow-1 me-2" style="height: 10px;">
+                            <div class="progress-bar 
+                                {% if appraisal.overall_score >= 80 %}bg-success
+                                {% elif appraisal.overall_score >= 60 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                style="width: {{ appraisal.overall_score }}%">
+                            </div>
+                        </div>
+                        <span class="fw-bold fs-5 {% if appraisal.overall_score >= 80 %}text-success{% elif appraisal.overall_score >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ appraisal.overall_score }}%
+                        </span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <strong>Supervisor:</strong><br>
+                    {{ appraisal.supervisor_name }}<br>
+                    <small class="text-muted">{{ appraisal.supervisor_designation }}</small>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Created:</strong><br>
+                    {{ appraisal.created_at|date:"M d, Y" }}
+                </div>
+
+                <div class="mb-3">
+                    <strong>Last Updated:</strong><br>
+                    {{ appraisal.updated_at|date:"M d, Y" }}
+                </div>
+            </div>
+        </div>
+
+        <!-- HR Actions -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-warning">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-cog me-2"></i>HR Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">HR Comments</label>
+                        <textarea name="hr_comment" class="form-control" rows="3" 
+                                  placeholder="Add comments or notes..."></textarea>
+                    </div>
+                    <button type="submit" name="action" value="add_comment" class="btn btn-primary w-100">
+                        <i class="fas fa-save"></i> Save Comment
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evaluation Details -->
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-chart-bar me-2"></i>Performance Evaluation Details
+                </h6>
+            </div>
+            <div class="card-body">
+                <!-- Performance Targets -->
+                <div class="mb-4">
+                    <h5>Performance Targets</h5>
+                    {% if performance_targets %}
+                        {% for target in performance_targets %}
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">Target {{ target.target_number }}</h6>
+                                        <p class="mb-1">{{ target.description }}</p>
+                                        {% if target.success_measures %}
+                                        <small class="text-muted">Success Measures: {{ target.success_measures }}</small>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge 
+                                            {% if target.status == 'approved' %}bg-success
+                                            {% elif target.status == 'submitted' %}bg-warning
+                                            {% elif target.status == 'rejected' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ target.get_status_display }}
+                                        </span>
+                                        {% if target.performance_rating %}
+                                        <div class="mt-1">
+                                            <span class="badge bg-primary">{{ target.performance_rating }}%</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No performance targets set for this period.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Self-Assessments -->
+                <div class="mb-4">
+                    <h5>Self-Assessments</h5>
+                    {% if self_assessments %}
+                        {% for assessment in self_assessments %}
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ assessment.attribute.name }}</h6>
+                                        <p class="mb-1">{{ assessment.indicator.description }}</p>
+                                        {% if assessment.remarks %}
+                                        <small class="text-muted">Remarks: {{ assessment.remarks }}</small>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-info">{{ assessment.self_rating }}/5</span>
+                                        <div class="mt-1">
+                                            <small class="text-muted">{{ assessment.submitted_at|date:"M d, Y" }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No self-assessments submitted for this period.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Supervisor Evaluations -->
+                <div class="mb-4">
+                    <h5>Supervisor Evaluations</h5>
+                    {% if supervisor_evaluations %}
+                        {% for evaluation in supervisor_evaluations %}
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ evaluation.attribute.name }}</h6>
+                                        <p class="mb-1">{{ evaluation.indicator.description }}</p>
+                                        {% if evaluation.remarks %}
+                                        <small class="text-muted">Remarks: {{ evaluation.remarks }}</small>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-warning">{{ evaluation.rating }}/5</span>
+                                        <div class="mt-1">
+                                            <small class="text-muted">by {{ evaluation.supervisor.get_full_name }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No supervisor evaluations completed for this period.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Return for Revision Modal -->
+<div class="modal fade" id="returnModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Return Appraisal for Revision</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>This will return the appraisal to draft status for revisions.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Revision Notes</label>
+                        <textarea name="revision_notes" class="form-control" rows="3" 
+                                  placeholder="Explain what needs to be revised..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="action" value="return_for_revision" class="btn btn-warning">
+                        <i class="fas fa-undo"></i> Return for Revision
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Add any additional scripts here if needed -->
+{% endblock %}

@@ -1,0 +1,301 @@
+{% extends 'dashboards/base.html' %}
+{% block title %}Self-Evaluation | Supervisor{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="card shadow-sm border-0 mb-4 bg-primary text-white">
+        <div class="card-body">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h1 class="h3 mb-1">
+                        <i class="fas fa-clipboard-check me-2"></i>Self-Evaluation
+                    </h1>
+                    <p class="mb-0 text-white-75">Complete your performance self-assessment</p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-white text-primary px-3 py-2">
+                        {{ active_period.name }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status -->
+    {% if existing_evaluation %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body text-center py-4">
+            <div class="mb-3">
+                <i class="fas fa-check-circle fa-3x text-success"></i>
+            </div>
+            <h4 class="text-success mb-2">Evaluation Submitted</h4>
+            <p class="text-muted mb-3">Your self-evaluation has been submitted for this period.</p>
+            <a href="{% url 'spe:supervisor_dashboard' %}" class="btn btn-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- Evaluation Form -->
+    <form method="post" id="evaluationForm">
+        {% csrf_token %}
+        
+        {% if supervisor_attributes %}
+        <!-- Progress -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">Completion Progress</span>
+                    <span class="badge bg-primary" id="progressText">0/{{ total_indicators }}</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                    <div class="progress-bar bg-primary" id="progressBar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attributes -->
+        {% for attribute in supervisor_attributes %}
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <span class="badge bg-primary rounded-circle p-2">
+                            {{ forloop.counter }}
+                        </span>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-1 text-dark">{{ attribute.name }}</h5>
+                        {% if attribute.description %}
+                        <p class="text-muted small mb-0">{{ attribute.description }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="ms-auto">
+                        <span class="badge bg-light text-dark border">
+                            {{ attribute.indicators.count }} items
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body p-0">
+                {% if attribute.indicators.all %}
+                <div class="list-group list-group-flush">
+                    {% for indicator in attribute.indicators.all %}
+                    <div class="list-group-item p-4">
+                        <div class="row g-3">
+                            <div class="col-lg-8">
+                                <h6 class="fw-semibold mb-2">
+                                    <span class="text-primary me-2">{{ forloop.counter }}.</span>
+                                    {{ indicator.description }}
+                                </h6>
+                            </div>
+                            <div class="col-lg-4">
+                                <!-- Compact Rating -->
+                                <div class="mb-3">
+                                    <label class="form-label small fw-medium mb-2">Rating:</label>
+                                    <div class="btn-group w-100" role="group">
+                                        {% for i in "12345" %}
+                                        {% with rating=i|add:"0" %}
+                                        <input type="radio" 
+                                               class="btn-check rating-radio" 
+                                               name="rating_{{ attribute.id }}_{{ indicator.id }}" 
+                                               id="rating_{{ attribute.id }}_{{ indicator.id }}_{{ rating }}"
+                                               value="{{ rating }}" 
+                                               required>
+                                        <label class="btn btn-outline-primary btn-sm rating-label" 
+                                               for="rating_{{ attribute.id }}_{{ indicator.id }}_{{ rating }}"
+                                               title="{% if rating == 1 %}Poor{% elif rating == 2 %}Fair{% elif rating == 3 %}Good{% elif rating == 4 %}Very Good{% else %}Excellent{% endif %}">
+                                            {{ rating }}
+                                        </label>
+                                        {% endwith %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Comments -->
+                        <div>
+                            <label class="form-label small fw-medium mb-2">
+                                <i class="fas fa-comment me-1 text-muted"></i>Comments
+                                <span class="text-muted">(Optional)</span>
+                            </label>
+                            <textarea class="form-control form-control-sm" 
+                                      name="comments_{{ attribute.id }}_{{ indicator.id }}"
+                                      rows="2" 
+                                      placeholder="Brief comments..."></textarea>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <p class="text-muted mb-0">No indicators for this attribute</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Submit -->
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="mb-0">
+                            <span class="text-muted">You have rated</span>
+                            <span class="fw-bold text-primary" id="ratedCount">0</span>
+                            <span class="text-muted">of</span>
+                            <span class="fw-bold">{{ total_indicators }}</span>
+                            <span class="text-muted">indicators</span>
+                        </p>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-check-circle me-1"></i>Submit Evaluation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% else %}
+        <!-- No Criteria -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted mb-2">No Evaluation Criteria</h5>
+                <p class="text-muted mb-4">HR has not set up evaluation criteria.</p>
+                <a href="{% url 'spe:supervisor_dashboard' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </form>
+    {% endif %}
+</div>
+
+<style>
+/* Rating buttons */
+.btn-group .rating-label {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    font-weight: bold;
+    border-radius: 0 !important;
+}
+.btn-group .rating-label:first-of-type {
+    border-top-left-radius: 4px !important;
+    border-bottom-left-radius: 4px !important;
+}
+.btn-group .rating-label:last-of-type {
+    border-top-right-radius: 4px !important;
+    border-bottom-right-radius: 4px !important;
+}
+.btn-check:checked + .rating-label {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+.btn-check:hover + .rating-label {
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+/* List group items */
+.list-group-item {
+    border-left: 3px solid #e9ecef;
+    transition: border-color 0.2s;
+}
+.list-group-item:hover {
+    border-left-color: #0d6efd;
+    background-color: #f8f9fa;
+}
+
+/* Card headers */
+.card-header {
+    background-color: #f8f9fa;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('evaluationForm');
+    const ratingRadios = document.querySelectorAll('.rating-radio');
+    const totalIndicators = {{ total_indicators|default:0 }};
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const ratedCountEl = document.getElementById('ratedCount');
+    
+    // Calculate rated indicators
+    function calculateProgress() {
+        let ratedCount = 0;
+        
+        // Get all unique indicator groups
+        const indicatorGroups = new Set();
+        ratingRadios.forEach(radio => {
+            const groupName = radio.name;
+            indicatorGroups.add(groupName);
+        });
+        
+        // Check each group has a rating
+        indicatorGroups.forEach(groupName => {
+            const groupRadios = document.querySelectorAll(`input[name="${groupName}"]:checked`);
+            if (groupRadios.length > 0) {
+                ratedCount++;
+            }
+        });
+        
+        // Update UI
+        const progressPercent = totalIndicators > 0 ? (ratedCount / totalIndicators) * 100 : 0;
+        if (progressBar) progressBar.style.width = `${progressPercent}%`;
+        if (progressText) progressText.textContent = `${ratedCount}/${totalIndicators}`;
+        if (ratedCountEl) ratedCountEl.textContent = ratedCount;
+        
+        return ratedCount;
+    }
+    
+    // Update progress when ratings change
+    ratingRadios.forEach(radio => {
+        radio.addEventListener('change', calculateProgress);
+    });
+    
+    // Initial calculation
+    calculateProgress();
+    
+    // Form validation
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const ratedCount = calculateProgress();
+            
+            if (ratedCount !== totalIndicators) {
+                e.preventDefault();
+                alert(`Please rate all ${totalIndicators} indicators. You have rated ${ratedCount} of ${totalIndicators}.`);
+                
+                // Find and scroll to first unrated indicator
+                const indicatorGroups = new Set();
+                ratingRadios.forEach(radio => {
+                    indicatorGroups.add(radio.name);
+                });
+                
+                for (let groupName of indicatorGroups) {
+                    const groupRadios = document.querySelectorAll(`input[name="${groupName}"]:checked`);
+                    if (groupRadios.length === 0) {
+                        const firstRadio = document.querySelector(`input[name="${groupName}"]`);
+                        if (firstRadio) {
+                            firstRadio.closest('.list-group-item').scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center'
+                            });
+                        }
+                        break;
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

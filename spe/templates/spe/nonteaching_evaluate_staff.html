@@ -1,73 +1,90 @@
 {% extends "dashboards/base.html" %}
 {% load dict_extras %}
+
 {% block title %}Evaluate Non-Teaching Staff{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-  <h3>Evaluate: {{ staff.user.get_full_name }}</h3>
-  <p>Period: {{ period.name }}</p>
+  <div class="card shadow-lg">
+    <div class="card-header bg-primary text-white">
+      <h4 class="mb-0">Evaluate: {{ staff.user.get_full_name }}</h4>
+      <p class="mb-0">
+        Period: {{ period.name }} <br>
+        Department: {{ staff.department.name }}
+      </p>
+    </div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        
+        {% if attributes %}
+          {% for attribute in attributes %}
+            <div class="card mb-3">
+              <div class="card-header bg-light">
+                <strong>{{ attribute.name }}</strong>
+              </div>
+              <div class="card-body">
+                {% for indicator in attribute.indicators.all %}
+                  <div class="mb-3">
+                    <label class="form-label fw-bold">{{ indicator.description }}</label>
+                    <div class="row align-items-center">
+                      
+                      <!-- Staff self-rating -->
+                      <div class="col-md-2">
+                        <small class="text-muted">
+                          Self-rating: {{ self_ratings_dict|get_item:indicator.id|default:"-" }}
+                        </small>
+                      </div>
 
-  <form method="post">
-    {% csrf_token %}
-    
-    {% for attribute in attributes %}
-      <div class="card mb-3">
-        <div class="card-header">
-          <strong>{{ attribute.name }}</strong>
-        </div>
-        <div class="card-body">
-          {% for indicator in attribute.indicators.all %}
-            <div class="mb-2">
-              <label><strong>{{ indicator.description }}</strong></label>
-              <div class="row align-items-center">
+                      <!-- Supervisor rating -->
+                      <div class="col-md-2">
+                        <select class="form-select" name="rating_{{ indicator.id }}">
+                          <option value="">Select rating</option>
+                          {% for i in "12345" %}
+                            {% with i_str=i %}
+                              <option value="{{ i_str }}" 
+                                {% if supervisor_ratings_dict|get_item:indicator.id == i_str %}selected{% endif %}>
+                                {{ i_str }}
+                              </option>
+                            {% endwith %}
+                          {% endfor %}
+                        </select>
+                      </div>
 
-                <!-- Staff self-rating -->
-                <div class="col-md-2">
-                  <small class="text-muted">
-                    Self-rating: {{ self_ratings_dict|get_item:indicator.id|default:"-" }}
-                  </small>
-                </div>
-
-                <!-- Supervisor rating -->
-                <div class="col-md-2">
-                  <select class="form-select" name="rating_{{ indicator.id }}">
-                    <option value="">Select rating</option>
-                    {% for i in "12345" %}
-                      {% with i_str=i %}
-                      <option value="{{ i_str }}" 
-                        {% if self_ratings_dict|get_item:indicator.id == i_str %}selected{% endif %}>
-                        {{ i_str }}
-                      </option>
-                      {% endwith %}
-                    {% endfor %}
-                  </select>
-                </div>
-
-                <!-- Supervisor remarks -->
-                <div class="col-md-8">
-                  <input type="text" class="form-control" 
-                         name="remarks_{{ indicator.id }}" 
-                         placeholder="Optional remarks"
-                         value="{{ self_ratings_remarks|get_item:indicator.id|default:'' }}">
-                </div>
-
+                      <!-- Supervisor remarks -->
+                      <div class="col-md-8">
+                        <input type="text" class="form-control" 
+                               name="remarks_{{ indicator.id }}" 
+                               placeholder="Optional remarks"
+                               value="{{ supervisor_remarks_dict|get_item:indicator.id|default:'' }}">
+                      </div>
+                    </div>
+                  </div>
+                {% empty %}
+                  <p class="text-muted">No indicators defined for this attribute.</p>
+                {% endfor %}
               </div>
             </div>
           {% endfor %}
+        {% else %}
+          <div class="alert alert-warning">
+            No attributes available for this staff member’s department.
+          </div>
+        {% endif %}
+
+        <!-- Action buttons -->
+        <div class="mt-3 d-flex justify-content-between">
+          <button type="submit" name="complete" value="no" class="btn btn-secondary">
+            Save Draft
+          </button>
+          <button type="submit" name="complete" value="yes" class="btn btn-success">
+            Submit Evaluation
+          </button>
         </div>
-      </div>
-    {% endfor %}
 
-    <div class="mt-3 d-flex justify-content-between">
-      <button type="submit" name="complete" value="no" class="btn btn-secondary">
-        Save Draft
-      </button>
-      <button type="submit" name="complete" value="yes" class="btn btn-primary">
-        Submit Evaluation
-      </button>
+        <a class="btn btn-link mt-3" href="{% url 'supervisor_dashboard' %}">← Back to Dashboard</a>
+      </form>
     </div>
-
-    <a class="btn btn-link mt-2" href="{% url 'supervisor_dashboard' %}">Back to Dashboard</a>
-  </form>
+  </div>
 </div>
 {% endblock %}

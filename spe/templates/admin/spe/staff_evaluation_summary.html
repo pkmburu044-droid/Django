@@ -1,0 +1,166 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module">
+        <h1>{{ title }}</h1>
+        <p style="margin-bottom: 20px; color: #666;">
+            Click "View Detailed Evaluation" to see self-ratings, supervisor ratings, percentages, and remarks for each staff member.
+        </p>
+        
+        <table width="100%" style="border-collapse: collapse;">
+            <thead>
+                <tr style="background: #343a40; color: white;">
+                    <th style="padding: 12px; border: 1px solid #dee2e6;">Staff Member</th>
+                    <th style="padding: 12px; border: 1px solid #dee2e6;">Period</th>
+                    <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Total Evaluations</th>
+                    <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Avg Rating</th>
+                    <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Avg Percentage</th>
+                    <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Status Summary</th>
+                    <th style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for staff in staff_stats %}
+                <tr style="border-bottom: 1px solid #dee2e6;">
+                    <td style="padding: 12px; border: 1px solid #dee2e6;">
+                        <strong>{{ staff.staff__first_name }} {{ staff.staff__last_name }}</strong><br>
+                        <small style="color: #666;">{{ staff.staff__email }}</small>
+                    </td>
+                    <td style="padding: 12px; border: 1px solid #dee2e6;">
+                        <strong>{{ staff.period__name }}</strong>
+                    </td>
+                    <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+                        <span style="background: #007bff; color: white; padding: 6px 12px; border-radius: 4px; font-weight: bold; display: inline-block;">
+                            {{ staff.total_evaluations }}
+                        </span>
+                    </td>
+                    <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+                        <span style="background: 
+                            {% if staff.avg_rating >= 4.0 %}#198754
+                            {% elif staff.avg_rating >= 3.0 %}#ffc107
+                            {% else %}#dc3545{% endif %}; 
+                            color: white; padding: 6px 12px; border-radius: 4px; font-weight: bold; display: inline-block;">
+                            {{ staff.avg_rating|floatformat:1 }}/5
+                        </span>
+                    </td>
+                    <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+                        <span style="background: 
+                            {% if staff.avg_percent >= 80 %}#198754
+                            {% elif staff.avg_percent >= 60 %}#ffc107
+                            {% else %}#dc3545{% endif %}; 
+                            color: white; padding: 6px 12px; border-radius: 4px; font-weight: bold; display: inline-block;">
+                            {{ staff.avg_percent|default:0|floatformat:1 }}%
+                        </span>
+                    </td>
+                    <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+                        <span style="background: #6c757d; color: white; padding: 6px 12px; border-radius: 4px; font-size: 12px; display: inline-block;">
+                            {{ staff.statuses }} status types
+                        </span>
+                    </td>
+                    <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center;">
+                        <a href="?staff__id__exact={{ staff.staff__id }}&period__id__exact={{ staff.period__id }}" 
+                           class="button" 
+                           style="padding: 8px 16px; background: #28a745; color: white; text-decoration: none; border-radius: 4px; display: inline-block; margin-bottom: 5px;">
+                            📊 View Evaluation Details
+                        </a>
+                        <br>
+                        <a href="?staff__id__exact={{ staff.staff__id }}&period__id__exact={{ staff.period__id }}" 
+                           class="button" 
+                           style="padding: 6px 12px; background: #17a2b8; color: white; text-decoration: none; border-radius: 4px; display: inline-block; font-size: 12px;">
+                            View Individual Records
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: #666;">
+                        <p>No evaluations found for any staff members.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Summary Statistics -->
+        {% if staff_stats %}
+        <div style="margin-top: 30px; background: #f8f9fa; padding: 20px; border-radius: 5px;">
+            <h3>📈 Summary Statistics</h3>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 15px;">
+                <div style="text-align: center; padding: 15px; background: white; border-radius: 5px; border-left: 4px solid #007bff;">
+                    <div style="font-size: 24px; font-weight: bold; color: #007bff;">{{ staff_stats|length }}</div>
+                    <div style="color: #666; font-size: 14px;">Total Staff Evaluated</div>
+                </div>
+                <div style="text-align: center; padding: 15px; background: white; border-radius: 5px; border-left: 4px solid #28a745;">
+                    <div style="font-size: 24px; font-weight: bold; color: #28a745;">
+                        {% with total=staff_stats|length %}
+                            {% if total > 0 %}
+                                {% for staff in staff_stats %}
+                                    {% if forloop.first %}
+                                        {{ staff.avg_rating|floatformat:1 }}
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                0.0
+                            {% endif %}
+                        {% endwith %}/5
+                    </div>
+                    <div style="color: #666; font-size: 14px;">Sample Avg Rating</div>
+                </div>
+                <div style="text-align: center; padding: 15px; background: white; border-radius: 5px; border-left: 4px solid #fd7e14;">
+                    <div style="font-size: 24px; font-weight: bold; color: #fd7e14;">
+                        {% with total=staff_stats|length %}
+                            {% if total > 0 %}
+                                {% for staff in staff_stats %}
+                                    {% if forloop.first %}
+                                        {{ staff.avg_percent|default:0|floatformat:1 }}%
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                0%
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    <div style="color: #666; font-size: 14px;">Sample Avg Percentage</div>
+                </div>
+                <div style="text-align: center; padding: 15px; background: white; border-radius: 5px; border-left: 4px solid #6c757d;">
+                    <div style="font-size: 24px; font-weight: bold; color: #6c757d;">
+                        {{ staff_stats|length }}
+                    </div>
+                    <div style="color: #666; font-size: 14px;">Staff Members</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Legend -->
+        <div style="margin-top: 20px; padding: 15px; background: #e9ecef; border-radius: 4px;">
+            <h4 style="margin-top: 0;">🎨 Rating Legend:</h4>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span style="display: inline-block; width: 15px; height: 15px; background: #198754; border-radius: 3px;"></span>
+                    <span>Excellent (4.0+ / 80%+)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span style="display: inline-block; width: 15px; height: 15px; background: #ffc107; border-radius: 3px;"></span>
+                    <span>Good (3.0-3.9 / 60%-79%)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span style="display: inline-block; width: 15px; height: 15px; background: #dc3545; border-radius: 3px;"></span>
+                    <span>Needs Improvement (Below 3.0 / 60%)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tip Section -->
+        <div style="margin-top: 20px; padding: 15px; background: #d1ecf1; border-radius: 4px;">
+            <p style="margin: 0; color: #0c5460;">
+                <strong>💡 Tip:</strong> 
+                <a href="?" style="color: #0c5460; text-decoration: underline;">Click here to view all individual evaluation records</a> 
+                or use the buttons above for staff-specific records.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

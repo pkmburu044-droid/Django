@@ -1,0 +1,379 @@
+{% extends 'hr/base.html' %}
+
+{% block title %}Staff Appraisals{% endblock %}
+{% block page_title %}Staff Appraisal Management{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="{% url 'hr:hr_create_appraisal' %}" class="btn btn-sm btn-primary">
+        <i class="fas fa-plus me-1"></i> New Appraisal
+    </a>
+    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#filtersCollapse">
+        <i class="fas fa-filter me-1"></i> Filters
+        {% if has_active_filters %}<span class="badge bg-primary ms-1">{{ active_filters_count }}</span>{% endif %}
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Filters Section -->
+<div class="collapse {% if has_active_filters %}show{% endif %} mb-4" id="filtersCollapse">
+    <div class="card shadow-sm">
+        <div class="card-header bg-light py-3">
+            <h6 class="m-0 font-weight-bold text-dark">
+                <i class="fas fa-sliders-h me-2"></i>Filter Appraisals
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+                        <option value="submitted" {% if status_filter == 'submitted' %}selected{% endif %}>Submitted</option>
+                        <option value="reviewed" {% if status_filter == 'reviewed' %}selected{% endif %}>Reviewed</option>
+                        <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Department</label>
+                    <select name="department" class="form-select">
+                        <option value="">All Departments</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.name }}" {% if department_filter == dept.name %}selected{% endif %}>{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Appraisal Period</label>
+                    <select name="period" class="form-select">
+                        <option value="">All Periods</option>
+                        {% for period in periods %}
+                        <option value="{{ period.name }}" {% if period_filter == period.name %}selected{% endif %}>{{ period.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Score Range</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">
+                            <i class="fas fa-chart-line text-muted"></i>
+                        </span>
+                        <input type="number" name="score_min" class="form-control" placeholder="Min" value="{{ score_min }}" min="0" max="100" step="0.1">
+                        <span class="input-group-text bg-light">to</span>
+                        <input type="number" name="score_max" class="form-control" placeholder="Max" value="{{ score_max }}" min="0" max="100" step="0.1">
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i> Apply Filters
+                        </button>
+                        <a href="{% url 'hr:hr_appraisal_list' %}" class="btn btn-outline-danger">
+                            <i class="fas fa-times me-1"></i> Clear All
+                        </a>
+                        <div class="ms-auto">
+                            <span class="text-muted small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {{ page_obj.paginator.count }} result{{ page_obj.paginator.count|pluralize }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-primary text-white shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-uppercase small fw-semibold">Total</div>
+                        <div class="h4 mb-0">{{ total_count }}</div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clipboard-list fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-warning text-dark shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-uppercase small fw-semibold">Pending Review</div>
+                        <div class="h4 mb-0">{{ submitted_count }}</div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clock fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-success text-white shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-uppercase small fw-semibold">Approved</div>
+                        <div class="h4 mb-0">{{ approved_count }}</div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-info text-white shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-uppercase small fw-semibold">Avg Score</div>
+                        <div class="h4 mb-0">{{ average_score|default:"0" }}%</div>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-chart-bar fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appraisals Table -->
+<div class="card shadow">
+    <div class="card-header bg-white py-3 border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-list me-2"></i>Staff Appraisals
+            </h6>
+            <div class="text-muted small">
+                Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if page_obj %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Staff Member</th>
+                        <th>Department</th>
+                        <th>Period</th>
+                        <th>Status</th>
+                        <th>Score</th>
+                        <th>Last Updated</th>
+                        <th class="text-center pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appraisal in page_obj %}
+                    <tr class="{% if appraisal.status == 'submitted' %}table-warning{% endif %}">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-3">
+                                    <span class="text-white fw-bold small">
+                                        {% with user=appraisal.profile.user %}
+                                            {% if user.get_full_name %}
+                                                {{ user.get_full_name|first }}
+                                            {% elif user.username %}
+                                                {{ user.username|first }}
+                                            {% else %}
+                                                ?
+                                            {% endif %}
+                                        {% endwith %}
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold text-dark">
+                                        {% with user=appraisal.profile.user %}
+                                            {% if user.get_full_name %}
+                                                {{ user.get_full_name }}
+                                            {% elif user.username %}
+                                                {{ user.username }}
+                                            {% else %}
+                                                Unknown User
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <small class="text-muted">
+                                        {% with user=appraisal.profile.user %}
+                                            {{ user.email|default:"No email" }}
+                                        {% endwith %}
+                                    </small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">
+                                {% with user=appraisal.profile.user %}
+                                    {% if user.staffprofile and user.staffprofile.department %}
+                                        {{ user.staffprofile.department.name }}
+                                    {% else %}
+                                        Not assigned
+                                    {% endif %}
+                                {% endwith %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="fw-medium">
+                                {% if appraisal.period %}
+                                    {{ appraisal.period.name }}
+                                {% else %}
+                                    <span class="text-muted">No period</span>
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if appraisal.status == 'approved' %}bg-success
+                                {% elif appraisal.status == 'submitted' %}bg-warning text-dark
+                                {% elif appraisal.status == 'reviewed' %}bg-info
+                                {% elif appraisal.status == 'draft' %}bg-secondary
+                                {% else %}bg-dark{% endif %} py-2 px-3">
+                                <i class="fas {% if appraisal.status == 'approved' %}fa-check
+                                    {% elif appraisal.status == 'submitted' %}fa-clock
+                                    {% elif appraisal.status == 'reviewed' %}fa-eye
+                                    {% elif appraisal.status == 'draft' %}fa-edit
+                                    {% else %}fa-question{% endif %} me-1"></i>
+                                {{ appraisal.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if appraisal.overall_score %}
+                            <div class="d-flex align-items-center">
+                                <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                    <div class="progress-bar 
+                                        {% if appraisal.overall_score >= 80 %}bg-success
+                                        {% elif appraisal.overall_score >= 60 %}bg-warning
+                                        {% else %}bg-danger{% endif %}" 
+                                        style="width: {{ appraisal.overall_score }}%">
+                                    </div>
+                                </div>
+                                <span class="fw-bold fs-6 {% if appraisal.overall_score >= 80 %}text-success{% elif appraisal.overall_score >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                                    {{ appraisal.overall_score }}%
+                                </span>
+                            </div>
+                            {% else %}
+                            <span class="text-muted fst-italic">Not scored</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="text-nowrap">
+                                <div class="small fw-medium">{{ appraisal.updated_at|date:"M d, Y" }}</div>
+                                <small class="text-muted">{{ appraisal.updated_at|time }}</small>
+                            </div>
+                        </td>
+                        <td class="text-center pe-4">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'hr:hr_appraisal_detail' appraisal.id %}" 
+                                   class="btn btn-outline-primary" 
+                                   data-bs-toggle="tooltip" 
+                                   title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if appraisal.status == 'submitted' %}
+                                <a href="{% url 'hr:hr_appraisal_detail' appraisal.id %}" 
+                                   class="btn btn-outline-success" 
+                                   data-bs-toggle="tooltip" 
+                                   title="Review Appraisal">
+                                    <i class="fas fa-check"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer bg-white border-top">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-clipboard-list fa-4x text-muted opacity-50"></i>
+            </div>
+            <h5 class="text-muted mb-3">No appraisals found</h5>
+            <p class="text-muted mb-4">No staff appraisals match your current filters.</p>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="{% url 'hr:hr_appraisal_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i> Clear Filters
+                </a>
+                <a href="{% url 'hr:hr_create_appraisal' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i> Create First Appraisal
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+});
+</script>
+{% endblock %}

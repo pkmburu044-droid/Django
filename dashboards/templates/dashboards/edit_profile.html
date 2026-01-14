@@ -1,57 +1,255 @@
 {% extends "dashboards/base.html" %}
+{% load static %}
 
-{% block title %}Profile Details{% endblock %}
+{% block title %}Edit Profile{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="card shadow-lg rounded-3">
-        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">Your Profile</h4>
-            {% if profile %}
-                <a href="{% url 'edit_profile' %}" class="btn btn-warning btn-sm">Edit Profile</a>
-            {% endif %}
-        </div>
-        <div class="card-body">
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        Edit Profile & Employment Details
+                    </h4>
+                    <a href="{% url 'dashboards:profile_details' %}" class="btn btn-outline-dark btn-sm">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </a>
+                </div>
 
-            {% if profile %}
-                <ul class="list-group">
-
-                    <li class="list-group-item"><strong>PF Number:</strong> {{ user.pf_number }}</li>
-                    <li class="list-group-item"><strong>Role:</strong> {{ user.get_role_display }}</li>
-
-                    {% if user.role == "non_teaching" %}
-                        {% for field, label in [
-                            (profile.name, "Name"),
-                            (profile.job_title, "Job Title"),
-                            (profile.school_or_department, "School/Department"),
-                            (profile.grade, "Grade"),
-                            (profile.get_terms_of_service_display, "Terms of Service")
-                        ] %}
-                            <li class="list-group-item"><strong>{{ label }}:</strong> {{ field }}</li>
-                        {% endfor %}
-                    {% elif user.role == "teaching" %}
-                        {% for field, label in [
-                            (profile.personal_number, "Personal Number"),
-                            (profile.designation, "Designation"),
-                            (profile.school_or_department, "School/Department"),
-                            (profile.get_terms_of_service_display, "Terms of Service")
-                        ] %}
-                            <li class="list-group-item"><strong>{{ label }}:</strong> {{ field }}</li>
+                <div class="card-body">
+                    <!-- Messages -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-triangle{% endif %} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
                         {% endfor %}
                     {% endif %}
 
-                </ul>
+                    <!-- Form Errors -->
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                Please correct the following errors:
+                            </h6>
+                            <ul class="mb-0 mt-2">
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
 
-            {% else %}
-                <h5 class="mb-3">Complete Your Profile</h5>
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn btn-success">Save Profile</button>
-                </form>
-            {% endif %}
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Read-only Information -->
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading mb-2">Account Information</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Name:</strong> {{ user.get_full_name }}<br>
+                                    <strong>PF Number:</strong> {{ user.pf_number }}<br>
+                                    <strong>Role:</strong> {{ user.get_role_display }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Department:</strong> {{ user.department.name }}<br>
+                                    <strong>Email:</strong> {{ user.email }}<br>
+                                    <strong>Employment Type:</strong> {{ user.get_employment_type_display }}
+                                </div>
+                            </div>
+                            <small class="mt-2 d-block">
+                                <i class="fas fa-info-circle me-1"></i>
+                                This information is managed by administrators and cannot be changed here.
+                            </small>
+                        </div>
 
+                        <!-- Basic Profile Information -->
+                        <div class="mb-4">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-briefcase me-2"></i>
+                                Basic Profile Information
+                            </h6>
+                            
+                            <!-- Designation Field -->
+                            <div class="mb-3">
+                                <label for="{{ form.designation.id_for_label }}" class="form-label fw-semibold">
+                                    Designation *
+                                </label>
+                                {{ form.designation }}
+                                <div class="form-text">Enter your current job title or position</div>
+                            </div>
+                        </div>
+
+                        <!-- Employment History -->
+                        <div class="mb-4">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-history me-2"></i>
+                                Employment History
+                            </h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <!-- Date of Appointment -->
+                                    <div class="mb-3">
+                                        <label for="{{ form.date_of_appointment.id_for_label }}" class="form-label fw-semibold">
+                                            {{ form.date_of_appointment.label }}
+                                        </label>
+                                        {{ form.date_of_appointment }}
+                                        <div class="form-text">When you started at KYU</div>
+                                    </div>
+                                    
+                                    <!-- KYU Experience -->
+                                    <div class="mb-3">
+                                        <label for="{{ form.years_experience_kyu.id_for_label }}" class="form-label fw-semibold">
+                                            {{ form.years_experience_kyu.label }}
+                                        </label>
+                                        {{ form.years_experience_kyu }}
+                                        <div class="form-text">Years of service at KYU</div>
+                                    </div>
+                                    
+                                    <!-- Other Experience -->
+                                    <div class="mb-3">
+                                        <label for="{{ form.years_experience_elsewhere.id_for_label }}" class="form-label fw-semibold">
+                                            {{ form.years_experience_elsewhere.label }}
+                                        </label>
+                                        {{ form.years_experience_elsewhere }}
+                                        <div class="form-text">Years at other institutions</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <!-- Length of Service -->
+                                    <div class="mb-3">
+                                        <label for="{{ form.length_of_service.id_for_label }}" class="form-label fw-semibold">
+                                            {{ form.length_of_service.label }}
+                                        </label>
+                                        {{ form.length_of_service }}
+                                        <div class="form-text">Total length of service</div>
+                                    </div>
+                                    
+                                    <!-- Years in Equivalent Position -->
+                                    <div class="mb-3">
+                                        <label for="{{ form.years_in_equivalent_position.id_for_label }}" class="form-label fw-semibold">
+                                            {{ form.years_in_equivalent_position.label }}
+                                        </label>
+                                        {{ form.years_in_equivalent_position }}
+                                        <div class="form-text">Years in current/equivalent position</div>
+                                    </div>
+                                    
+                                    <!-- Acting/Special Duty -->
+                                    <div class="mb-3">
+                                        <label for="{{ form.acting_or_special_duty.id_for_label }}" class="form-label fw-semibold">
+                                            {{ form.acting_or_special_duty.label }}
+                                        </label>
+                                        {{ form.acting_or_special_duty }}
+                                        <div class="form-text">Any acting or special assignments</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Help Text -->
+                        <div class="alert alert-light border">
+                            <small class="text-muted">
+                                <i class="fas fa-lightbulb me-1"></i>
+                                <strong>Note:</strong> This information will be used in your performance appraisals and can be updated at any time.
+                            </small>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'dashboards:profile_details' %}" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save me-1"></i>Save All Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-footer bg-light">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Last updated: {{ profile.updated_at|date:"M d, Y H:i" }}
+                    </small>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+.card {
+    border: 1px solid #e3e6f0;
+    border-radius: 0.75rem;
+}
+
+.card-header {
+    border-radius: 0.75rem 0.75rem 0 0 !important;
+}
+
+.form-control:focus {
+    border-color: #fd7e14;
+    box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
+}
+
+.btn-warning {
+    background-color: #fd7e14;
+    border-color: #fd7e14;
+    color: white;
+}
+
+.btn-warning:hover {
+    background-color: #e56f0c;
+    border-color: #e56f0c;
+    color: white;
+}
+
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.border-bottom {
+    border-color: #e3e6f0 !important;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add Bootstrap styling to all form fields
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        if (!input.classList.contains('form-control')) {
+            input.classList.add('form-control');
+        }
+    });
+
+    // Real-time validation styling
+    const fields = document.querySelectorAll('input, select, textarea');
+    fields.forEach(field => {
+        field.addEventListener('blur', function() {
+            if (this.value && this.value.toString().trim()) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else if (this.required) {
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

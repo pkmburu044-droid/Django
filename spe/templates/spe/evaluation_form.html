@@ -1,107 +1,322 @@
 {% extends "dashboards/base.html" %}
-
-{% block title %}Staff Performance Evaluation{% endblock %}
+{% load static %}
+{% load dashboard_extras %}
 
 {% block content %}
 <div class="container mt-4">
-    <div class="card shadow-lg">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Staff Performance Evaluation</h4>
-            <p class="mb-0">Select an evaluation period and complete ratings for each attribute below.</p>
-        </div>
-        <div class="card-body">
-            <form method="POST" id="evaluationForm">
-                {% csrf_token %}
-
-                {% if form.errors %}
-                    <div class="alert alert-danger">
-                        Please fix the errors below.
-                    </div>
-                {% endif %}
-
-                <!-- Period Selection -->
-                <div class="mb-3">
-                    <label for="{{ form.period.id_for_label }}" class="form-label">Evaluation Period</label>
-                    {{ form.period }}
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-clipboard-list me-2"></i>
+                        Performance Self-Assessment - {{ period.name }}
+                    </h4>
                 </div>
+                <div class="card-body">
+                    <!-- Validation Messages -->
+                    {% if missing_ratings %}
+                    <div class="alert alert-danger">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Please complete all required ratings
+                        </h5>
+                        <p class="mb-2">The following indicators require ratings:</p>
+                        <ul class="mb-0">
+                            {% for missing in missing_ratings %}
+                            <li><strong>{{ missing.attribute }}:</strong> {{ missing.indicator }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
 
-                <!-- Accordion for Attributes & Indicators -->
-                <div class="accordion" id="attributeAccordion">
-                    {% for attribute in attributes %}
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="heading{{ forloop.counter }}">
-                                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" 
-                                        type="button" data-bs-toggle="collapse" 
-                                        data-bs-target="#collapse{{ forloop.counter }}" 
-                                        aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" 
-                                        aria-controls="collapse{{ forloop.counter }}">
-                                    {{ attribute.name }}
-                                </button>
-                            </h2>
-                            <div id="collapse{{ forloop.counter }}" 
-                                 class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" 
-                                 aria-labelledby="heading{{ forloop.counter }}" 
-                                 data-bs-parent="#attributeAccordion">
-                                <div class="accordion-body">
-                                    {% for indicator in attribute.indicators.all %}
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">{{ indicator.description }}</label>
-                                            <input type="number" name="rating_{{ indicator.id }}" 
-                                                   class="form-control" min="1" max="5" required>
-                                            <textarea name="remarks_{{ indicator.id }}" 
-                                                      class="form-control mt-2" rows="2" 
-                                                      placeholder="Remarks (optional)"></textarea>
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <form method="post" id="evaluationForm">
+                        {% csrf_token %}
+                        
+                        {% for attribute in attributes %}
+                        <div class="attribute-section border rounded p-4 mb-4">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-tasks me-2"></i>
+                                {{ attribute.name }}
+                            </h5>
+                            
+                            {% for indicator in attribute.indicators.all %}
+                            <div class="indicator-item border-bottom pb-3 mb-3" 
+                                 id="indicator-{{ attribute.id }}-{{ indicator.id }}">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <h6 class="mb-2">{{ indicator.name }}</h6>
+                                        <p class="text-muted small mb-3">{{ indicator.description }}</p>
+                                        
+                                        <!-- Rating Section -->
+                                        <div class="rating-section mb-3">
+                                            <label class="form-label fw-bold">
+                                                Performance Rating <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="rating-options">
+                                                {% for value, label in rating_choices %}
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input rating-input" 
+                                                           type="radio" 
+                                                           name="rating_{{ attribute.id }}_{{ indicator.id }}" 
+                                                           id="rating_{{ attribute.id }}_{{ indicator.id }}_{{ value }}"
+                                                           value="{{ value }}"
+                                                           required
+                                                           data-attribute="{{ attribute.id }}"
+                                                           data-indicator="{{ indicator.id }}"
+                                                           {% if not missing_ratings %}onchange="updateProgress()"{% endif %}>
+                                                    <label class="form-check-label" for="rating_{{ attribute.id }}_{{ indicator.id }}_{{ value }}">
+                                                        {{ value }} - {{ label }}
+                                                    </label>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% for missing in missing_ratings %}
+                                                {% if missing.attribute_id == attribute.id and missing.indicator_id == indicator.id %}
+                                                <div class="text-danger small mt-1">
+                                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                                    This rating is required
+                                                </div>
+                                                {% endif %}
+                                            {% endfor %}
                                         </div>
-                                    {% endfor %}
 
-                                    <!-- Navigation buttons -->
-                                    <div class="d-flex justify-content-between">
-                                        {% if not forloop.first %}
-                                            <button type="button" class="btn btn-secondary prev-btn">Previous</button>
-                                        {% endif %}
-                                        {% if not forloop.last %}
-                                            <button type="button" class="btn btn-primary next-btn">Next</button>
-                                        {% endif %}
+                                        <!-- Remarks Section -->
+                                        <div class="remarks-section">
+                                            <label class="form-label fw-bold">
+                                                <i class="fas fa-comment me-1"></i>
+                                                Remarks (Optional)
+                                            </label>
+                                            <textarea class="form-control" 
+                                                      name="remark_{{ attribute.id }}_{{ indicator.id }}"
+                                                      rows="2"
+                                                      placeholder="Add any comments or evidence for your rating..."></textarea>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            {% endfor %}
                         </div>
-                    {% endfor %}
-                </div>
+                        {% empty %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                            <h5>No evaluation criteria available</h5>
+                            <p class="text-muted">Please contact your supervisor to set up evaluation attributes.</p>
+                        </div>
+                        {% endfor %}
 
-                <!-- Final Submit -->
-                <div class="mt-4 text-end">
-                    <button type="submit" class="btn btn-success">Submit All Evaluations</button>
+                        <!-- Progress and Actions -->
+                        {% if attributes %}
+                        <div class="form-actions mt-4 p-4 bg-light rounded">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <div class="progress mb-2" style="height: 10px;">
+                                        <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                    <small class="text-muted" id="progressText">0% complete (0/0 indicators rated)</small>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <button type="button" class="btn btn-outline-secondary me-2" onclick="saveAsDraft()">
+                                        <i class="fas fa-save me-1"></i>Save Draft
+                                    </button>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-paper-plane me-1"></i>Submit Evaluation
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Script for next/previous navigation -->
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll(".next-btn").forEach(btn => {
-        btn.addEventListener("click", function() {
-            let current = btn.closest(".accordion-collapse");
-            let next = current.parentElement.nextElementSibling.querySelector(".accordion-collapse");
-            if (next) {
-                new bootstrap.Collapse(next, { show: true });
-                new bootstrap.Collapse(current, { hide: true });
-            }
-        });
-    });
+<style>
+.rating-options {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+}
 
-    document.querySelectorAll(".prev-btn").forEach(btn => {
-        btn.addEventListener("click", function() {
-            let current = btn.closest(".accordion-collapse");
-            let prev = current.parentElement.previousElementSibling.querySelector(".accordion-collapse");
-            if (prev) {
-                new bootstrap.Collapse(prev, { show: true });
-                new bootstrap.Collapse(current, { hide: true });
+.indicator-item {
+    transition: all 0.3s ease;
+}
+
+.indicator-item.missing-rating {
+    border-left: 4px solid #dc3545;
+    background-color: #fff5f5;
+    padding-left: 1rem;
+}
+
+.indicator-item.completed {
+    border-left: 4px solid #198754;
+    background-color: #f8fff9;
+}
+
+.form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.attribute-section {
+    background: #fff;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+</style>
+
+<script>
+// Track progress
+let totalIndicators = 0;
+let completedIndicators = 0;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Count total indicators
+    totalIndicators = document.querySelectorAll('.indicator-item').length;
+    updateProgress();
+    
+    // Add event listeners to all rating inputs
+    const ratingInputs = document.querySelectorAll('.rating-input');
+    ratingInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const attributeId = this.getAttribute('data-attribute');
+            const indicatorId = this.getAttribute('data-indicator');
+            const indicatorItem = document.getElementById(`indicator-${attributeId}-${indicatorId}`);
+            
+            if (this.checked) {
+                indicatorItem.classList.add('completed');
+                indicatorItem.classList.remove('missing-rating');
             }
+            
+            updateProgress();
         });
     });
+    
+    // Check if we have validation errors and highlight them
+    {% if missing_ratings %}
+        {% for missing in missing_ratings %}
+            const missingElement = document.getElementById('indicator-{{ missing.attribute_id }}-{{ missing.indicator_id }}');
+            if (missingElement) {
+                missingElement.classList.add('missing-rating');
+            }
+        {% endfor %}
+        
+        // Scroll to first error
+        const firstError = document.querySelector('.missing-rating');
+        if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    {% endif %}
+});
+
+function updateProgress() {
+    const checkedInputs = document.querySelectorAll('.rating-input:checked');
+    completedIndicators = checkedInputs.length;
+    
+    const progressPercent = totalIndicators > 0 ? (completedIndicators / totalIndicators) * 100 : 0;
+    
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    
+    progressBar.style.width = `${progressPercent}%`;
+    
+    // Update progress bar color
+    if (progressPercent === 100) {
+        progressBar.className = 'progress-bar bg-success';
+    } else if (progressPercent >= 50) {
+        progressBar.className = 'progress-bar bg-warning';
+    } else {
+        progressBar.className = 'progress-bar bg-danger';
+    }
+    
+    progressText.textContent = `${Math.round(progressPercent)}% complete (${completedIndicators}/${totalIndicators} indicators rated)`;
+}
+
+function validateForm() {
+    const ratingInputs = document.querySelectorAll('.rating-input');
+    let allRated = true;
+    const missingRatings = [];
+    
+    // Group by attribute and indicator
+    const ratingGroups = {};
+    ratingInputs.forEach(input => {
+        const name = input.getAttribute('name');
+        if (!ratingGroups[name]) {
+            ratingGroups[name] = [];
+        }
+        ratingGroups[name].push(input);
+    });
+    
+    // Check each group has at least one checked input
+    for (const [name, inputs] of Object.entries(ratingGroups)) {
+        const isChecked = inputs.some(input => input.checked);
+        if (!isChecked) {
+            allRated = false;
+            // Extract attribute and indicator IDs from name
+            const ids = name.replace('rating_', '').split('_');
+            if (ids.length >= 2) {
+                missingRatings.push({
+                    attributeId: ids[0],
+                    indicatorId: ids[1]
+                });
+            }
+        }
+    }
+    
+    if (!allRated) {
+        // Highlight missing ratings
+        missingRatings.forEach(missing => {
+            const element = document.getElementById(`indicator-${missing.attributeId}-${missing.indicatorId}`);
+            if (element) {
+                element.classList.add('missing-rating');
+            }
+        });
+        
+        // Scroll to first missing rating
+        const firstMissing = document.querySelector('.missing-rating');
+        if (firstMissing) {
+            firstMissing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        alert(`Please provide ratings for all ${missingRatings.length} indicator(s) before submitting.`);
+        return false;
+    }
+    
+    return confirm('Are you sure you want to submit your self-assessment? You will not be able to make changes after submission.');
+}
+
+function saveAsDraft() {
+    if (confirm('Save as draft? You can complete and submit later.')) {
+        const draftInput = document.createElement('input');
+        draftInput.type = 'hidden';
+        draftInput.name = 'save_draft';
+        draftInput.value = 'true';
+        document.getElementById('evaluationForm').appendChild(draftInput);
+        document.getElementById('evaluationForm').submit();
+    }
+}
+
+// Attach form validation
+document.getElementById('evaluationForm').addEventListener('submit', function(e) {
+    const isDraft = document.querySelector('input[name="save_draft"]');
+    if (!isDraft && !validateForm()) {
+        e.preventDefault();
+    }
 });
 </script>
 {% endblock %}

@@ -1,199 +1,668 @@
 {% extends "dashboards/base.html" %}
-
-{% block title %}Supervisor Dashboard{% endblock %}
+{% block title %}Supervisor Dashboard | Staff Portal{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
+<div class="container-fluid py-4">
 
-    <!-- Quick Stats Cards -->
-    <div class="row g-4">
-        <div class="col-lg-3 col-md-6">
-            <div class="card shadow-sm border-0 text-center p-3">
-                <h6 class="text-muted">Total Staff</h6>
-                <h3 class="fw-bold">{{ total_staff }}</h3>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+        <div>
+            <h2 class="fw-bold text-university-green mb-1">
+                <i class="bi bi-person-gear me-2"></i>Supervisor Dashboard
+            </h2>
+            <p class="text-muted mb-0">Monitor departmental staff, evaluations, and performance metrics</p>
+        </div>
+        
+        <div class="text-end mt-3 mt-md-0">
+            <span class="badge bg-university-green text-white me-2 p-2">
+                <i class="bi bi-building me-1"></i>Department: {{ user.department.name }}
+            </span>
+            <span class="badge bg-university-gold text-white p-2">
+                <i class="bi bi-person-circle me-1"></i>Welcome, {{ user.first_name }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Dashboard Stats -->
+    <div class="row g-4 mb-4">
+
+        <!-- Total Staff -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm h-100 text-center bg-university-green text-white">
+                <div class="card-body py-4">
+                    <i class="bi bi-people-fill fs-1 mb-2"></i>
+                    <h6 class="mb-1">Total Staff</h6>
+                    <h3 class="fw-bold mb-0">{{ total_staff|default:"0" }}</h3>
+                    <small>In your department</small>
+                </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card shadow-sm border-0 text-center p-3">
-                <h6 class="text-muted">Evaluations Submitted</h6>
-                <h3 class="fw-bold">{{ evaluations_submitted }}</h3>
+
+        <!-- Evaluations Submitted -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm h-100 text-center bg-university-green text-white">
+                <div class="card-body py-4">
+                    <i class="bi bi-check2-circle fs-1 mb-2"></i>
+                    <h6 class="mb-1">Submitted</h6>
+                    <h3 class="fw-bold mb-0">{{ evaluations_submitted|default:"0" }}</h3>
+                    <small>Ready for evaluation</small>
+                </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card shadow-sm border-0 text-center p-3">
-                <h6 class="text-muted">Active Evaluation Period</h6>
-                {% if active_period %}
-                    <h5 class="fw-bold">{{ active_period.name }}</h5>
-                    <small>{{ active_period.start_date }} - {{ active_period.end_date }}</small>
-                {% else %}
-                    <h5 class="text-muted">None</h5>
+
+        <!-- Evaluations Reviewed -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm h-100 text-center bg-university-gold text-white">
+                <div class="card-body py-4">
+                    <i class="bi bi-clipboard-check fs-1 mb-2"></i>
+                    <h6 class="mb-1">Reviewed</h6>
+                    <h3 class="fw-bold mb-0">{{ evaluated_count|default:"0" }}</h3>
+                    <small>Evaluations completed</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Evaluations -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm h-100 text-center bg-university-gold text-white">
+                <div class="card-body py-4">
+                    <i class="bi bi-hourglass-split fs-1 mb-2"></i>
+                    <h6 class="mb-1">Pending</h6>
+                    <h3 class="fw-bold mb-0">{{ pending_evaluations|default:"0" }}</h3>
+                    <small>Awaiting submission</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Approvals -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm h-100 text-center bg-university-gold text-white">
+                <div class="card-body py-4">
+                    <i class="bi bi-clipboard-x fs-1 mb-2"></i>
+                    <h6 class="mb-1">Pending Approval</h6>
+                    <h3 class="fw-bold mb-0">{{ pending_approval_count|default:"0" }}</h3>
+                    <small>Targets to review</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Score -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm h-100 text-center bg-university-green text-white">
+                <div class="card-body py-4">
+                    <i class="bi bi-star-fill fs-1 mb-2"></i>
+                    <h6 class="mb-1">Avg Score</h6>
+                    <h3 class="fw-bold mb-0">
+                        {% if avg_department_score %}
+                            {{ avg_department_score|floatformat:1 }}%
+                        {% else %}
+                            —
+                        {% endif %}
+                    </h3>
+                    <small>Department average</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Progress Section -->
+    {% if total_staff and total_staff > 0 %}
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-university-green text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up me-2"></i>Evaluation Progress
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="progress" style="height: 25px;">
+                                {% widthratio evaluated_count total_staff 100 as reviewed_percent %}
+                                {% widthratio evaluations_submitted total_staff 100 as submitted_percent %}
+                                
+                                <div class="progress-bar bg-university-green" style="width: {{ reviewed_percent }}%"
+                                     title="{{ evaluated_count }} Reviewed">
+                                    {{ evaluated_count }} Reviewed
+                                </div>
+                                <div class="progress-bar bg-university-gold" style="width: {{ submitted_percent }}%"
+                                     title="{{ evaluations_submitted }} Submitted">
+                                    {{ evaluations_submitted }} Submitted
+                                </div>
+                                <div class="progress-bar bg-secondary" 
+                                     style="width: {% widthratio pending_evaluations total_staff 100 %}%"
+                                     title="{{ pending_evaluations }} Pending">
+                                    {{ pending_evaluations }} Pending
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <small class="text-muted">
+                                <strong>Overall Progress:</strong> 
+                                {{ evaluated_count }} of {{ total_staff }} completed
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pending Approvals Alert -->
+    {% if pending_approval_count and pending_approval_count > 0 %}
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="alert alert-warning border-0 shadow-sm d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-3 fs-5"></i>
+                    <div>
+                        <strong class="d-block">Action Required</strong>
+                        <small class="d-block">You have {{ pending_approval_count }} performance target(s) waiting for your approval.</small>
+                    </div>
+                </div>
+                <a href="{% url 'dashboards:approve_target' %}" class="btn btn-university-gold">
+                    <i class="bi bi-clipboard-check me-1"></i>Review Now
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Staff Performance Targets Summary -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-university-green text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-bullseye me-2"></i>Team Performance Targets
+                {% if targets_set_count %}
+                <span class="badge bg-light text-dark ms-2">{{ targets_set_count }}/{{ total_possible_targets }}</span>
+                {% endif %}
+            </h5>
+            <div>
+                {% if pending_approval_count and pending_approval_count > 0 %}
+                <a href="{% url 'dashboards:approve_target' %}" class="btn btn-university-gold">
+                    <i class="bi bi-clipboard-check me-1"></i>Approve Targets ({{ pending_approval_count }})
+                </a>
                 {% endif %}
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
-            <div class="card shadow-sm border-0 text-center p-3">
-                <h6 class="text-muted">Pending Evaluations</h6>
-                <h3 class="fw-bold">{{ pending_evaluations }}</h3>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tabs for Teaching vs Non-Teaching -->
-    <div class="card mt-4 shadow-lg border-0">
-        <div class="card-header p-0">
-            <ul class="nav nav-tabs card-header-tabs" id="staffTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="teaching-tab" data-bs-toggle="tab" data-bs-target="#teaching" type="button" role="tab">Teaching Staff</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="non-teaching-tab" data-bs-toggle="tab" data-bs-target="#non-teaching" type="button" role="tab">Non-Teaching Staff</button>
-                </li>
-            </ul>
-        </div>
-
         <div class="card-body">
-            <div class="tab-content" id="staffTabsContent">
-
-                <!-- Teaching Staff Evaluations -->
-                <div class="tab-pane fade show active" id="teaching" role="tabpanel">
-                    {% if teaching_evaluations %}
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th>PF Number</th>
-                                        <th>Period</th>
-                                        <th>TRS</th>
-                                        <th>MRS</th>
-                                        <th>% Score</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for eval in teaching_evaluations %}
-                                    <tr>
-                                        <td>{{ eval.staff.pf_number }}</td>
-                                        <td>{{ active_period.name }}</td>
-                                        <td>{{ eval.trs }}</td>
-                                        <td>{{ eval.mrs|floatformat:2 }}</td>
-                                        <td>{{ eval.percent_score|floatformat:2 }}%</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+            {% if active_period %}
+                <div class="alert alert-info border-0 shadow-sm mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill me-3 fs-5"></i>
+                        <div>
+                            <strong class="d-block">Current Evaluation Period</strong>
+                            <small class="d-block">{{ active_period.name }} ({{ active_period.start_date|date:"M d" }} - {{ active_period.end_date|date:"M d, Y" }})</small>
                         </div>
-                    {% else %}
-                        <p class="text-muted text-center">No teaching staff evaluations submitted yet.</p>
-                    {% endif %}
-                </div>
-
-                <!-- Non-Teaching Staff Evaluations -->
-                <div class="tab-pane fade" id="non-teaching" role="tabpanel">
-                    {% if non_teaching_evaluations %}
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th>PF Number</th>
-                                        <th>Period</th>
-                                        <th>TRS</th>
-                                        <th>MRS</th>
-                                        <th>% Score</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for eval in non_teaching_evaluations %}
-                                    <tr>
-                                        <td>{{ eval.staff.pf_number }}</td>
-                                        <td>{{ active_period.name }}</td>
-                                        <td>{{ eval.trs }}</td>
-                                        <td>{{ eval.mrs|floatformat:2 }}</td>
-                                        <td>{{ eval.percent_score|floatformat:2 }}%</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p class="text-muted text-center">No non-teaching staff evaluations submitted yet.</p>
-                    {% endif %}
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- Pending Evaluations Section -->
-    <div class="card mt-4 shadow-lg border-0">
-        <div class="card-header bg-warning text-dark fw-bold">
-            Pending Evaluations
-        </div>
-        <div class="card-body">
-            {% if pending_teaching_staff or pending_non_teaching_staff %}
-                <div class="row">
-
-                    <!-- Teaching Staff Pending -->
-                    <div class="col-md-6">
-                        <h6 class="fw-bold">Teaching Staff</h6>
-                        {% if pending_teaching_staff %}
-                            <ul class="list-group list-group-flush">
-                                {% for staff in pending_teaching_staff %}
-                                    <li class="list-group-item">
-                                        <a href="{% url 'spe:teaching_evaluate_staff' staff.id %}">
-                                            {{ staff.pf_number }}
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p class="text-success">All teaching staff have been evaluated ✅</p>
-                        {% endif %}
                     </div>
-
-                    <!-- Non-Teaching Staff Pending -->
-                    <div class="col-md-6">
-                        <h6 class="fw-bold">Non-Teaching Staff</h6>
-                        {% if pending_non_teaching_staff %}
-                            <ul class="list-group list-group-flush">
-                                {% for staff in pending_non_teaching_staff %}
-                                    <li class="list-group-item">
-                                        <a href="{% url 'spe:nonteaching_evaluate_staff' staff.id %}">
-                                            {{ staff.pf_number }}
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p class="text-success">All non-teaching staff have been evaluated ✅</p>
-                        {% endif %}
-                    </div>
-
                 </div>
             {% else %}
-                <p class="text-success text-center fw-bold">🎉 All staff evaluations are complete!</p>
+                <div class="alert alert-warning border-0 shadow-sm mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill me-3 fs-5"></i>
+                        <div>
+                            <strong class="d-block">No Active Evaluation Period</strong>
+                            <small class="d-block">Targets cannot be set until an active period is created.</small>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if staff_with_targets %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="fw-semibold">Staff Member</th>
+                            <th class="fw-semibold text-center">Designation</th>
+                            <th class="fw-semibold text-center">Targets Set</th>
+                            <th class="fw-semibold text-center">Status</th>
+                            <th class="fw-semibold text-center">Last Updated</th>
+                            <th class="fw-semibold text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for staff in staff_with_targets %}
+                        <tr class="{% if staff.has_pending_approvals %}table-warning{% elif staff.has_targets %}table-success{% endif %}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-person-circle text-university-green me-3 fs-5"></i>
+                                    <div>
+                                        <strong class="d-block">{{ staff.user.get_full_name }}</strong>
+                                        <small class="text-muted">{{ staff.user.get_role_display }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                {{ staff.designation }}
+                            </td>
+                            <td class="text-center">
+                                {% if staff.has_targets %}
+                                    <span class="badge bg-university-green">{{ staff.targets_count }}/5</span>
+                                {% else %}
+                                    <span class="badge bg-university-gold">0/5</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if staff.has_pending_approvals %}
+                                    <span class="badge bg-university-gold">Pending Approval</span>
+                                {% elif staff.has_approved_targets %}
+                                    <span class="badge bg-university-green">Approved</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Not Set</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if staff.latest_update %}
+                                    <small>{{ staff.latest_update|date:"M d, Y" }}</small>
+                                {% else %}
+                                    <small class="text-muted">-</small>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if staff.has_targets %}
+                                    <a href="{% url 'dashboards:supervisor_view_targets' staff.user.id %}" 
+                                       class="btn btn-university-green btn-sm">
+                                        <i class="bi bi-eye me-1"></i>View & Approve
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">No targets set</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="bi bi-people display-4 d-block mb-2"></i>
+                                No staff members in your department
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-4">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="fw-semibold text-university-green">Overall Progress</span>
+                    <span class="text-muted">{{ targets_set_count }}/{{ total_possible_targets }} targets</span>
+                </div>
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar bg-university-green" role="progressbar" 
+                         style="width: {% widthratio targets_set_count total_possible_targets 100 %}%"
+                         aria-valuenow="{{ targets_set_count }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="{{ total_possible_targets }}">
+                        {% widthratio targets_set_count total_possible_targets 100 %}%
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-people display-4 text-muted d-block mb-3"></i>
+                <h5 class="text-muted mb-3">No Staff Members</h5>
+                <p class="text-muted">There are no staff members assigned to your department.</p>
+            </div>
             {% endif %}
         </div>
     </div>
 
+    <!-- Quick Actions -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <h5 class="fw-bold mb-3 text-university-green">
+                <i class="bi bi-lightning-fill me-2"></i>Quick Actions
+            </h5>
+        </div>
+
+        <!-- Manage Attributes -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-green text-white h-100">
+                <i class="bi bi-sliders fs-2 mb-3"></i>
+                <h6 class="fw-bold mb-2">Manage Evaluation Criteria</h6>
+                <p class="small mb-3 opacity-90">Define performance attributes and indicators for your department.</p>
+                <a href="{% url 'spe:manage_attributes' %}" class="btn btn-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-gear me-1"></i>Configure
+                </a>
+            </div>
+        </div>
+
+        <!-- Evaluate Staff -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-green text-white h-100">
+                <i class="bi bi-clipboard-check fs-2 mb-3"></i>
+                <h6 class="fw-bold mb-2">Evaluate Staff</h6>
+                <p class="small mb-3 opacity-90">Review and rate staff self-assessments for this period.</p>
+                <a href="{% url 'dashboards:view_staff_evaluations' %}" class="btn btn-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-pencil-square me-1"></i>Evaluate
+                </a>
+            </div>
+        </div>
+
+        <!-- Approve Targets -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-gold text-white h-100">
+                <i class="bi bi-clipboard-check fs-2 mb-3"></i>
+                <h6 class="fw-bold mb-2">Approve Targets</h6>
+                <p class="small mb-3 opacity-90">Review and approve staff performance targets.</p>
+                {% if pending_approval_count and pending_approval_count > 0 %}
+                    <span class="badge bg-danger mb-2">{{ pending_approval_count }} Pending</span>
+                {% endif %}
+                <a href="{% url 'dashboards:approve_target' %}" class="btn btn-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-check-circle me-1"></i>Review All
+                </a>
+            </div>
+        </div>
+
+        <!-- Performance Reports -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-green text-white h-100">
+                <i class="bi bi-graph-up-arrow fs-2 mb-3"></i>
+                <h6 class="fw-bold mb-2">Performance Reports</h6>
+                <p class="small mb-3 opacity-90">Generate detailed reports and analytics for your department.</p>
+                <a href="{% url 'dashboards:supervisor_evaluation_results' %}" class="btn btn-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-bar-chart me-1"></i>Reports
+                </a>
+            </div>
+        </div>
+
+        <!-- View Department Staff -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-gold text-white h-100">
+                <i class="bi bi-person-lines-fill fs-2 mb-3"></i>
+                <h6 class="fw-bold mb-2">Department Staff</h6>
+                <p class="small mb-3 opacity-90">View all staff members and their performance scores.</p>
+                <a href="{% url 'dashboards:view_department_staff' %}" class="btn btn-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-people me-1"></i>View Staff
+                </a>
+            </div>
+        </div>
+
+        <!-- Target Overview -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-green text-white h-100">
+                <i class="bi bi-bullseye fs-2 mb-3"></i>
+                <h6 class="fw-bold mb-2">Target Overview</h6>
+                <p class="small mb-3 opacity-90">Monitor all performance targets in your department.</p>
+                <a href="{% url 'dashboards:approve_target' %}" class="btn btn-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-clipboard-data me-1"></i>Overview
+                </a>
+            </div>
+        </div>
+
+        <!-- Self-Evaluation -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-gold text-white h-100">
+                <i class="bi bi-pencil-square fs-2 mb-3"></i>
+                <h6 class="fw-bold mb-2">Self-Evaluation</h6>
+                <p class="small mb-3 opacity-90">Complete your performance self-evaluation</p>
+                <a href="{% url 'spe:supervisor_evaluation_form' %}" class="btn btn-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-play-fill me-1"></i>Start Evaluation
+                </a>
+            </div>
+        </div>
+
+        <!-- View My Report -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 p-4 text-center action-card bg-gradient-info text-white h-100">
+                <i class="bi bi-file-earmark-text fs-2 mb-3"></i>
+                <h6 class="fw-bold mb-2">My Evaluation Report</h6>
+                <p class="small mb-3 opacity-90">View your supervisor evaluation results and performance scores.</p>
+                <a href="{% url 'spe:supervisor_self_report' %}" class="btn btn-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-eye me-1"></i>View Report
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity (if available) -->
+    {% if recent_evaluations %}
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-university-green text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history me-2"></i>Recent Activity
+                    </h5>
+                    <small>Latest updates</small>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for eval in recent_evaluations %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ eval.self_assessment.appraisal.profile.user.get_full_name }}</strong>
+                                <small class="text-muted ms-2">- {{ eval.self_assessment.attribute.name }}</small>
+                                <br>
+                                <small class="text-muted">Rated: {{ eval.supervisor_rating }}/5</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-university-green">{{ eval.submitted_at|date:"M d, Y" }}</span>
+                                <br>
+                                <small class="text-muted">{{ eval.submitted_at|timesince }} ago</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% if recent_target_approvals %}
+                            {% for approval in recent_target_approvals %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ approval.staff.user.get_full_name }}</strong>
+                                    <small class="text-muted ms-2">- Target approved</small>
+                                    <br>
+                                    <small class="text-muted">{{ approval.target_title }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-university-gold">{{ approval.approved_at|date:"M d, Y" }}</span>
+                                    <br>
+                                    <small class="text-muted">{{ approval.approved_at|timesince }} ago</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 
+<!-- Styling -->
 <style>
-.nav-tabs .nav-link {
-    color: #495057;
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-bottom: none;
-    margin-right: 2px;
+:root {
+    --university-green: #1e964f;
+    --university-gold: #c79b32;
+    --university-green-light: #2db56a;
+    --university-gold-light: #e0b64a;
 }
-.nav-tabs .nav-link.active {
-    color: #0d6efd;
-    background-color: #fff;
-    border-color: #dee2e6 #dee2e6 #fff;
-    font-weight: bold;
+
+.bg-university-green { background-color: var(--university-green) !important; }
+.bg-university-gold { background-color: var(--university-gold) !important; }
+.text-university-green { color: var(--university-green) !important; }
+.text-university-gold { color: var(--university-gold) !important; }
+.border-university-green { border-color: var(--university-green) !important; }
+.border-university-gold { border-color: var(--university-gold) !important; }
+
+.btn-university-green { 
+    background: linear-gradient(135deg, var(--university-green) 0%, var(--university-green-light) 100%);
+    border: none;
+    color: white !important;
+    font-weight: 600;
 }
-.nav-tabs .nav-link:hover {
-    color: #0d6efd;
-    background-color: #e2e6ea;
+.btn-university-green:hover { 
+    background: linear-gradient(135deg, var(--university-green-light) 0%, var(--university-green) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(30, 150, 79, 0.3);
+    color: white !important;
+}
+
+.btn-university-gold { 
+    background: linear-gradient(135deg, var(--university-gold) 0%, var(--university-gold-light) 100%);
+    border: none;
+    color: white !important;
+    font-weight: 600;
+}
+.btn-university-gold:hover { 
+    background: linear-gradient(135deg, var(--university-gold-light) 0%, var(--university-gold) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(199, 155, 50, 0.3);
+    color: white !important;
+}
+
+.btn-outline-university-green {
+    color: var(--university-green);
+    border-color: var(--university-green);
+    background: transparent;
+}
+.btn-outline-university-green:hover {
+    background-color: var(--university-green);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+    transform: translateY(-2px);
+}
+.action-card {
+    border: none;
+    transition: all 0.3s ease;
+}
+.action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.2) !important;
+}
+
+.progress-bar.bg-university-green { background-color: var(--university-green) !important; }
+.progress-bar.bg-university-gold { background-color: var(--university-gold) !important; }
+
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+}
+.progress-bar {
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+.badge {
+    font-size: 0.85rem;
+}
+.table-warning {
+    background-color: rgba(199, 155, 50, 0.1);
+}
+.table-success {
+    background-color: rgba(30, 150, 79, 0.1);
+}
+
+/* Dark Mode Styles */
+body.dark-mode { 
+    background-color: #1a1d23 !important; 
+    color: #e9ecef !important; 
+}
+body.dark-mode .card { 
+    background-color: #2d3035 !important; 
+    color: #e9ecef !important; 
+    border: 1px solid #3d4148;
+}
+body.dark-mode .table { 
+    color: #e9ecef !important; 
+}
+body.dark-mode .table-light { 
+    background-color: #3d4148 !important; 
+}
+body.dark-mode .text-muted { 
+    color: #adb5bd !important; 
+}
+body.dark-mode .text-dark { 
+    color: #e9ecef !important; 
+}
+body.dark-mode .btn-outline-university-green { 
+    color: var(--university-green-light) !important; 
+    border-color: var(--university-green-light) !important; 
+}
+body.dark-mode .btn-outline-university-green:hover { 
+    background-color: var(--university-green-light) !important; 
+    color: #1a1d23 !important; 
+}
+body.dark-mode .alert { 
+    background-color: #2d3035 !important; 
+    color: #e9ecef !important; 
+    border: 1px solid #3d4148; 
+}
+
+/* Button improvements */
+.btn-light {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--university-green) !important;
+    font-weight: 600;
+}
+.btn-light:hover {
+    background: white;
+    color: var(--university-green) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Gradient backgrounds for action cards */
+.bg-gradient-info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
 }
 </style>
 
+<!-- Dark Mode Toggle Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        
+        // Apply saved theme
+        if (currentTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.innerHTML = '<i class="bi bi-sun"></i> Light Mode';
+        }
+        
+        // Toggle theme
+        themeToggle.addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+            
+            if (document.body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                themeToggle.innerHTML = '<i class="bi bi-sun"></i> Light Mode';
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeToggle.innerHTML = '<i class="bi bi-moon-stars"></i> Dark Mode';
+            }
+        });
+    }
+    
+    // Add loading animation to cards
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+    });
+    
+    // Animate cards on load
+    setTimeout(() => {
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    }, 300);
+});
+</script>
 {% endblock %}

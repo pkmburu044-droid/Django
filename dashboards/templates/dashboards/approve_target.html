@@ -1,0 +1,463 @@
+{% extends "dashboards/base.html" %}
+{% block title %}Approve Performance Targets{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">✅ Approve Performance Targets</h2>
+            <p class="text-muted mb-0">Review and approve performance targets for your department staff.</p>
+        </div>
+        <div class="text-end mt-3 mt-md-0">
+            <span class="badge bg-primary text-white me-2 p-2">
+                🏢 Department: {{ user.department.name }}
+            </span>
+            {% if pending_approval_count > 0 %}
+            <span class="badge bg-warning text-dark p-2">
+                ⏳ {{ pending_approval_count }} Pending
+            </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="mb-4">
+        <a href="{% url 'dashboards:supervisor_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center bg-primary text-white">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ total_staff }}</h3>
+                    <p class="mb-0">Total Staff</p>
+                    <small>In department</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center {% if staff_with_targets_count > 0 %}bg-success text-white{% else %}bg-light{% endif %}">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ staff_with_targets_count }}</h3>
+                    <p class="mb-0">With Targets</p>
+                    <small>Set targets</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center {% if pending_approval_count > 0 %}bg-warning text-dark{% else %}bg-light{% endif %}">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ pending_approval_count }}</h3>
+                    <p class="mb-0">Pending Approval</p>
+                    <small>Awaiting review</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center bg-info text-white">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ total_targets_count }}</h3>
+                    <p class="mb-0">Total Targets</p>
+                    <small>All targets set</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Period Info -->
+    {% if current_period %}
+    <div class="alert alert-info mb-4">
+        <strong>Current Period:</strong> {{ current_period.name }}
+        ({{ current_period.start_date|date:"M d, Y" }} - {{ current_period.end_date|date:"M d, Y" }})
+    </div>
+    {% else %}
+    <div class="alert alert-warning mb-4">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        No active evaluation period found.
+    </div>
+    {% endif %}
+
+    <!-- Bulk Approval Section -->
+    {% if pending_targets %}
+    <div class="card mb-4 border-warning">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+                <i class="bi bi-lightning me-2"></i>Quick Bulk Approval
+                <span class="badge bg-light text-dark ms-2">{{ pending_targets.count }} pending</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'dashboards:approve_target' %}">
+                {% csrf_token %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-warning">
+                            <tr>
+                                <th width="5%">
+                                    <input type="checkbox" id="select-all" class="form-check-input">
+                                </th>
+                                <th>Target Description</th>
+                                <th>Staff Member</th>
+                                <th>Designation</th>
+                                <th>Created</th>
+                                <th width="25%">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for target in pending_targets %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="target_ids" value="{{ target.id }}" class="form-check-input target-checkbox">
+                                </td>
+                                <td>
+                                    <strong>{{ target.description }}</strong>
+                                    {% if target.success_measures %}
+                                    <br><small class="text-muted">{{ target.success_measures|truncatewords:10 }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <i class="bi bi-person me-1"></i>{{ target.staff.get_full_name }}
+                                </td>
+                                <td>
+                                    {% with target.staff.staffprofile as profile %}
+                                        {{ profile.designation|default:"Not set" }}
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                    <small>{{ target.created_at|date:"M d, Y" }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <!-- Individual Quick Actions - FIXED: Single form for all actions -->
+                                        <button type="submit" name="action" value="approve" class="btn btn-success btn-sm"
+                                                onclick="setSingleTarget('{{ target.id }}')">
+                                            <i class="bi bi-check-lg me-1"></i>Approve
+                                        </button>
+                                        <button type="button" class="btn btn-danger btn-sm" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#rejectModal{{ target.id }}">
+                                            <i class="bi bi-x-lg me-1"></i>Reject
+                                        </button>
+                                        <a href="{% url 'dashboards:supervisor_view_targets' target.staff.id %}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-eye me-1"></i>Details
+                                        </a>
+                                    </div>
+
+                                    <!-- Reject Modal for Individual Target -->
+                                    <div class="modal fade" id="rejectModal{{ target.id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Reject Target</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <form method="post">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="target_ids" value="{{ target.id }}">
+                                                    <div class="modal-body">
+                                                        <p>Please provide a reason for rejecting this target:</p>
+                                                        <textarea name="rejection_reason" class="form-control" rows="3" 
+                                                                  placeholder="Enter rejection reason..." required></textarea>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" name="action" value="reject" class="btn btn-danger">Reject Target</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Bulk Action Buttons -->
+                <div class="d-flex gap-2 mt-3 p-3 bg-light rounded">
+                    <strong class="me-3">Bulk Actions:</strong>
+                    <button type="submit" name="action" value="approve" class="btn btn-success">
+                        <i class="bi bi-check-lg me-1"></i>Approve Selected
+                    </button>
+                    <button type="submit" name="action" value="reject" class="btn btn-danger">
+                        <i class="bi bi-x-lg me-1"></i>Reject Selected
+                    </button>
+                    <button type="submit" name="action" value="return" class="btn btn-warning">
+                        <i class="bi bi-arrow-return-left me-1"></i>Return for Revision
+                    </button>
+                    <button type="button" id="clear-selection" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Clear Selection
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <div class="card mb-4">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-check-circle display-4 text-success mb-3"></i>
+            <h5 class="text-success mb-3">No Pending Targets</h5>
+            <p class="text-muted">All targets have been reviewed and approved.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Staff with Targets -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-people me-2"></i>Department Staff Overview
+                <span class="badge bg-light text-dark ms-2">{{ total_staff }} staff</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if staff_with_targets %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Staff Member</th>
+                            <th class="text-center">Designation</th>
+                            <th class="text-center">Total Targets</th>
+                            <th class="text-center">Pending Approval</th>
+                            <th class="text-center">Approved</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Last Updated</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for staff in staff_with_targets %}
+                        <tr class="{% if staff.has_pending_approvals %}table-warning{% elif staff.has_targets %}table-success{% else %}table-light{% endif %}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-person-circle text-primary me-3 fs-5"></i>
+                                    <div>
+                                        <strong class="d-block">{{ staff.user.get_full_name }}</strong>
+                                        <small class="text-muted">{{ staff.user.get_role_display }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                {{ staff.designation }}
+                            </td>
+                            <td class="text-center">
+                                {% if staff.has_targets %}
+                                    <span class="badge bg-primary">{{ staff.total_targets }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">0</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if staff.pending_count > 0 %}
+                                    <span class="badge bg-warning">{{ staff.pending_count }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">0</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if staff.approved_count > 0 %}
+                                    <span class="badge bg-success">{{ staff.approved_count }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">0</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if staff.has_pending_approvals %}
+                                    <span class="badge bg-warning">Needs Review</span>
+                                {% elif staff.has_targets %}
+                                    <span class="badge bg-success">All Approved</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No Targets</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if staff.latest_update %}
+                                    <small>{{ staff.latest_update|date:"M d, Y" }}</small>
+                                {% else %}
+                                    <small class="text-muted">-</small>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if staff.has_targets %}
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'dashboards:supervisor_view_targets' staff.user.id %}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye me-1"></i>Review All
+                                    </a>
+                                    {% if staff.has_pending_approvals %}
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="staff_id" value="{{ staff.user.id }}">
+                                        <button type="submit" name="bulk_action" value="approve_staff" 
+                                                class="btn btn-warning btn-sm"
+                                                onclick="return confirm('Approve all {{ staff.pending_count }} pending targets for {{ staff.user.get_full_name }}?')">
+                                            <i class="bi bi-clipboard-check me-1"></i>Approve All
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <span class="text-muted">No targets</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-people display-4 text-muted d-block mb-3"></i>
+                <h5 class="text-muted mb-3">No Staff Members</h5>
+                <p class="text-muted">There are no staff members in your department.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Approved Targets Summary -->
+    {% if approved_targets %}
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-check-circle me-2"></i>Approved Targets
+                <span class="badge bg-light text-dark ms-2">{{ approved_targets.count }} approved</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for target in approved_targets|slice:":6" %}
+                <div class="col-md-4 mb-3">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <h6 class="card-title text-success">
+                                <i class="bi bi-check-circle me-1"></i>{{ target.description }}
+                            </h6>
+                            <p class="card-text text-muted small">{{ target.success_measures|truncatewords:15|default:"No success measures" }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <strong>{{ target.staff.get_full_name }}</strong><br>
+                                    Approved
+                                </small>
+                                <span class="badge bg-success">Approved</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% if approved_targets.count > 6 %}
+            <div class="text-center mt-3">
+                <a href="#" class="btn btn-outline-success btn-sm">View All Approved Targets</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- JavaScript for Bulk Selection -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Select all checkbox
+    const selectAll = document.getElementById('select-all');
+    const targetCheckboxes = document.querySelectorAll('.target-checkbox');
+    
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            targetCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+        });
+    }
+    
+    // Clear selection button
+    const clearSelection = document.getElementById('clear-selection');
+    if (clearSelection) {
+        clearSelection.addEventListener('click', function() {
+            targetCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            if (selectAll) selectAll.checked = false;
+        });
+    }
+    
+    // Update select all when individual checkboxes change
+    targetCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (selectAll) {
+                const allChecked = Array.from(targetCheckboxes).every(cb => cb.checked);
+                selectAll.checked = allChecked;
+            }
+        });
+    });
+});
+
+// Function to set single target for individual approve buttons
+function setSingleTarget(targetId) {
+    // Uncheck all checkboxes first
+    document.querySelectorAll('.target-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    // Check the specific target
+    const targetCheckbox = document.querySelector(`input[name="target_ids"][value="${targetId}"]`);
+    if (targetCheckbox) {
+        targetCheckbox.checked = true;
+    }
+}
+
+// Add confirmation for bulk actions
+document.addEventListener('DOMContentLoaded', function() {
+    const bulkButtons = document.querySelectorAll('button[type="submit"]');
+    bulkButtons.forEach(button => {
+        if (button.name === 'action' && (button.value === 'approve' || button.value === 'reject' || button.value === 'return')) {
+            button.addEventListener('click', function(e) {
+                const checkedBoxes = document.querySelectorAll('.target-checkbox:checked');
+                if (checkedBoxes.length === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one target to perform this action.');
+                    return;
+                }
+                
+                const action = button.value;
+                const actionText = action === 'approve' ? 'approve' : action === 'reject' ? 'reject' : 'return for revision';
+                
+                if (!confirm(`Are you sure you want to ${actionText} ${checkedBoxes.length} target(s)?`)) {
+                    e.preventDefault();
+                }
+            });
+        }
+    });
+});
+</script>
+
+<style>
+.card {
+    border-radius: 12px;
+}
+.table-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+}
+.table-success {
+    background-color: rgba(40, 167, 69, 0.1);
+}
+.btn-group form {
+    display: inline-block;
+    margin: 0 2px;
+}
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}

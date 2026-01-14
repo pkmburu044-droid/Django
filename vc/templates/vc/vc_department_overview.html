@@ -1,0 +1,190 @@
+{% extends 'vc/base.html' %}
+
+{% block title %}Departments Overview - KyU VC{% endblock %}
+
+{% block page_title %}Departments Overview{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="{% url 'vc:vc_download_department_report' %}" class="btn btn-gold">
+        <i class="fas fa-file-pdf me-1"></i> Download Report
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Department Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card stat-departments">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h5 class="card-title text-muted">Total Departments</h5>
+                <h2 class="card-text" style="color: var(--kyu-green); font-weight: 700;">
+                    {{ total_departments|default:"0" }}
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card stat-supervisors">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <h5 class="card-title text-muted">Total Supervisors</h5>
+                <h2 class="card-text" style="color: var(--kyu-light-green); font-weight: 700;">
+                    {{ total_supervisors|default:"0" }}
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card stat-staff">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h5 class="card-title text-muted">Total Staff</h5>
+                <h2 class="card-text" style="color: var(--kyu-gold); font-weight: 700;">
+                    {{ total_all_staff|default:"0" }}
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card stat-evaluated">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <h5 class="card-title text-muted">Regular Staff</h5>
+                <h2 class="card-text" style="color: var(--kyu-dark-green); font-weight: 700;">
+                    {{ total_regular_staff|default:"0" }}
+                </h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Departments Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-building me-2"></i>All Departments
+            </div>
+            <div class="card-body">
+                {% if department_data %}
+                <div class="table-responsive">
+                    <table class="table table-hover" id="departmentsTable">
+                        <thead>
+                            <tr>
+                                <th>Department</th>
+                                <th class="text-center">Total Staff</th>
+                                <th class="text-center">Supervisors</th>
+                                <th class="text-center">Regular Staff</th>
+                                <th class="text-center">Evaluations</th>
+                                <th class="text-center">Avg Score</th>
+                                <th class="text-center">Evaluation Rate</th>
+                                <th class="text-center">Targets Completion</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dept in department_data %}
+                            <tr>
+                                <td>
+                                    <strong>{{ dept.department.name }}</strong>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary">{{ dept.total_staff }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info">{{ dept.supervisors_count }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-success">{{ dept.regular_staff_count }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge {% if dept.total_evaluations == dept.supervisors_count %}bg-success{% elif dept.total_evaluations > 0 %}bg-warning{% else %}bg-secondary{% endif %}">
+                                        {{ dept.total_evaluations }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge {% if dept.average_score >= 80 %}badge-excellent{% elif dept.average_score >= 70 %}badge-good{% elif dept.average_score >= 60 %}badge-average{% else %}badge-poor{% endif %}">
+                                        {{ dept.average_score|floatformat:1 }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="progress" style="height: 20px; width: 100px; margin: 0 auto;">
+                                        <div class="progress-bar {% if dept.evaluation_rate >= 80 %}bg-success{% elif dept.evaluation_rate >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             style="width: {{ dept.evaluation_rate }}%">
+                                            {{ dept.evaluation_rate|floatformat:0 }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="progress" style="height: 20px; width: 100px; margin: 0 auto;">
+                                        <div class="progress-bar {% if dept.targets_completion >= 80 %}bg-success{% elif dept.targets_completion >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             style="width: {{ dept.targets_completion }}%">
+                                            {{ dept.targets_completion|floatformat:0 }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'vc:vc_department_staff' dept.department.id %}" class="btn btn-outline-primary" title="View Staff">
+                                            <i class="fas fa-users"></i>
+                                        </a>
+                                        <a href="{% url 'vc:vc_download_department_report' dept.department.id %}" class="btn btn-outline-success" title="Download Report">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Department Data Available</h5>
+                    <p class="text-muted">Department information will appear here once available.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        $('#departmentsTable').DataTable({
+            "pageLength": 10,
+            "order": [[0, "asc"]], // Sort by department name
+            "responsive": true,
+            "language": {
+                "search": "Search departments:",
+                "lengthMenu": "Show _MENU_ departments per page",
+                "info": "Showing _START_ to _END_ of _TOTAL_ departments",
+                "paginate": {
+                    "previous": "<i class='fas fa-chevron-left'></i>",
+                    "next": "<i class='fas fa-chevron-right'></i>"
+                }
+            }
+        });
+    });
+</script>
+
+<!-- DataTables CSS & JS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+{% endblock %}

@@ -1,58 +1,297 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>Login - Kirinyaga University Appraisal System</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --kyu-green: #1e964f;
+            --kyu-gold: #c79b32;
+            --kyu-dark-green: #0a3d1e;
+            --kyu-light-gold: #f4d03f;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--kyu-dark-green) 0%, var(--kyu-green) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        
+        .login-container {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .brand-section {
+            background: linear-gradient(135deg, var(--kyu-green) 0%, var(--kyu-dark-green) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .brand-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg);
+        }
+        
+        .form-section {
+            padding: 3rem 2.5rem;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            padding: 15px 20px;
+            border: 2px solid #e8f5e8;
+            background: #f8fdf8;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        .form-control:focus {
+            border-color: var(--kyu-gold);
+            box-shadow: 0 0 0 0.3rem rgba(199, 155, 50, 0.15);
+            background: white;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--kyu-dark-green);
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn-login {
+            background: linear-gradient(135deg, var(--kyu-gold) 0%, var(--kyu-light-gold) 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--kyu-dark-green);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(199, 155, 50, 0.3);
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(199, 155, 50, 0.4);
+            background: linear-gradient(135deg, var(--kyu-light-gold) 0%, var(--kyu-gold) 100%);
+        }
+        
+        .alert-custom {
+            border-radius: 10px;
+            border: none;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .system-info {
+            background: linear-gradient(135deg, rgba(30, 150, 79, 0.1) 0%, rgba(10, 61, 30, 0.1) 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 4px solid var(--kyu-gold);
+            margin-top: 2rem;
+        }
+
+        .logo-container {
+            background: white;
+            border-radius: 15px;
+            padding: 0;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 15px;
+        }
+
+        /* Mobile logo size */
+        @media (max-width: 991px) {
+            .logo-container {
+                max-width: 120px;
+            }
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
-<div class="container mt-5">
+<div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-
-            <div class="card border-success shadow">
-                <div class="card-header bg-success text-white text-center">
-                    <h2 class="mb-0">Login</h2>
+        <div class="col-xl-10">
+            <div class="row login-container">
+                <!-- Left Column - Branding -->
+                <div class="col-lg-6 d-none d-lg-block brand-section">
+                    <div class="text-center">
+                        <div class="logo-container">
+                            <img src="{% static 'images/kyu_logo2.png' %}" alt="KYU Logo">
+                        </div>
+                        <h1 class="fw-bold mb-3">Kirinyaga University</h1>
+                        <p class="fs-5 mb-4" style="color: var(--kyu-gold);">Staff Appraisal Portal</p>
+                        
+                        <div class="system-info text-start">
+                            <h5 class="mb-3" style="color: var(--kyu-gold);">
+                                <i class="bi bi-star-fill me-2"></i>Comprehensive Evaluation Platform
+                            </h5>
+                            <p class="text-white-80 mb-0">
+                                Streamlined performance management system for academic and administrative staff, 
+                                ensuring continuous professional development and institutional excellence.
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="card-body">
+                <!-- Right Column - Login Form -->
+                <div class="col-lg-6 form-section">
+                    <div class="text-center mb-5">
+                        <h2 class="fw-bold" style="color: var(--kyu-green);">
+                            <i class="bi bi-person-badge me-2"></i>Appraisal Portal 
+                        </h2>
+                        <p class="text-muted">Enter your credentials to continue</p>
+                    </div>
+
+                    <!-- Messages -->
                     {% if form.errors %}
-                        <div class="alert alert-danger">
-                            Invalid PF Number or password.
+                    <div class="alert alert-warning alert-custom fade show" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill me-3 fs-5" style="color: var(--kyu-gold);"></i>
+                            <div>
+                                <strong>Authentication Failed</strong>
+                                <div class="small">Please check your PF Number and password</div>
+                            </div>
                         </div>
+                    </div>
+                    {% endif %}
+
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-custom fade show" role="alert">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            {{ message }}
+                        </div>
+                        {% endfor %}
                     {% endif %}
 
                     <form method="post" novalidate>
                         {% csrf_token %}
 
-                        <div class="mb-3">
-                            <label for="{{ form.username.id_for_label }}" class="form-label d-block">PF Number</label>
-                            {{ form.username }}
+                        <div class="mb-4">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">
+                                <i class="bi bi-person-vcard me-2" style="color: var(--kyu-green);"></i>
+                                PF Number
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="bi bi-person" style="color: var(--kyu-green);"></i>
+                                </span>
+                                {{ form.username }}
+                            </div>
+                            {% if form.username.errors %}
+                                <div class="text-danger small mt-2">
+                                    <i class="bi bi-x-circle me-1"></i>{{ form.username.errors }}
+                                </div>
+                            {% endif %}
                         </div>
 
-                        <div class="mb-3">
-                            <label for="{{ form.password.id_for_label }}" class="form-label d-block">Password</label>
-                            {{ form.password }}
+                        <div class="mb-4">
+                            <label for="{{ form.password.id_for_label }}" class="form-label">
+                                <i class="bi bi-key me-2" style="color: var(--kyu-green);"></i>
+                                Password
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="bi bi-lock" style="color: var(--kyu-green);"></i>
+                                </span>
+                                {{ form.password }}
+                            </div>
+                            {% if form.password.errors %}
+                                <div class="text-danger small mt-2">
+                                    <i class="bi bi-x-circle me-1"></i>{{ form.password.errors }}
+                                </div>
+                            {% endif %}
                         </div>
 
-                        <button type="submit" class="btn btn-success w-100">Login</button>
+                        <button type="submit" class="btn btn-login w-100 mb-4">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>
+                            Access My Dashboard
+                        </button>
+
+                        <!-- Mobile Branding -->
+                        <div class="d-block d-lg-none text-center mt-5 pt-4 border-top">
+                            <div class="logo-container mx-auto mb-3">
+                                <img src="{% static 'images/kyu_logo.png' %}" alt="KYU Logo">
+                            </div>
+                            <h5 class="mt-2" style="color: var(--kyu-green);">Kirinyaga University</h5>
+                            <p class="text-muted small">Staff Performance Appraisal System</p>
+                        </div>
                     </form>
-                </div>
 
-                <div class="card-footer text-center">
-                    <p class="mb-0">Don't have an account? 
-                        <a href="{% url 'signup' %}" class="text-success fw-bold">Sign up here</a>
-                    </p>
+                    <!-- Support Information -->
+                    <div class="text-center mt-4">
+                        <p class="text-muted small mb-2">
+                            <i class="bi bi-telephone me-2" style="color: var(--kyu-green);"></i>
+                            Technical Support: ICT Department
+                        </p>
+                        <p class="text-muted small">
+                            <i class="bi bi-envelope me-2" style="color: var(--kyu-green);"></i>
+                            Email: ict-support@kyu.ac.ke
+                        </p>
+                    </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Enhanced form field styling
+    document.addEventListener('DOMContentLoaded', function() {
+        const usernameField = document.getElementById('{{ form.username.id_for_label }}');
+        const passwordField = document.getElementById('{{ form.password.id_for_label }}');
+        
+        if (usernameField) {
+            usernameField.className = 'form-control border-start-0';
+            usernameField.placeholder = 'Enter your PF Number (e.g., PF/12345)';
+            usernameField.style.borderLeft = 'none';
+        }
+        if (passwordField) {
+            passwordField.className = 'form-control border-start-0';
+            passwordField.placeholder = 'Enter your secure password';
+            passwordField.style.borderLeft = 'none';
+        }
+        
+        // Auto-focus on username field
+        if (usernameField && !usernameField.value) {
+            usernameField.focus();
+        }
+    });
+</script>
+
 </body>
 </html>

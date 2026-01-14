@@ -1,28 +1,50 @@
+# Virtual Environments
+.venv/
+venv/
+env/
+
+# Database
+db.sqlite3
+*.sql
+*.db
+
 # Python
 __pycache__/
 *.py[cod]
-*.sqlite3
-db.sqlite3
-
-# Virtual environment
-venv/
-env/
-.env
+*$py.class
+*.so
+.Python
 
 # Django
 *.log
-*.pot
-*.pyc
-*.pyo
-*.pyd
-*.db
+local_settings.py
 media/
 staticfiles/
 
-# VS Code
+# Backup files
+*.backup
+*.bak
+backup.json
+dump.sql
+cleaned_dump.sql
+complete_dump.sql
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
 .vscode/
-
-# System
-.DS_Store
+.idea/
 *.swp
+*.swo
 
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/

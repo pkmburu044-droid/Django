@@ -1,0 +1,483 @@
+{% extends "dashboards/base.html" %}
+
+{% block title %}{{ role_label }} Appraisal - Step 1: Basic Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header Card -->
+            <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #1e964f 0%, #0a3d1e 100%);">
+                <div class="card-body text-center py-4 text-white">
+                    <h1 class="h2 fw-bold mb-2">
+                        <i class="bi bi-clipboard-data me-2"></i>{{ role_label }} Appraisal Form
+                    </h1>
+                    <p class="mb-0 opacity-90">Complete your performance evaluation in simple steps</p>
+                </div>
+            </div>
+
+            <!-- Progress Steps -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body py-4">
+                    <div class="d-flex justify-content-between align-items-center position-relative">
+                        <!-- Step 1 - Current -->
+                        <div class="text-center flex-fill position-relative">
+                            <div class="step-indicator bg-university-green text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2" 
+                                 style="width: 50px; height: 50px;">
+                                <i class="bi bi-1-circle-fill fs-5"></i>
+                            </div>
+                            <h6 class="fw-bold text-university-green mb-1">Basic Details</h6>
+                            <small class="text-muted">Fill in appraisal information</small>
+                            <div class="step-progress bg-university-green" style="height: 3px; position: absolute; top: 25px; left: 60%; right: 0;"></div>
+                        </div>
+
+                        <!-- Step 2 - Next -->
+                        <div class="text-center flex-fill position-relative">
+                            <div class="step-indicator bg-light border border-university-gold text-university-gold rounded-circle d-inline-flex align-items-center justify-content-center mb-2" 
+                                 style="width: 50px; height: 50px;">
+                                <i class="bi bi-2-circle fs-5"></i>
+                            </div>
+                            <h6 class="fw-bold text-muted mb-1">Performance Evaluation</h6>
+                            <small class="text-muted">Self-assessment & ratings</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🎯 Enhanced Status Panel -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 text-university-green">
+                        <i class="bi bi-clipboard-check me-2"></i>Appraisal Requirements Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Profile Status -->
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded bg-light">
+                                <div class="me-3">
+                                    <i class="bi bi-person-check fs-4 {% if profile.department %}text-university-green{% else %}text-warning{% endif %}"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-semibold">Profile Completion</h6>
+                                    <p class="mb-0">
+                                        {% if profile.department %}
+                                            <span class="badge bg-university-green">Complete</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Incomplete</span>
+                                            <small class="text-muted d-block mt-1">Department information required</small>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Performance Targets Status -->
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded bg-light">
+                                <div class="me-3">
+                                    <i class="bi bi-bullseye fs-4 {% if has_approved_targets %}text-university-green{% elif has_performance_targets %}text-university-gold{% else %}text-danger{% endif %}"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-semibold">Performance Targets</h6>
+                                    <p class="mb-0">
+                                        {% if has_approved_targets %}
+                                            <span class="badge bg-university-green">Approved ({{ approved_targets_count }})</span>
+                                        {% elif has_performance_targets %}
+                                            <span class="badge bg-university-gold">Pending Approval</span>
+                                            <small class="text-muted d-block mt-1">{{ targets_count }} targets awaiting review</small>
+                                        {% else %}
+                                            <span class="badge bg-danger">Not Set</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Appraisal Period Status -->
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded bg-light">
+                                <div class="me-3">
+                                    <i class="bi bi-calendar-check fs-4 text-university-green"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-semibold">Evaluation Period</h6>
+                                    <p class="mb-0">
+                                        <span class="badge bg-university-green">Active</span>
+                                        <small class="text-muted d-block mt-1">{{ active_period.name }}</small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Forms Status -->
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded bg-light">
+                                <div class="me-3">
+                                    <i class="bi bi-file-text fs-4 text-university-green"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-semibold">Appraisal Forms</h6>
+                                    <p class="mb-0">
+                                        <span class="badge bg-university-green">Available</span>
+                                        <small class="text-muted d-block mt-1">Ready for submission</small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 🎯 Action Guidance -->
+                    <div class="mt-4 p-4 rounded {% if has_approved_targets %}bg-university-green bg-opacity-10 border border-university-green{% else %}bg-university-gold bg-opacity-10 border border-university-gold{% endif %}">
+                        <h6 class="mb-3 fw-bold text-university-green">
+                            <i class="bi bi-info-circle me-2"></i>Next Steps
+                        </h6>
+                        <ul class="mb-0 small">
+                            {% if not has_performance_targets %}
+                                <li class="mb-2">
+                                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                                    <strong class="text-dark">Set your performance targets</strong> before starting appraisal
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-university-green me-2"></i>
+                                    Get targets approved by your supervisor
+                                </li>
+                                <li class="mb-0">
+                                    <i class="bi bi-graph-up text-university-green me-2"></i>
+                                    Complete self-assessment against approved targets
+                                </li>
+                            {% elif not has_approved_targets %}
+                                <li class="mb-2">
+                                    <i class="bi bi-clock-history text-university-gold me-2"></i>
+                                    <strong class="text-dark">Wait for target approval</strong> or continue with current targets
+                                </li>
+                                <li class="mb-0">
+                                    <i class="bi bi-check-circle text-university-green me-2"></i>
+                                    Complete self-assessment (final submission requires approved targets)
+                                </li>
+                            {% else %}
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle-fill text-university-green me-2"></i>
+                                    <strong class="text-dark">All requirements met!</strong> You can proceed with self-assessment
+                                </li>
+                                <li class="mb-0">
+                                    <i class="bi bi-graph-up text-university-green me-2"></i>
+                                    Complete your performance evaluation against approved targets
+                                </li>
+                            {% endif %}
+                        </ul>
+
+                        <!-- Action Buttons based on status -->
+                        <div class="mt-3 pt-3 border-top">
+                            {% if not has_performance_targets %}
+                                <a href="{% url 'users:set_performance_targets' %}" class="btn btn-warning btn-sm">
+                                    <i class="bi bi-bullseye me-1"></i>Set Performance Targets First
+                                </a>
+                            {% elif not has_approved_targets %}
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'users:view_performance_targets' %}" class="btn btn-outline-university-gold btn-sm">
+                                        <i class="bi bi-eye me-1"></i>View Target Status
+                                    </a>
+                                    <span class="btn btn-outline-university-green btn-sm" data-bs-toggle="tooltip" 
+                                          title="You can continue, but final submission requires approved targets">
+                                        <i class="bi bi-info-circle me-1"></i>Continue Anyway
+                                    </span>
+                                </div>
+                            {% else %}
+                                <span class="badge bg-university-green p-2">
+                                    <i class="bi bi-check-circle me-1"></i>Ready to Proceed
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Form Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-university-green text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil-square me-2"></i>Step 1: Basic Appraisal Information
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Auto-filled Information Cards -->
+                    <div class="row mb-4">
+                        <!-- Evaluation Period -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-university-green border-2">
+                                <div class="card-body">
+                                    <h6 class="card-title text-university-green fw-bold">
+                                        <i class="bi bi-calendar-range me-2"></i>Evaluation Period
+                                    </h6>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Period Name</small>
+                                        <p class="fw-semibold mb-1">{{ active_period.name|default:"Not specified" }}</p>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted">Date Range</small>
+                                        <p class="fw-semibold mb-0">
+                                            {% if active_period.start_date and active_period.end_date %}
+                                                {{ active_period.start_date|date:"M d, Y" }} - {{ active_period.end_date|date:"M d, Y" }}
+                                            {% else %}
+                                                Not specified
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Supervisor Information -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-university-gold border-2">
+                                <div class="card-body">
+                                    <h6 class="card-title text-university-gold fw-bold">
+                                        <i class="bi bi-person-badge me-2"></i>Supervisor Information
+                                    </h6>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Supervisor Name</small>
+                                        <p class="fw-semibold mb-1">
+                                            {% if active_period.default_supervisor_name %}
+                                                {{ active_period.default_supervisor_name }}
+                                            {% else %}
+                                                <span class="text-muted">Not specified</span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted">Designation</small>
+                                        <p class="fw-semibold mb-0">
+                                            {% if active_period.default_supervisor_designation %}
+                                                {{ active_period.default_supervisor_designation }}
+                                            {% else %}
+                                                <span class="text-muted">Not specified</span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Errors -->
+                    {% if form.errors %}
+                        <div class="alert alert-danger border-0 shadow-sm mb-4">
+                            <h6 class="alert-heading fw-bold">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>Please correct the following errors:
+                            </h6>
+                            <ul class="mb-0 mt-2">
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <!-- Main Form -->
+                    <form method="post" novalidate class="needs-validation">
+                        {% csrf_token %}
+
+                        <!-- Hidden fields for auto-filled data -->
+                        <input type="hidden" name="period" value="{{ active_period.id }}">
+                        {% if active_period.default_supervisor_name %}
+                            <input type="hidden" name="supervisor_name" value="{{ active_period.default_supervisor_name }}">
+                        {% endif %}
+                        {% if active_period.default_supervisor_designation %}
+                            <input type="hidden" name="supervisor_designation" value="{{ active_period.default_supervisor_designation }}">
+                        {% endif %}
+
+                        <!-- Dynamic Form Fields -->
+                        <div class="row">
+                            {% for field in form %}
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ field.id_for_label }}" class="form-label fw-semibold text-dark">
+                                        {{ field.label }}
+                                        {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    
+                                    {% if field.field.widget.input_type == 'select' %}
+                                        <select name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                                                class="form-select {% if field.errors %}is-invalid{% endif %}"
+                                                {% if field.field.required %}required{% endif %}>
+                                            <option value="">Select {{ field.label }}</option>
+                                            {% for choice in field.field.choices %}
+                                                <option value="{{ choice.0 }}" {% if field.value == choice.0 %}selected{% endif %}>
+                                                    {{ choice.1 }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    {% else %}
+                                        <input type="{{ field.field.widget.input_type }}" 
+                                               name="{{ field.name }}" 
+                                               id="{{ field.id_for_label }}"
+                                               class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                               value="{{ field.value|default:'' }}"
+                                               {% if field.field.required %}required{% endif %}
+                                               {% if field.field.widget.attrs.placeholder %}placeholder="{{ field.field.widget.attrs.placeholder }}"{% endif %}>
+                                    {% endif %}
+
+                                    {% if field.help_text %}
+                                        <div class="form-text text-muted">{{ field.help_text }}</div>
+                                    {% endif %}
+                                    
+                                    {% if field.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in field.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <a href="{% url 'users:role_based_redirect' %}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                                    </a>
+                                    
+                                    <div class="d-flex gap-3 align-items-center">
+                                        {% if not has_performance_targets %}
+                                            <span class="text-warning fw-semibold">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>Set targets first
+                                            </span>
+                                            <button type="button" class="btn btn-warning" disabled>
+                                                <i class="bi bi-lock me-1"></i>Continue to Evaluation
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="btn btn-university-green btn-lg px-5 py-3 fw-semibold">
+                                                <i class="bi bi-arrow-right-circle me-2"></i>Continue to Performance Evaluation
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center mt-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Step 1 of 2: Complete basic details to proceed to performance self-assessment
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Section -->
+            <div class="card border-0 shadow-sm mt-4 bg-light">
+                <div class="card-body text-center py-3">
+                    <small class="text-muted">
+                        <i class="bi bi-question-circle me-1"></i>
+                        Need help? Contact your department administrator or supervisor for assistance.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+:root {
+    --university-green: #1e964f;
+    --university-gold: #c79b32;
+    --university-green-light: #2db56a;
+    --university-gold-light: #e0b64a;
+}
+
+.bg-university-green { background-color: var(--university-green) !important; }
+.bg-university-gold { background-color: var(--university-gold) !important; }
+.text-university-green { color: var(--university-green) !important; }
+.text-university-gold { color: var(--university-gold) !important; }
+.border-university-green { border-color: var(--university-green) !important; }
+.border-university-gold { border-color: var(--university-gold) !important; }
+
+.btn-university-green { 
+    background: linear-gradient(135deg, var(--university-green) 0%, var(--university-green-light) 100%);
+    border: none;
+    color: white !important;
+    font-weight: 600;
+}
+.btn-university-green:hover { 
+    background: linear-gradient(135deg, var(--university-green-light) 0%, var(--university-green) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(30, 150, 79, 0.3);
+}
+
+.btn-outline-university-gold {
+    color: var(--university-gold);
+    border-color: var(--university-gold);
+}
+.btn-outline-university-gold:hover {
+    background-color: var(--university-gold);
+    color: white;
+}
+
+.step-indicator {
+    transition: all 0.3s ease;
+    z-index: 2;
+    position: relative;
+}
+
+.step-progress {
+    z-index: 1;
+}
+
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--university-green);
+    box-shadow: 0 0 0 0.2rem rgba(30, 150, 79, 0.25);
+}
+
+.alert {
+    border-radius: 10px;
+    border: none;
+    border-left: 4px solid;
+}
+
+.badge {
+    font-weight: 500;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add loading state to form submission
+    const form = document.querySelector('form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    if (submitBtn) {
+        form.addEventListener('submit', function() {
+            if (form.checkValidity()) {
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+                submitBtn.disabled = true;
+            }
+        });
+    }
+
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+});
+</script>
+{% endblock %}

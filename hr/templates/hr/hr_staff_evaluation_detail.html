@@ -1,0 +1,744 @@
+{% extends 'hr/base.html' %}
+
+{% block title %}Appraisal Details - {{ appraisal.profile.user.get_full_name }}{% endblock %}
+{% block page_title %}Appraisal Details: {{ appraisal.profile.user.get_full_name }}{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="{% url 'hr:download_evaluation_pdf' appraisal.id %}" class="btn btn-sm btn-primary">
+        <i class="fas fa-file-pdf"></i> Download PDF
+    </a>
+    
+    {% if appraisal.status == 'submitted' %}
+    <form method="post" class="d-inline">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="approve_appraisal">
+        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Approve this appraisal?')">
+            <i class="fas fa-check"></i> Approve
+        </button>
+    </form>
+    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#returnModal">
+        <i class="fas fa-undo"></i> Return
+    </button>
+    {% endif %}
+    
+    <a href="{% url 'hr:hr_view_reports' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Top Row: Staff Info + Overall Score -->
+<div class="row mb-4">
+    <!-- Staff Info Card -->
+    <div class="col-lg-8 mb-3 mb-lg-0">
+        <div class="card shadow-sm border">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h4 class="text-primary mb-3">{{ appraisal.profile.user.get_full_name }}</h4>
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Department</small>
+                                <strong>{{ appraisal.profile.user.department.name|default:"Not assigned" }}</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Designation</small>
+                                <strong>{{ appraisal.profile.designation }}</strong>
+                            </div>
+                            <div class="col-6 mt-3">
+                                <small class="text-muted d-block">Supervisor</small>
+                                <strong>{{ appraisal.supervisor_name|default:"Not assigned" }}</strong>
+                            </div>
+                            <div class="col-6 mt-3">
+                                <small class="text-muted d-block">Period</small>
+                                <strong>{{ appraisal.period.name }}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    {{ appraisal.period.start_date|date:"M d, Y" }} - {{ appraisal.period.end_date|date:"M d, Y" }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 border-start">
+                        <div class="text-center">
+                            <small class="text-muted d-block mb-2">Overall Status</small>
+                            <span class="badge fs-6 py-2 px-3 
+                                {% if appraisal.status == 'reviewed' %}bg-success
+                                {% elif appraisal.status == 'finalized' %}bg-primary
+                                {% elif appraisal.status == 'submitted' %}bg-warning
+                                {% else %}bg-secondary{% endif %}">
+                                {{ appraisal.get_status_display }}
+                            </span>
+                            
+                            <div class="mt-4">
+                                <small class="text-muted d-block mb-1">Created</small>
+                                <strong>{{ appraisal.created_at|date:"M d, Y" }}</strong>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <small class="text-muted d-block mb-1">Last Updated</small>
+                                <strong>{{ appraisal.updated_at|date:"M d, Y" }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overall Score Card -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border">
+            <div class="card-body text-center">
+                <h5 class="text-muted mb-3">Overall Score</h5>
+                
+                {% if appraisal.overall_score %}
+                <div class="mb-4">
+                    <div class="display-4 fw-bold 
+                        {% if appraisal.overall_score >= 80 %}text-success
+                        {% elif appraisal.overall_score >= 60 %}text-warning
+                        {% else %}text-danger{% endif %}">
+                        {{ appraisal.overall_score }}%
+                    </div>
+                    
+                    <div class="progress mt-2" style="height: 12px;">
+                        <div class="progress-bar 
+                            {% if appraisal.overall_score >= 80 %}bg-success
+                            {% elif appraisal.overall_score >= 60 %}bg-warning
+                            {% else %}bg-danger{% endif %}" 
+                            style="width: {{ appraisal.overall_score }}%">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            {% if appraisal.overall_score >= 80 %}Excellent
+                            {% elif appraisal.overall_score >= 60 %}Satisfactory
+                            {% else %}Needs Improvement{% endif %}
+                        </small>
+                    </div>
+                </div>
+                {% else %}
+                <div class="py-4">
+                    <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No score calculated yet</p>
+                </div>
+                {% endif %}
+                
+                <!-- Quick Stats -->
+                <div class="row mt-4">
+                    <div class="col-6">
+                        <div class="h5 text-primary mb-0">{{ performance_targets.count }}</div>
+                        <small class="text-muted">Targets</small>
+                    </div>
+                    <div class="col-6">
+                        <div class="h5 text-success mb-0">{{ self_assessments.count }}</div>
+                        <small class="text-muted">Indicators</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PERFORMANCE TARGETS Section (With Supervisor Ratings) -->
+<div class="card shadow-sm border mb-4">
+    <div class="card-header bg-white border-bottom">
+        <h5 class="mb-0">
+            <i class="fas fa-bullseye text-primary me-2"></i>Performance Targets
+            <span class="badge bg-primary ms-2">{{ performance_targets.count }}</span>
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th width="8%">#</th>
+                        <th width="45%">Target Description & Success Measures</th>
+                        <th width="17%" class="text-center bg-warning bg-opacity-10">Supervisor Rating</th>
+                        <th width="15%" class="text-center">Score</th>
+                        <th width="15%">Supervisor Comments</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for target in performance_targets %}
+                    <tr>
+                        <td class="fw-bold text-center">{{ target.target_number }}</td>
+                        <td>
+                            <div class="fw-medium">{{ target.description }}</div>
+                            {% if target.success_measures %}
+                            <small class="text-muted d-block mt-1">
+                                <i class="fas fa-ruler me-1"></i> {{ target.success_measures|truncatechars:80 }}
+                            </small>
+                            {% endif %}
+                        </td>
+                        <!-- Supervisor Rating Column -->
+                        <td class="text-center align-middle">
+                            {% if target.rating_scale %}
+                            <div class="d-flex flex-column align-items-center">
+                                <span class="badge bg-warning fs-6 mb-1">{{ target.rating_scale }}/5</span>
+                                <small class="text-muted">
+                                    {{ target.get_rating_scale_display }}
+                                </small>
+                                {% if target.evaluated_at %}
+                                <small class="text-muted">
+                                    {{ target.evaluated_at|date:"M d" }}
+                                </small>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <span class="text-muted">Not rated</span>
+                            {% endif %}
+                        </td>
+                        <!-- Score Column -->
+                        <td class="text-center align-middle">
+                            {% if target.performance_rating %}
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="fw-bold 
+                                    {% if target.performance_rating >= 80 %}text-success
+                                    {% elif target.performance_rating >= 60 %}text-warning
+                                    {% else %}text-danger{% endif %}">
+                                    {{ target.performance_rating }}%
+                                </div>
+                                {% if target.evaluated_by %}
+                                <small class="text-muted">
+                                    By: {{ target.evaluated_by.get_short_name }}
+                                </small>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <!-- Supervisor Comments -->
+                        <td>
+                            {% if target.supervisor_comments %}
+                            <small>{{ target.supervisor_comments|truncatechars:60 }}</small>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <i class="fas fa-info-circle me-2"></i>No performance targets set for this period.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Summary Statistics -->
+        {% if performance_targets.exists %}
+        <div class="card-footer bg-light">
+            <div class="row text-center">
+                <div class="col-md-4 mb-2 mb-md-0">
+                    <small class="text-muted d-block">Avg Supervisor Rating</small>
+                    <div class="h5 text-warning">
+                        {% if targets_avg_score %}
+                        {{ targets_avg_score }}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2 mb-md-0">
+                    <small class="text-muted d-block">Targets Rated</small>
+                    <div class="h5 text-primary">
+                        {{ rated_targets_count|default:"0" }}/{{ performance_targets.count }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted d-block">Targets Score</small>
+                    <div class="h5 
+                        {% if targets_avg_score >= 80 %}text-success
+                        {% elif targets_avg_score >= 60 %}text-warning
+                        {% else %}text-danger{% endif %}">
+                        {% if targets_avg_score %}
+                        {{ targets_avg_score }}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ATTRIBUTES & INDICATORS Section (With BOTH Self & Supervisor Ratings) -->
+<div class="card shadow-sm border mb-4">
+    <div class="card-header bg-white border-bottom">
+        <h5 class="mb-0">
+            <i class="fas fa-list-check text-primary me-2"></i>Attributes & Indicators Evaluation
+            <span class="badge bg-primary ms-2">{{ self_assessments.count }}</span>
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th width="8%">#</th>
+                        <th width="30%">Attribute & Indicator</th>
+                        <th width="12%" class="text-center bg-success bg-opacity-10">Self Rating</th>
+                        <th width="12%" class="text-center bg-warning bg-opacity-10">Supervisor Rating</th>
+                        <th width="15%" class="text-center bg-info bg-opacity-10">Combined Score</th>
+                        <th width="10%" class="text-center">Difference</th>
+                        <th width="13%">Remarks / Comments</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for eval in matched_evaluations %}
+                    <tr>
+                        <td class="fw-bold text-center">{{ forloop.counter }}</td>
+                        <td>
+                            <div class="fw-medium text-primary">{{ eval.self_assessment.attribute.name }}</div>
+                            <small class="text-muted">
+                                {{ eval.self_assessment.indicator.description }}
+                            </small>
+                        </td>
+                        
+                        <!-- Self Rating Column -->
+                        <td class="text-center align-middle">
+                            <div class="d-flex flex-column align-items-center">
+                                <span class="badge bg-success fs-6 mb-1">{{ eval.self_assessment.self_rating }}/5</span>
+                                <small class="text-muted">
+                                    {{ eval.self_rating_pct }}%
+                                </small>
+                            </div>
+                        </td>
+                        
+                        <!-- Supervisor Rating Column -->
+                        <td class="text-center align-middle">
+                            {% if eval.supervisor_evaluation %}
+                            <div class="d-flex flex-column align-items-center">
+                                <span class="badge bg-warning fs-6 mb-1">{{ eval.supervisor_evaluation.supervisor_rating }}/5</span>
+                                <small class="text-muted">
+                                    {{ eval.supervisor_rating_pct }}%
+                                </small>
+                                <small class="text-muted">
+                                    {% if eval.supervisor_evaluation.supervisor %}
+                                    {{ eval.supervisor_evaluation.supervisor.get_short_name }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                            {% else %}
+                            <span class="text-muted">Not rated</span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- COMBINED SCORE Column (NEW) -->
+                        <td class="text-center align-middle">
+                            {% if eval.indicator_score_1_5 > 0 %}
+                            <div class="d-flex flex-column align-items-center">
+                                <span class="badge bg-info fs-6 mb-1">{{ eval.indicator_score_1_5 }}/5</span>
+                                <small class="text-muted fw-medium">
+                                    {{ eval.indicator_pct }}%
+                                </small>
+                                <small class="text-muted small">
+                                    (Self+Supervisor)/2
+                                </small>
+                            </div>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Difference Column (FIXED) -->
+                        <td class="text-center align-middle">
+                            {% if eval.supervisor_evaluation %}
+                                {% with self_rating=eval.self_assessment.self_rating|floatformat:0 %}
+                                {% with sup_rating=eval.supervisor_evaluation.supervisor_rating|floatformat:0 %}
+                                    {% with diff=self_rating|add:0 %}
+                                    {% with sup_diff=sup_rating|add:0 %}
+                                        {% if diff > sup_diff %}
+                                            <span class="badge bg-info">+{{ diff|add:"-"|add:sup_diff }}</span>
+                                        {% elif diff < sup_diff %}
+                                            <span class="badge bg-danger">-{{ sup_diff|add:"-"|add:diff }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">0</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                    {% endwith %}
+                                {% endwith %}
+                                {% endwith %}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Remarks Column -->
+                        <td>
+                            <div class="small">
+                                {% if eval.self_assessment.remarks %}
+                                <div class="mb-1">
+                                    <small class="text-success fw-medium">Self:</small>
+                                    <small>{{ eval.self_assessment.remarks|truncatechars:40 }}</small>
+                                </div>
+                                {% endif %}
+                                
+                                {% if eval.supervisor_evaluation and eval.supervisor_evaluation.remarks %}
+                                <div>
+                                    <small class="text-warning fw-medium">Supervisor:</small>
+                                    <small>{{ eval.supervisor_evaluation.remarks|truncatechars:40 }}</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            <i class="fas fa-info-circle me-2"></i>No attributes/indicators available for evaluation.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Summary Statistics (UPDATED) -->
+        {% if self_assessments.exists %}
+        <div class="card-footer bg-light">
+            <div class="row text-center">
+                <div class="col-md-2 mb-2 mb-md-0">
+                    <small class="text-muted d-block">Avg Self Rating</small>
+                    <div class="h5 text-success">
+                        {{ self_assessments_avg|default:"0.0" }}/5
+                        <br>
+                        <small class="text-muted">{{ self_assessments_avg_pct|default:"0" }}%</small>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-2 mb-md-0">
+                    <small class="text-muted d-block">Avg Supervisor Rating</small>
+                    <div class="h5 text-warning">
+                        {{ supervisor_evaluations_avg|default:"0.0" }}/5
+                        <br>
+                        <small class="text-muted">{{ supervisor_indicators_avg_score|default:"0" }}%</small>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-2 mb-md-0">
+                    <small class="text-muted d-block">Indicators Rated</small>
+                    <div class="h5 text-primary">
+                        {{ rated_indicators_count|default:"0" }}/{{ self_assessments.count }}
+                    </div>
+                </div>
+                <div class="col-md-3 mb-2 mb-md-0">
+                    <small class="text-muted d-block">Avg Combined Score</small>
+                    <div class="h5 text-info">
+                        {% if indicators_avg_score %}
+                        {{ indicators_avg_score|floatformat:1 }}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">(Self+Supervisor)/2</small>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted d-block">Indicators Final Score</small>
+                    <div class="h5 
+                        {% if indicators_avg_score >= 80 %}text-success
+                        {% elif indicators_avg_score >= 60 %}text-warning
+                        {% else %}text-danger{% endif %}">
+                        {% if indicators_avg_score %}
+                        {{ indicators_avg_score|floatformat:1 }}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">Used in calculation</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- PERFORMANCE SUMMARY Section (UPDATED) -->
+<div class="card shadow-sm border mb-4">
+    <div class="card-header bg-white border-bottom">
+        <h5 class="mb-0">
+            <i class="fas fa-chart-simple text-primary me-2"></i>Performance Summary
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 border">
+                    <div class="card-body">
+                        <small class="text-muted d-block">Targets Performance</small>
+                        {% if targets_avg_score %}
+                        <div class="display-6 fw-bold 
+                            {% if targets_avg_score >= 80 %}text-success
+                            {% elif targets_avg_score >= 60 %}text-warning
+                            {% else %}text-danger{% endif %}">
+                            {{ targets_avg_score }}%
+                        </div>
+                        {% else %}
+                        <div class="display-6 fw-bold text-muted">-</div>
+                        {% endif %}
+                        <small class="text-muted">
+                            {{ performance_targets.count }} targets
+                            <br>
+                            {{ rated_targets_count|default:"0" }} rated
+                        </small>
+                        <div class="mt-2">
+                            <small class="text-muted fw-medium">Calculation:</small>
+                            <small class="text-muted">Average of target ratings</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 border">
+                    <div class="card-body">
+                        <small class="text-muted d-block">Attributes & Indicators Score</small>
+                        {% if indicators_avg_score %}
+                        <div class="display-6 fw-bold 
+                            {% if indicators_avg_score >= 80 %}text-success
+                            {% elif indicators_avg_score >= 60 %}text-warning
+                            {% else %}text-danger{% endif %}">
+                            {{ indicators_avg_score|floatformat:1 }}%
+                        </div>
+                        {% else %}
+                        <div class="display-6 fw-bold text-muted">-</div>
+                        {% endif %}
+                        <small class="text-muted">
+                            {{ self_assessments.count }} indicators
+                            <br>
+                            Formula: (Self+Supervisor)/2
+                        </small>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                Avg Self: {{ self_assessments_avg|default:"0.0" }}/5
+                                &nbsp;|&nbsp;
+                                Avg Supervisor: {{ supervisor_evaluations_avg|default:"0.0" }}/5
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 border">
+                    <div class="card-body">
+                        <small class="text-muted d-block">Overall Score</small>
+                        {% if appraisal.overall_score %}
+                        <div class="display-6 fw-bold 
+                            {% if appraisal.overall_score >= 80 %}text-success
+                            {% elif appraisal.overall_score >= 60 %}text-warning
+                            {% else %}text-danger{% endif %}">
+                            {{ appraisal.overall_score }}%
+                        </div>
+                        <div class="progress mt-2" style="height: 8px;">
+                            <div class="progress-bar 
+                                {% if appraisal.overall_score >= 80 %}bg-success
+                                {% elif appraisal.overall_score >= 60 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                style="width: {{ appraisal.overall_score }}%">
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="display-6 fw-bold text-muted">-</div>
+                        {% endif %}
+                        <small class="text-muted">
+                            Weighted final score
+                        </small>
+                        <div class="mt-2">
+                            <small class="text-muted fw-medium">Calculation:</small>
+                            <small class="text-muted">
+                                ({{ targets_avg_score|default:"0" }}% + {{ indicators_avg_score|default:"0" }}%) ÷ 2
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HR ACTIONS Section -->
+<div class="card shadow-sm border">
+    <div class="card-header bg-white border-bottom">
+        <h5 class="mb-0">
+            <i class="fas fa-cog text-primary me-2"></i>HR Actions & Comments
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">HR Comments</label>
+                <textarea name="hr_comment" class="form-control" rows="4" 
+                          placeholder="Add your evaluation comments, notes, or recommendations..."></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Final Rating</label>
+                <select name="final_rating" class="form-select">
+                    <option value="">Select final rating</option>
+                    <option value="1">1 - Unsatisfactory</option>
+                    <option value="2">2 - Needs Improvement</option>
+                    <option value="3">3 - Meets Expectations</option>
+                    <option value="4">4 - Exceeds Expectations</option>
+                    <option value="5">5 - Outstanding</option>
+                </select>
+            </div>
+            
+            <div class="d-grid gap-2">
+                <button type="submit" name="action" value="add_comment" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Save Comment & Rating
+                </button>
+                
+                {% if appraisal.status == 'submitted' %}
+                <div class="btn-group w-100">
+                    <button type="submit" name="action" value="approve_appraisal" 
+                            class="btn btn-success" onclick="return confirm('Approve this appraisal?')">
+                        <i class="fas fa-check me-1"></i> Approve Appraisal
+                    </button>
+                    
+                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#returnModal">
+                        <i class="fas fa-undo me-1"></i> Return for Revision
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Return for Revision Modal -->
+<div class="modal fade" id="returnModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Return Appraisal for Revision</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>This will return the appraisal to draft status for revisions.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Revision Notes</label>
+                        <textarea name="revision_notes" class="form-control" rows="3" 
+                                  placeholder="Explain what needs to be revised..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="action" value="return_for_revision" class="btn btn-warning">
+                        <i class="fas fa-undo"></i> Return for Revision
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Table styling */
+.table th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.75rem 0.5rem;
+}
+
+.table td {
+    vertical-align: middle;
+    padding: 0.75rem 0.5rem;
+}
+
+/* Card improvements */
+.card {
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    padding: 1rem 1.25rem;
+}
+
+/* Badge styling */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+/* Highlight rows on hover */
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.03);
+}
+
+/* Column highlighting */
+.bg-success.bg-opacity-10 {
+    background-color: rgba(25, 135, 84, 0.1) !important;
+}
+
+.bg-warning.bg-opacity-10 {
+    background-color: rgba(255, 193, 7, 0.1) !important;
+}
+
+.bg-info.bg-opacity-10 {
+    background-color: rgba(13, 202, 240, 0.1) !important;
+}
+
+/* Progress bar */
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+/* Status badges */
+.badge.bg-success { background-color: #198754 !important; }
+.badge.bg-warning { background-color: #ffc107 !important; color: #000; }
+.badge.bg-danger { background-color: #dc3545 !important; }
+.badge.bg-info { background-color: #0dcaf0 !important; }
+.badge.bg-primary { background-color: #0d6efd !important; }
+.badge.bg-secondary { background-color: #6c757d !important; }
+
+/* Display numbers */
+.display-4 { font-size: 3.5rem; }
+.display-5 { font-size: 2.5rem; }
+.display-6 { font-size: 2rem; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    .display-4 { font-size: 2.5rem; }
+    .display-5 { font-size: 2rem; }
+    .display-6 { font-size: 1.75rem; }
+    
+    .h3 {
+        font-size: 1.75rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Fix table columns on mobile */
+    .table th, .table td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.8rem;
+    }
+}
+</style>
+{% endblock %}
