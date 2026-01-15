@@ -2,307 +2,393 @@
 
 {% block title %}{{ department.name }} Staff - KyU VC{% endblock %}
 
-{% block page_title %}{{ department.name }} - Staff Details{% endblock %}
-
-{% block page_actions %}
-<div class="btn-group">
-    <a href="{% url 'vc:vc_download_department_report' department.id %}" class="btn btn-gold">
-        <i class="fas fa-file-pdf me-1"></i> Download Report
-    </a>
-    <a href="{% url 'vc:vc_department_overview' %}" class="btn btn-primary">
-        <i class="fas fa-arrow-left me-1"></i> Back to Departments
-    </a>
-</div>
-{% endblock %}
-
 {% block content %}
-<!-- Department Summary -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-info-circle me-2"></i>Department Summary
+<div class="container-fluid py-4">
+
+    <!-- Header with Back Button -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+        <div class="d-flex align-items-center">
+            <a href="{% url 'vc:vc_department_overview' %}" class="btn btn-outline-university-green me-3">
+                <i class="bi bi-arrow-left me-1"></i> Back to Departments
+            </a>
+            <div>
+                <h2 class="fw-bold text-university-green mb-1">
+                    <i class="bi bi-people-fill me-2"></i>{{ department.name }} - Staff
+                </h2>
+                <p class="text-muted mb-0">Department staff evaluation and performance overview</p>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <h6 class="text-muted">Total Staff</h6>
-                        <h4>{{ total_staff }}</h4>
-                    </div>
-                    <div class="col-md-3">
-                        <h6 class="text-muted">Supervisors</h6>
-                        <h4>{{ supervisors_count }}</h4>
-                    </div>
-                    <div class="col-md-3">
-                        <h6 class="text-muted">Regular Staff</h6>
-                        <h4>{{ regular_staff_count }}</h4>
-                    </div>
-                    <div class="col-md-3">
-                        <h6 class="text-muted">Active Staff</h6>
-                        <h4>{{ active_staff_count }}</h4>
-                    </div>
+        </div>
+        
+        <div class="text-end mt-3 mt-md-0">
+            <a href="{% url 'vc:vc_download_department_report' department.id %}" class="btn btn-university-gold me-2">
+                <i class="bi bi-file-earmark-pdf me-1"></i> Download Report
+            </a>
+            <button class="btn btn-university-green" onclick="window.print()">
+                <i class="bi bi-printer me-1"></i> Print
+            </button>
+        </div>
+    </div>
+
+    <!-- Department Stats -->
+    <div class="row g-4 mb-4">
+        <!-- Total Staff -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm text-center h-100">
+                <div class="card-body">
+                    <i class="bi bi-people fs-1 text-university-green mb-3"></i>
+                    <h3 class="fw-bold mb-1">{{ total_staff }}</h3>
+                    <h6 class="text-muted mb-0">Total Staff</h6>
                 </div>
-                <div class="row mt-2">
-                    <div class="col-md-4">
-                        <h6 class="text-muted">Evaluated Staff</h6>
-                        <h4>{{ evaluated_staff_count|default:"0" }}/{{ total_staff }}</h4>
-                    </div>
-                    <div class="col-md-4">
-                        <h6 class="text-muted">Evaluation Rate</h6>
-                        <h4>
-                            {% if total_staff > 0 %}
-                                {{ evaluated_staff_count|default:"0"|floatformat:0 }}%
-                            {% else %}
-                                0%
-                            {% endif %}
-                        </h4>
-                    </div>
-                    <div class="col-md-4">
-                        <h6 class="text-muted">Avg Score</h6>
-                        <h4>{{ avg_performance_score|floatformat:1|default:"0.0" }}</h4>
-                    </div>
+            </div>
+        </div>
+
+        <!-- Evaluated Staff -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm text-center h-100">
+                <div class="card-body">
+                    <i class="bi bi-clipboard-check fs-1 text-success mb-3"></i>
+                    <h3 class="fw-bold mb-1">{{ evaluated_staff_count }}</h3>
+                    <h6 class="text-muted mb-0">Evaluated</h6>
                 </div>
-                {% if avg_performance_score %}
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <h6 class="text-muted">Average Performance Score</h6>
-                        <div class="progress" style="height: 25px;">
-                            <div class="progress-bar {% if avg_performance_score >= 80 %}bg-success{% elif avg_performance_score >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
-                                 style="width: {% if avg_performance_score > 100 %}100{% else %}{{ avg_performance_score }}{% endif %}%">
-                                {{ avg_performance_score|floatformat:1 }}%
-                            </div>
+            </div>
+        </div>
+
+        <!-- Evaluation Rate -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm text-center h-100">
+                <div class="card-body">
+                    <i class="bi bi-percent fs-1 text-university-gold mb-3"></i>
+                    <h3 class="fw-bold mb-1">{{ evaluation_rate|default:"0" }}%</h3>
+                    <h6 class="text-muted mb-0">Evaluation Rate</h6>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Score -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm text-center h-100">
+                <div class="card-body">
+                    <i class="bi bi-star-fill fs-1 text-info mb-3"></i>
+                    <h3 class="fw-bold mb-1">{{ avg_performance_score|floatformat:1|default:"0.0" }}</h3>
+                    <h6 class="text-muted mb-0">Avg Score</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breakdown -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-university-green text-white">
+                    <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Staff Breakdown</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 text-center">
+                            <div class="display-6 fw-bold text-university-green">{{ supervisors_count }}</div>
+                            <small class="text-muted">Supervisors</small>
+                        </div>
+                        <div class="col-6 text-center">
+                            <div class="display-6 fw-bold text-university-gold">{{ regular_staff_count }}</div>
+                            <small class="text-muted">Regular Staff</small>
                         </div>
                     </div>
                 </div>
-                {% endif %}
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Staff Search and Filters -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-search me-2"></i>Search & Filter Staff</span>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-primary" onclick="filterStaff('all')">All</button>
-                    <button class="btn btn-sm btn-outline-success" onclick="filterStaff('supervisor')">Supervisors</button>
-                    <button class="btn btn-sm btn-outline-info" onclick="filterStaff('staff')">Regular Staff</button>
-                    <button class="btn btn-sm {% if evaluated_staff_count == total_staff %}btn-success{% else %}btn-warning{% endif %}" onclick="filterByEvaluation('evaluated')">
-                        Evaluated ({{ evaluated_staff_count|default:"0" }})
-                    </button>
-                    <button class="btn btn-sm btn-secondary" onclick="filterByEvaluation('not-evaluated')">
-                        Not Evaluated ({{ total_staff|add:"-evaluated_staff_count"|default:"0" }})
-                    </button>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-university-gold text-white">
+                    <h6 class="mb-0"><i class="bi bi-calendar-range me-2"></i>Current Period</h6>
                 </div>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <input type="text" id="staffSearch" class="form-control" placeholder="Search by name, PF number, or designation..." onkeyup="searchStaff()">
+                <div class="card-body">
+                    {% if current_period %}
+                    <h5 class="fw-bold">{{ current_period.name }}</h5>
+                    <p class="mb-1">
+                        <small class="text-muted">{{ current_period.start_date|date:"M d, Y" }} - {{ current_period.end_date|date:"M d, Y" }}</small>
+                    </p>
+                    <span class="badge bg-success">Active</span>
+                    {% else %}
+                    <div class="text-center py-3">
+                        <i class="bi bi-calendar-x text-muted fs-4"></i>
+                        <p class="text-muted mb-0 mt-2">No active period</p>
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <select id="statusFilter" class="form-control" onchange="filterByStatus()">
-                            <option value="">All Status</option>
-                            <option value="active">Active Only</option>
-                            <option value="inactive">Inactive Only</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <select id="performanceFilter" class="form-control" onchange="filterByPerformance()">
-                            <option value="">All Performance</option>
-                            <option value="excellent">Excellent (80-100%)</option>
-                            <option value="good">Good (70-79%)</option>
-                            <option value="average">Average (60-69%)</option>
-                            <option value="poor">Poor (Below 60%)</option>
-                            <option value="not-evaluated">Not Evaluated</option>
-                        </select>
-                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Staff List -->
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-users me-2"></i>Staff List ({{ total_staff }} members)</span>
-                <small class="text-muted">Current Period: {{ current_period.name|default:"No active period" }}</small>
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" id="searchInput" class="form-control" placeholder="Search by name, PF number, or role...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="roleFilter" class="form-select">
+                                <option value="">All Roles</option>
+                                <option value="supervisor">Supervisors</option>
+                                <option value="teaching">Teaching Staff</option>
+                                <option value="non_teaching">Non-Teaching Staff</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="statusFilter" class="form-select">
+                                <option value="">All Status</option>
+                                <option value="evaluated">Evaluated</option>
+                                <option value="not_evaluated">Not Evaluated</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                {% if staff_data %}
-                <div class="table-responsive">
-                    <table class="table table-hover" id="staffTable">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th class="text-center">PF No.</th>
-                                <th class="text-center">Role</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-center">Evaluation Status</th>
-                                <th class="text-center">Performance Score</th>
-                                <th class="text-center">Targets Completed</th>
-                                <th class="text-center">Last Evaluation</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for staff in staff_data %}
-                            <tr class="staff-row" 
-                                data-role="{% if staff.user.role == 'supervisor' %}supervisor{% else %}staff{% endif %}"
-                                data-status="{% if staff.is_active %}active{% else %}inactive{% endif %}"
-                                data-evaluated="{% if staff.is_evaluated %}evaluated{% else %}not-evaluated{% endif %}"
-                                data-performance="{% if staff.overall_score %}{% if staff.overall_score >= 80 %}excellent{% elif staff.overall_score >= 70 %}good{% elif staff.overall_score >= 60 %}average{% else %}poor{% endif %}{% else %}not-evaluated{% endif %}">
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar me-3">
-                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                {{ staff.user.first_name|first|upper }}{{ staff.user.last_name|first|upper }}
+        </div>
+    </div>
+
+    <!-- Staff Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-university-green text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-ul me-2"></i>Staff Members
+                        <span class="badge bg-light text-dark ms-2">{{ total_staff }} total</span>
+                    </h5>
+                    <div>
+                        <span class="badge bg-success me-2">{{ evaluated_staff_count }} evaluated</span>
+                        <span class="badge bg-warning">{{ total_staff|add:"-evaluated_staff_count" }} pending</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if staff_data %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" id="staffTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="fw-semibold">Staff Member</th>
+                                    <th class="fw-semibold text-center">PF No.</th>
+                                    <th class="fw-semibold text-center">Role</th>
+                                    <th class="fw-semibold text-center">Status</th>
+                                    <th class="fw-semibold text-center">Evaluation</th>
+                                    <th class="fw-semibold text-center">Score</th>
+                                    <th class="fw-semibold text-center">Targets</th>
+                                    <th class="fw-semibold text-center">Last Updated</th>
+                                    <th class="fw-semibold text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for staff in staff_data %}
+                                <tr data-role="{{ staff.role_code }}" 
+                                    data-evaluated="{% if staff.is_evaluated %}evaluated{% else %}not_evaluated{% endif %}"
+                                    data-name="{{ staff.user.get_full_name|lower }}"
+                                    data-pf="{{ staff.pf_number|lower|default:'' }}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle bg-university-green text-white me-3">
+                                                {{ staff.initials }}
+                                            </div>
+                                            <div>
+                                                <strong class="d-block">{{ staff.user.get_full_name }}</strong>
+                                                <small class="text-muted">{{ staff.designation|default:"No designation" }}</small>
                                             </div>
                                         </div>
-                                        <div>
-                                            <strong>{{ staff.user.get_full_name }}</strong>
-                                            <br>
-                                            <small class="text-muted">{{ staff.user.designation|default:"Not specified" }}</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge bg-secondary">{{ staff.pf_number|default:"N/A" }}</span>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge {% if staff.user.role == 'supervisor' %}bg-info{% else %}bg-secondary{% endif %}">
-                                        {{ staff.role|title }}
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge {% if staff.is_active %}bg-success{% else %}bg-danger{% endif %}">
-                                        {% if staff.is_active %}Active{% else %}Inactive{% endif %}
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    {% if staff.is_evaluated %}
-                                        <span class="badge bg-success">
-                                            Evaluated
-                                            {% if staff.evaluation_count > 1 %}
-                                                <small class="text-white">({{ staff.evaluation_count }})</small>
-                                            {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">{{ staff.pf_number|default:"N/A" }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge {% if staff.role_code == 'supervisor' %}bg-info{% else %}bg-secondary{% endif %}">
+                                            {{ staff.role|title }}
                                         </span>
-                                    {% else %}
-                                        <span class="badge bg-warning">Not Evaluated</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-center">
-                                    {% if staff.overall_score %}
-                                    <span class="badge {% if staff.overall_score >= 80 %}badge-excellent{% elif staff.overall_score >= 70 %}badge-good{% elif staff.overall_score >= 60 %}badge-average{% else %}badge-poor{% endif %}">
-                                        {{ staff.overall_score|floatformat:1 }}
-                                    </span>
-                                    {% else %}
-                                    <span class="badge bg-secondary">N/A</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-center">
-                                    {% if staff.user.role == 'supervisor' %}
-                                    <div class="progress" style="height: 20px; width: 80px; margin: 0 auto;">
-                                        <div class="progress-bar {% if staff.completion_rate >= 80 %}bg-success{% elif staff.completion_rate >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
-                                             style="width: {{ staff.completion_rate|default:0 }}%">
-                                            {{ staff.completion_rate|default:0 }}%
-                                        </div>
-                                    </div>
-                                    <small class="text-muted">{{ staff.approved_targets|default:0 }}/{{ staff.total_targets|default:0 }} targets</small>
-                                    {% else %}
-                                    <span class="text-muted">N/A</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-center">
-                                    {% if staff.latest_evaluation_date %}
-                                    {{ staff.latest_evaluation_date|date:"M d, Y" }}
-                                    {% else %}
-                                    <span class="text-muted">Never</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group btn-group-sm">
-                                        {% if staff.user.role == 'supervisor' %}
-                                        <a href="{% url 'vc:vc_evaluate_supervisor' staff.user.id %}" class="btn btn-outline-primary" title="Evaluate">
-                                            <i class="fas fa-clipboard-check"></i>
-                                        </a>
-                                        <a href="{% url 'vc:vc_download_supervisor_report' staff.user.id %}" class="btn btn-outline-success" title="Download Report">
-                                            <i class="fas fa-file-pdf"></i>
-                                        </a>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge {% if staff.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                            {% if staff.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if staff.is_evaluated %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle me-1"></i>Evaluated
+                                                {% if staff.evaluation_count > 1 %}
+                                                <small class="text-white">({{ staff.evaluation_count }})</small>
+                                                {% endif %}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning">
+                                                <i class="bi bi-clock me-1"></i>Not Evaluated
+                                            </span>
                                         {% endif %}
-                                        <button class="btn btn-outline-info" onclick="viewStaffDetails({{ staff.user.id }})" title="View Details">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                    </td>
+                                    <td class="text-center score-cell">
+                                        {% if staff.overall_score %}
+                                            {% with score=staff.overall_score|floatformat:1 %}
+                                            <span class="performance-badge 
+                                                {% if score >= 80 %}bg-success
+                                                {% elif score >= 70 %}bg-info
+                                                {% elif score >= 60 %}bg-warning
+                                                {% else %}bg-danger{% endif %}">
+                                                {{ score }}
+                                            </span>
+                                            {% endwith %}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if staff.total_targets > 0 %}
+                                            <div class="progress" style="height: 20px; width: 80px; margin: 0 auto;">
+                                                <div class="progress-bar 
+                                                    {% if staff.completion_rate >= 80 %}bg-success
+                                                    {% elif staff.completion_rate >= 60 %}bg-warning
+                                                    {% else %}bg-danger{% endif %}" 
+                                                     style="width: {% if staff.completion_rate > 100 %}100{% else %}{{ staff.completion_rate|default:0 }}{% endif %}%">
+                                                    {{ staff.completion_rate|default:0|floatformat:0 }}%
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">{{ staff.approved_targets }}/{{ staff.total_targets }}</small>
+                                        {% else %}
+                                            <span class="text-muted">No targets</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if staff.latest_evaluation_date %}
+                                            <small>{{ staff.latest_evaluation_date|date:"M d, Y" }}</small>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <!-- For Supervisors -->
+                                            {% if staff.role_code == 'supervisor' %}
+                                                {% if staff.is_evaluated %}
+                                                    <!-- Evaluated Supervisor: View Results -->
+                                                    <a href="{% url 'vc:vc_download_supervisor_report' staff.user.id %}" 
+                                                       class="btn btn-outline-success" 
+                                                       title="View Evaluation Results">
+                                                        <i class="bi bi-eye me-1"></i>Results
+                                                    </a>
+                                                {% else %}
+                                                    <!-- Not Evaluated Supervisor: Evaluate -->
+                                                    <a href="{% url 'vc:vc_evaluate_supervisor' staff.user.id %}" 
+                                                       class="btn btn-outline-primary" 
+                                                       title="Evaluate Supervisor">
+                                                        <i class="bi bi-clipboard-check me-1"></i>Evaluate
+                                                    </a>
+                                                {% endif %}
+                                                
+                                                <!-- Download Report (always available for supervisors) -->
+                                                <a href="{% url 'vc:vc_download_supervisor_report' staff.user.id %}" 
+                                                   class="btn btn-outline-university-gold" 
+                                                   title="Download Report">
+                                                    <i class="bi bi-file-pdf"></i>
+                                                </a>
+                                            {% else %}
+                                                <!-- For Regular Staff (Teaching/Non-Teaching) -->
+                                                {% if staff.is_evaluated %}
+                                                    <!-- Evaluated Staff: View Results -->
+                                                    <a href="{% url 'vc:vc_view_staff_results' staff.user.id %}" 
+                                                       class="btn btn-outline-success" 
+                                                       title="View Evaluation Results">
+                                                        <i class="bi bi-eye me-1"></i>Results
+                                                    </a>
+                                                {% else %}
+                                                    <!-- Not Evaluated Staff: Not Evaluated (VC doesn't evaluate regular staff) -->
+                                                    <span class="btn btn-outline-secondary disabled" title="Not Evaluated - Evaluated by Supervisor">
+                                                        <i class="bi bi-clock me-1"></i>Pending
+                                                    </span>
+                                                {% endif %}
+                                            {% endif %}
+                                            
+                                            <!-- View Details Button (for all) -->
+                                            <button class="btn btn-outline-info" 
+                                                    onclick="viewStaffDetails({{ staff.user.id }})" 
+                                                    title="View Details">
+                                                <i class="bi bi-info-circle"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if staff_data.paginator.num_pages > 1 %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if staff_data.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1">&laquo; First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ staff_data.previous_page_number }}">Previous</a>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    Page {{ staff_data.number }} of {{ staff_data.paginator.num_pages }}
+                                </span>
+                            </li>
+
+                            {% if staff_data.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ staff_data.next_page_number }}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ staff_data.paginator.num_pages }}">Last &raquo;</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-people display-4 text-muted d-block mb-3"></i>
+                        <h5 class="text-muted mb-3">No Staff Members</h5>
+                        <p class="text-muted">There are no staff members in this department.</p>
+                        <a href="{% url 'vc:vc_department_overview' %}" class="btn btn-university-green">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Departments
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
-                
-                <!-- Pagination -->
-                {% if staff_data.paginator.num_pages > 1 %}
-                <nav aria-label="Staff pagination">
-                    <ul class="pagination justify-content-center">
-                        {% if staff_data.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page=1">&laquo; First</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ staff_data.previous_page_number }}">Previous</a>
-                        </li>
-                        {% endif %}
-                        
-                        <li class="page-item disabled">
-                            <span class="page-link">
-                                Page {{ staff_data.number }} of {{ staff_data.paginator.num_pages }}
-                            </span>
-                        </li>
-                        
-                        {% if staff_data.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ staff_data.next_page_number }}">Next</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ staff_data.paginator.num_pages }}">Last &raquo;</a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-                {% endif %}
-                
-                {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No Staff Found</h5>
-                    <p class="text-muted">There are no staff members in this department.</p>
-                    <a href="{% url 'vc:vc_department_overview' %}" class="btn btn-primary">
-                        <i class="fas fa-arrow-left me-1"></i> Back to Departments
-                    </a>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
+
 </div>
 
 <!-- Staff Details Modal -->
 <div class="modal fade" id="staffDetailsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="staffDetailsModalLabel">Staff Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-university-green text-white">
+                <h5 class="modal-title">Staff Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="staffDetailsContent">
-                <!-- Content will be loaded via JavaScript -->
+                <div class="text-center py-5">
+                    <div class="spinner-border text-university-green" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Loading staff details...</p>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -312,257 +398,268 @@
 </div>
 
 <style>
-    .avatar {
-        flex-shrink: 0;
-    }
-    
-    .staff-row:hover {
-        background-color: rgba(30, 150, 79, 0.05);
-        cursor: pointer;
-    }
-    
-    .modal-body .detail-row {
-        padding: 8px 0;
-        border-bottom: 1px solid #eee;
-    }
-    
-    .modal-body .detail-row:last-child {
-        border-bottom: none;
-    }
-    
-    .modal-body .detail-label {
-        font-weight: 600;
-        color: var(--kyu-green);
-    }
-    
-    .badge-excellent {
-        background-color: #28a745 !important;
-    }
-    
-    .badge-good {
-        background-color: #17a2b8 !important;
-    }
-    
-    .badge-average {
-        background-color: #ffc107 !important;
-        color: #212529 !important;
-    }
-    
-    .badge-poor {
-        background-color: #dc3545 !important;
-    }
-</style>
-{% endblock %}
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
 
-{% block extra_scripts %}
+/* FIXED: Performance badge with consistent alignment */
+.performance-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    min-width: 60px; /* Fixed minimum width for consistency */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 1.4;
+    font-family: 'SF Mono', Monaco, Consolas, 'Courier New', monospace;
+    font-variant-numeric: tabular-nums; /* Ensures all numbers have same width */
+    height: 28px; /* Fixed height */
+    box-sizing: border-box;
+}
+
+/* FIXED: Score cell alignment */
+.score-cell {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(30, 150, 79, 0.05);
+}
+
+.bg-success { background-color: #28a745 !important; }
+.bg-info { background-color: #17a2b8 !important; }
+.bg-warning { background-color: #ffc107 !important; color: #212529 !important; }
+.bg-danger { background-color: #dc3545 !important; }
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Fix table cell vertical alignment */
+.table td {
+    vertical-align: middle !important;
+}
+
+/* Ensure all badges have consistent height */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    vertical-align: middle;
+}
+
+/* Print styles */
+@media print {
+    .btn, .btn-group, .modal, .pagination {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+    
+    .table {
+        font-size: 12pt;
+    }
+    
+    .performance-badge {
+        min-width: 50px !important;
+        height: 24px !important;
+        font-size: 10pt !important;
+    }
+}
+</style>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize DataTable
-        $('#staffTable').DataTable({
-            "pageLength": 10,
-            "order": [[0, "asc"]], // Sort by name ascending
-            "responsive": true,
-            "language": {
-                "search": "Search staff:",
-                "lengthMenu": "Show _MENU_ staff per page",
-                "info": "Showing _START_ to _END_ of _TOTAL_ staff",
-                "paginate": {
-                    "previous": "<i class='fas fa-chevron-left'></i>",
-                    "next": "<i class='fas fa-chevron-right'></i>"
-                }
-            }
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter functionality
+    const searchInput = document.getElementById('searchInput');
+    const roleFilter = document.getElementById('roleFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const rows = document.querySelectorAll('#staffTable tbody tr');
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const roleValue = roleFilter.value;
+        const statusValue = statusFilter.value;
+
+        rows.forEach(row => {
+            const name = row.dataset.name || '';
+            const pf = row.dataset.pf || '';
+            const role = row.dataset.role || '';
+            const evaluated = row.dataset.evaluated || '';
+
+            const matchesSearch = name.includes(searchTerm) || pf.includes(searchTerm);
+            const matchesRole = !roleValue || role === roleValue;
+            const matchesStatus = !statusValue || evaluated === statusValue;
+
+            row.style.display = (matchesSearch && matchesRole && matchesStatus) ? '' : 'none';
         });
-        
-        // Add click event to staff rows
-        $('.staff-row').on('click', function() {
-            const staffId = $(this).data('staff-id') || $(this).find('.btn-group').data('staff-id');
-            if (staffId) {
-                viewStaffDetails(staffId);
+    }
+
+    searchInput.addEventListener('keyup', filterTable);
+    roleFilter.addEventListener('change', filterTable);
+    statusFilter.addEventListener('change', filterTable);
+
+    // Initialize DataTable
+    $('#staffTable').DataTable({
+        "pageLength": 10,
+        "order": [[0, "asc"]],
+        "responsive": true,
+        "language": {
+            "search": "Search within filtered results:",
+            "lengthMenu": "Show _MENU_ entries",
+            "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+            "paginate": {
+                "previous": "<i class='bi bi-chevron-left'></i>",
+                "next": "<i class='bi bi-chevron-right'></i>"
             }
-        });
-    });
-    
-    function searchStaff() {
-        const input = document.getElementById('staffSearch');
-        const filter = input.value.toUpperCase();
-        const table = document.getElementById('staffTable');
-        const rows = table.getElementsByTagName('tr');
-        
-        for (let i = 1; i < rows.length; i++) {
-            const row = rows[i];
-            const cells = row.getElementsByTagName('td');
-            let found = false;
-            
-            for (let j = 0; j < cells.length; j++) {
-                const cell = cells[j];
-                if (cell) {
-                    const text = cell.textContent || cell.innerText;
-                    if (text.toUpperCase().indexOf(filter) > -1) {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            
-            row.style.display = found ? '' : 'none';
         }
-    }
+    });
+});
+
+function viewStaffDetails(staffId) {
+    const modal = new bootstrap.Modal(document.getElementById('staffDetailsModal'));
     
-    function filterStaff(role) {
-        const rows = document.querySelectorAll('.staff-row');
-        rows.forEach(row => {
-            if (role === 'all') {
-                row.style.display = '';
-            } else if (role === 'staff') {
-                // Show regular staff (non-supervisors)
-                row.style.display = row.dataset.role === 'staff' ? '' : 'none';
-            } else {
-                row.style.display = row.dataset.role === role ? '' : 'none';
-            }
-        });
-    }
+    // Show loading state
+    document.getElementById('staffDetailsContent').innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-university-green" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Loading staff details...</p>
+        </div>
+    `;
     
-    function filterByStatus() {
-        const filter = document.getElementById('statusFilter').value;
-        const rows = document.querySelectorAll('.staff-row');
-        rows.forEach(row => {
-            if (!filter) {
-                row.style.display = '';
-            } else {
-                row.style.display = row.dataset.status === filter ? '' : 'none';
-            }
-        });
-    }
+    modal.show();
     
-    function filterByPerformance() {
-        const filter = document.getElementById('performanceFilter').value;
-        const rows = document.querySelectorAll('.staff-row');
-        rows.forEach(row => {
-            if (!filter) {
-                row.style.display = '';
-            } else {
-                row.style.display = row.dataset.performance === filter ? '' : 'none';
-            }
-        });
-    }
-    
-    function filterByEvaluation(status) {
-        const rows = document.querySelectorAll('.staff-row');
-        rows.forEach(row => {
-            if (status === 'all') {
-                row.style.display = '';
-            } else {
-                row.style.display = row.dataset.evaluated === status ? '' : 'none';
-            }
-        });
-    }
-    
-    function viewStaffDetails(staffId) {
-        // AJAX call to get staff details
-        fetch(`/vc/api/staff/${staffId}/details/`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const staff = data.staff;
-                    const modalContent = `
-                        <div class="row">
-                            <div class="col-md-4 text-center">
-                                <div class="avatar-lg mb-3">
-                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px;">
-                                        ${staff.initials}
-                                    </div>
-                                </div>
-                                <h5>${staff.full_name}</h5>
-                                <p class="text-muted">${staff.designation || 'Not specified'}</p>
+    // Fetch staff details
+    fetch(`/vc/api/staff/${staffId}/details/`)
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const staff = data.staff;
+                const content = `
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="avatar-circle bg-university-green text-white mx-auto mb-3" style="width: 80px; height: 80px; font-size: 1.5rem;">
+                                ${staff.initials}
                             </div>
-                            <div class="col-md-8">
-                                <div class="detail-row">
-                                    <span class="detail-label">PF Number:</span> ${staff.pf_number || 'N/A'}
+                            <h5>${staff.full_name}</h5>
+                            <p class="text-muted">${staff.designation || 'No designation'}</p>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <strong class="text-university-green">PF Number:</strong>
+                                    <p>${staff.pf_number || 'N/A'}</p>
                                 </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Role:</span> 
-                                    <span class="badge ${staff.role === 'supervisor' ? 'bg-info' : 'bg-secondary'}">
-                                        ${staff.role_title}
-                                    </span>
+                                <div class="col-6">
+                                    <strong class="text-university-green">Role:</strong>
+                                    <p><span class="badge ${staff.role_code === 'supervisor' ? 'bg-info' : 'bg-secondary'}">${staff.role}</span></p>
                                 </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Status:</span> 
-                                    <span class="badge ${staff.is_active ? 'bg-success' : 'bg-danger'}">
-                                        ${staff.is_active ? 'Active' : 'Inactive'}
-                                    </span>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <strong class="text-university-green">Email:</strong>
+                                    <p>${staff.email || 'N/A'}</p>
                                 </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Department:</span> ${staff.department || 'N/A'}
+                                <div class="col-6">
+                                    <strong class="text-university-green">Status:</strong>
+                                    <p><span class="badge ${staff.is_active ? 'bg-success' : 'bg-danger'}">${staff.is_active ? 'Active' : 'Inactive'}</span></p>
                                 </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Email:</span> ${staff.email || 'N/A'}
+                            </div>
+                            <hr>
+                            <h6 class="text-university-green mb-3">Evaluation Information</h6>
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <strong class="text-university-green">Evaluation Status:</strong>
+                                    <p><span class="badge ${staff.is_evaluated ? 'bg-success' : 'bg-warning'}">${staff.is_evaluated ? 'Evaluated' : 'Not Evaluated'}</span></p>
                                 </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Phone:</span> ${staff.phone || 'N/A'}
+                                <div class="col-6">
+                                    <strong class="text-university-green">Evaluation Count:</strong>
+                                    <p>${staff.evaluation_count || 0}</p>
                                 </div>
-                                <hr>
-                                <h6 class="detail-label">Performance Information</h6>
-                                <div class="detail-row">
-                                    <span class="detail-label">Evaluation Status:</span> 
-                                    <span class="badge ${staff.is_evaluated ? 'bg-success' : 'bg-warning'}">
-                                        ${staff.is_evaluated ? 'Evaluated' : 'Not Evaluated'}
-                                    </span>
-                                    ${staff.evaluation_count > 0 ? `(${staff.evaluation_count} evaluations)` : ''}
+                            </div>
+                            ${staff.overall_score ? `
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <strong class="text-university-green">Performance Score:</strong>
+                                    <p><span class="badge ${staff.overall_score >= 80 ? 'bg-success' : staff.overall_score >= 70 ? 'bg-info' : staff.overall_score >= 60 ? 'bg-warning' : 'bg-danger'}">${staff.overall_score.toFixed(1)}</span></p>
                                 </div>
-                                ${staff.overall_score ? `
-                                <div class="detail-row">
-                                    <span class="detail-label">Performance Score:</span> 
-                                    <span class="badge ${staff.overall_score >= 80 ? 'badge-excellent' : staff.overall_score >= 70 ? 'badge-good' : staff.overall_score >= 60 ? 'badge-average' : 'badge-poor'}">
-                                        ${staff.overall_score.toFixed(1)}
-                                    </span>
+                                <div class="col-6">
+                                    <strong class="text-university-green">Last Evaluation:</strong>
+                                    <p>${staff.latest_evaluation_date ? new Date(staff.latest_evaluation_date).toLocaleDateString() : 'Never'}</p>
                                 </div>
-                                ` : ''}
-                                ${staff.latest_evaluation_date ? `
-                                <div class="detail-row">
-                                    <span class="detail-label">Last Evaluation:</span> ${new Date(staff.latest_evaluation_date).toLocaleDateString()}
-                                </div>
-                                ` : ''}
-                                ${staff.completion_rate > 0 ? `
-                                <div class="detail-row">
-                                    <span class="detail-label">Targets Completion:</span> 
-                                    <div class="progress mt-1" style="height: 15px; width: 150px;">
+                            </div>
+                            ` : ''}
+                            ${staff.total_targets > 0 ? `
+                            <div class="row mb-2">
+                                <div class="col-12">
+                                    <strong class="text-university-green">Targets Completion:</strong>
+                                    <div class="progress mt-2" style="height: 20px;">
                                         <div class="progress-bar ${staff.completion_rate >= 80 ? 'bg-success' : staff.completion_rate >= 60 ? 'bg-warning' : 'bg-danger'}" 
                                              style="width: ${staff.completion_rate}%">
-                                            ${staff.completion_rate}%
+                                            ${staff.completion_rate.toFixed(0)}%
                                         </div>
                                     </div>
-                                    <small class="text-muted">${staff.approved_targets || 0}/${staff.total_targets || 0} targets approved</small>
+                                    <p class="mt-1"><small>${staff.approved_targets}/${staff.total_targets} targets approved</small></p>
                                 </div>
-                                ` : ''}
+                            </div>
+                            ` : ''}
+                            <div class="mt-3">
+                                <a href="${staff.role_code === 'supervisor' ? '/vc/download-supervisor-report/' + staff.user_id + '/' : '/vc/staff-results/' + staff.user_id + '/'}" 
+                                   class="btn btn-university-green">
+                                    <i class="bi bi-eye me-1"></i> View Full Evaluation Report
+                                </a>
                             </div>
                         </div>
-                    `;
-                    document.getElementById('staffDetailsContent').innerHTML = modalContent;
-                } else {
-                    document.getElementById('staffDetailsContent').innerHTML = `
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            ${data.error || 'Failed to load staff details.'}
-                        </div>
-                    `;
-                }
-            })
-            .catch(error => {
-                document.getElementById('staffDetailsContent').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        Error loading staff details: ${error}
                     </div>
                 `;
-            });
-        
-        const modal = new bootstrap.Modal(document.getElementById('staffDetailsModal'));
-        modal.show();
-    }
+                document.getElementById('staffDetailsContent').innerHTML = content;
+            } else {
+                document.getElementById('staffDetailsContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        ${data.error || 'Failed to load staff details.'}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            document.getElementById('staffDetailsContent').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Error loading staff details. Please try again.
+                </div>
+            `;
+            console.error('Error:', error);
+        });
+}
 </script>
 
-<!-- DataTables CSS & JS -->
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
-<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+<!-- DataTables -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 {% endblock %}

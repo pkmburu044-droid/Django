@@ -372,6 +372,7 @@ def vc_department_staff(request, department_id):
         )
 
         staff_data = []
+        evaluated_staff_count = 0
 
         for staff in all_staff:
             # Initialize
@@ -384,87 +385,115 @@ def vc_department_staff(request, department_id):
             total_targets = 0
             completion_rate = 0
 
-            # For teaching/non-teaching staff
+            # For teaching/non-teaching staff - check StaffAppraisal
             if staff.role in ["teaching", "non_teaching"]:
-                # Try to get StaffProfile
-                staff_profiles = StaffProfile.objects.filter(user=staff)
-                if staff_profiles.exists():
-                    profile = staff_profiles.first()
-
-                    # Check StaffAppraisal - use 'reviewed' status for regular staff
+                # Get StaffProfile if exists
+                try:
+                    profile = StaffProfile.objects.get(user=staff)
+                    
+                    # Check StaffAppraisal in current period
                     appraisals = StaffAppraisal.objects.filter(
                         profile=profile,
-                        status__in=["reviewed", "finalized", "completed"],
+                        period=active_period if active_period else None
                     )
-
+                    
                     if appraisals.exists():
-                        is_evaluated = True
                         evaluation_count = appraisals.count()
                         latest = appraisals.order_by("-updated_at").first()
-                        latest_evaluation = latest
-                        latest_date = latest.updated_at
-
-                        if latest.overall_score:
-                            overall_score = float(latest.overall_score)
-
-                    # Check current period specifically
-                    if active_period:
-                        current_appraisals = appraisals.filter(
-                            period=active_period
-                        )
-                        if current_appraisals.exists():
+                        
+                        # Check if evaluation is complete (status = 'reviewed', 'completed', 'finalized')
+                        if latest.status in ["reviewed", "completed", "finalized"]:
                             is_evaluated = True
-                            latest = current_appraisals.order_by(
-                                "-updated_at"
-                            ).first()
+                            evaluated_staff_count += 1
                             latest_evaluation = latest
                             latest_date = latest.updated_at
-
+                            
                             if latest.overall_score:
                                 overall_score = float(latest.overall_score)
+                            elif latest.total_score:
+                                overall_score = float(latest.total_score)
+                    
+                    # Also check targets for regular staff
+                    if active_period:
+                        targets = PerformanceTarget.objects.filter(
+                            staff=staff,
+                            period=active_period
+                        )
+                        total_targets = targets.count()
+                        approved_targets = targets.filter(status="approved").count()
+                        completion_rate = (approved_targets / total_targets * 100) if total_targets > 0 else 0
+                        
+                except StaffProfile.DoesNotExist:
+                    # No profile exists for this staff
+                    pass
 
-            # For supervisors
+            # For supervisors - check SupervisorAppraisal
             elif staff.role == "supervisor":
-                # Check SupervisorAppraisal - use 'evaluated' status for supervisors
+                # Check SupervisorAppraisal in current period
                 appraisals = SupervisorAppraisal.objects.filter(
                     supervisor=staff,
-                    status__in=["evaluated", "completed", "approved"],
+                    period=active_period if active_period else None
                 )
-
+                
                 if appraisals.exists():
-                    is_evaluated = True
-                    evaluation_count += appraisals.count()
+                    evaluation_count = appraisals.count()
                     latest = appraisals.order_by("-evaluated_at").first()
-                    latest_evaluation = latest
-                    latest_date = latest.evaluated_at
-
-                    if latest.overall_score:
-                        overall_score = float(latest.overall_score)
-                    elif latest.total_score:
-                        overall_score = float(latest.total_score)
-
-                # Check SupervisorRating (these are always evaluations)
-                ratings = SupervisorRating.objects.filter(supervisor=staff)
-                if ratings.exists():
-                    is_evaluated = True
-                    evaluation_count += ratings.count()
-                    latest = ratings.order_by("-submitted_at").first()
-
-                    # Keep the most recent evaluation
-                    if not latest_date or latest.submitted_at > latest_date:
+                    
+                    # Check if evaluation is complete (status = 'evaluated', 'completed', 'approved')
+                    if latest.status in ["evaluated", "completed", "approved"]:
+                        is_evaluated = True
+                        evaluated_staff_count += 1
                         latest_evaluation = latest
-                        latest_date = latest.submitted_at
-
-                    # Calculate average rating
-                    avg_rating = ratings.aggregate(avg=Avg("rating"))["avg"]
-                    if avg_rating:
-                        overall_score = float(avg_rating)
+                        latest_date = latest.evaluated_at or latest.created_at
+                        
+                        if latest.overall_score:
+                            overall_score = float(latest.overall_score)
+                        elif latest.total_score:
+                            overall_score = float(latest.total_score)
+                
+                # Check SupervisorRating in current period
+                if active_period:
+                    ratings = SupervisorRating.objects.filter(
+                        supervisor=staff,
+                        period=active_period
+                    )
+                    if ratings.exists():
+                        rating_count = ratings.count()
+                        evaluation_count += rating_count
+                        
+                        # If we have ratings but no appraisal, mark as evaluated
+                        if not is_evaluated:
+                            is_evaluated = True
+                            evaluated_staff_count += 1
+                        
+                        latest_rating = ratings.order_by("-submitted_at").first()
+                        if not latest_date or (latest_rating.submitted_at > latest_date if latest_date else True):
+                            latest_date = latest_rating.submitted_at
+                        
+                        # Calculate average rating
+                        avg_rating = ratings.aggregate(avg=Avg("rating"))["avg"]
+                        if avg_rating:
+                            overall_score = float(avg_rating) * 20  # Convert 1-5 scale to percentage
+                
+                # Check supervisor targets
+                if active_period:
+                    targets = PerformanceTarget.objects.filter(
+                        staff=staff,
+                        period=active_period
+                    )
+                    total_targets = targets.count()
+                    approved_targets = targets.filter(status="approved").count()
+                    completion_rate = (approved_targets / total_targets * 100) if total_targets > 0 else 0
 
             # Create staff object
             staff_obj = {
                 "user": staff,
                 "role": staff.get_role_display(),
-                "pf_number": getattr(staff, "pf_number", None),
+                "role_code": staff.role,
+                "pf_number": getattr(staff, "pf_number", ""),
+                "designation": getattr(staff, "designation", ""),
+                "email": staff.email,
+                "phone": getattr(staff, "phone", ""),
                 "is_active": staff.is_active,
                 "is_evaluated": is_evaluated,
                 "evaluation_count": evaluation_count,
@@ -474,48 +503,34 @@ def vc_department_staff(request, department_id):
                 "approved_targets": approved_targets,
                 "total_targets": total_targets,
                 "completion_rate": completion_rate,
+                "initials": f"{staff.first_name[0] if staff.first_name else ''}{staff.last_name[0] if staff.last_name else ''}".upper(),
             }
 
             staff_data.append(staff_obj)
 
         # Calculate statistics
-        supervisors_count = len(
-            [s for s in staff_data if s["user"].role == "supervisor"]
-        )
-        regular_staff_count = len(
-            [
-                s
-                for s in staff_data
-                if s["user"].role in ["teaching", "non_teaching"]
-            ]
-        )
+        supervisors_count = len([s for s in staff_data if s["role_code"] == "supervisor"])
+        regular_staff_count = len([s for s in staff_data if s["role_code"] in ["teaching", "non_teaching"]])
         active_staff_count = len([s for s in staff_data if s["is_active"]])
         total_staff = len(staff_data)
 
-        # Calculate average performance score
+        # Calculate average performance score (only for evaluated staff)
         all_scores = [
             s["overall_score"]
             for s in staff_data
-            if s["overall_score"] is not None
+            if s["overall_score"] is not None and s["is_evaluated"]
         ]
-        avg_performance_score = (
-            round(sum(all_scores) / len(all_scores), 2) if all_scores else 0
-        )
+        avg_performance_score = round(sum(all_scores) / len(all_scores), 2) if all_scores else 0
 
-        # Count evaluated staff
-        evaluated_staff_count = len(
-            [s for s in staff_data if s["is_evaluated"]]
-        )
+        # Calculate evaluation rate
+        evaluation_rate = (evaluated_staff_count / total_staff * 100) if total_staff > 0 else 0
 
         print(f"\n=== DEBUG SUMMARY ===")
         print(f"Total staff: {total_staff}")
         print(f"Evaluated staff: {evaluated_staff_count}")
-        for s in staff_data:
-            status = "EVALUATED" if s["is_evaluated"] else "NOT EVALUATED"
-            score = s["overall_score"] or "N/A"
-            print(
-                f"  - {s['user'].first_name} {s['user'].last_name}: {status}, Score: {score}"
-            )
+        print(f"Evaluation rate: {evaluation_rate:.1f}%")
+        print(f"Average score: {avg_performance_score:.1f}")
+        print(f"Supervisors: {supervisors_count}, Regular staff: {regular_staff_count}")
 
         paginator = Paginator(staff_data, 20)
         page_number = request.GET.get("page")
@@ -530,8 +545,9 @@ def vc_department_staff(request, department_id):
             "total_staff": total_staff,
             "active_staff_count": active_staff_count,
             "avg_performance_score": avg_performance_score,
-            "all_scores_count": len(all_scores),
             "evaluated_staff_count": evaluated_staff_count,
+            "evaluation_rate": round(evaluation_rate, 1),
+            "all_scores_count": len(all_scores),
         }
 
         return render(request, "vc/vc_department_staff.html", context)
@@ -539,10 +555,42 @@ def vc_department_staff(request, department_id):
     except Exception as e:
         messages.error(request, f"Error loading department staff: {str(e)}")
         import traceback
-
         traceback.print_exc()
         return redirect("vc:vc_department_overview")
 
+@login_required
+def vc_view_staff_results(request, staff_id):
+    if not request.user.is_vc_staff:
+        messages.error(request, "Only Vice Chancellor can access this page.")
+        return redirect("users:role_based_redirect")
+    
+    try:
+        staff = get_object_or_404(CustomUser, id=staff_id)
+        active_period = SPEPeriod.objects.filter(is_active=True).first()
+        
+        # Create a minimal context first to test
+        minimal_context = {
+            'staff': staff,
+            'current_period': active_period,
+            'evaluator_name': 'Vice Chancellor',
+            'test': 'test value',  # Simple test value
+        }
+        
+        print(f"DEBUG: Context type: {type(minimal_context)}")
+        print(f"DEBUG: Context keys: {list(minimal_context.keys())}")
+        
+        # Try with minimal context first
+        return render(
+            request=request, 
+            template_name='vc/vc_staff_results.html', 
+            context=minimal_context
+        )
+        
+    except Exception as e:
+        messages.error(request, f"Error loading staff results: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return redirect('vc:vc_department_overview')
 
 @login_required
 def vc_evaluate_supervisor_list(request):
@@ -705,6 +753,7 @@ def vc_evaluate_supervisor(request, supervisor_id):
 
     return render(request, "vc/vc_evaluate_supervisor.html", context)
 
+from spe.models import SelfAssessment  # Add this import
 
 @login_required
 def vc_download_supervisor_report(request, supervisor_id):
@@ -720,11 +769,294 @@ def vc_download_supervisor_report(request, supervisor_id):
         return redirect("vc:vc_evaluate_supervisor_list")
 
     if supervisor.role == "supervisor":
-        appraisal = SupervisorAppraisal.objects.filter(
+        # First, get the VC appraisal (overall evaluation)
+        vc_appraisal = SupervisorAppraisal.objects.filter(
             supervisor=supervisor,
             period=current_period,
+            evaluated_by__role='vc',
             status__in=["evaluated", "completed", "approved"],
         ).first()
+
+        if not vc_appraisal:
+            messages.error(
+                request,
+                f"No VC evaluation found for {supervisor.get_full_name()} in current period.",
+            )
+            return redirect("vc:vc_evaluate_supervisor_list")
+
+        print(f"\n=== DEBUG: VC REPORT FOR {supervisor.get_full_name()} ===")
+
+        # Get all indicators
+        supervisor_attributes = SupervisorAttribute.objects.filter(is_active=True)
+        supervisor_indicators = SupervisorIndicator.objects.filter(
+            attribute__in=supervisor_attributes, is_active=True
+        ).select_related("attribute")
+
+        # Get supervisor's self-ratings (from spe app)
+        self_ratings = SupervisorRating.objects.filter(
+            supervisor=supervisor, 
+            period=current_period
+        ).select_related("attribute", "indicator")
+
+        print(f"DEBUG: Found {self_ratings.count()} self-ratings")
+
+        # CRITICAL: Find VC detailed ratings from hr app
+        vc_user = CustomUser.objects.filter(role='vc').first()
+        has_vc_detailed_ratings = False
+        vc_detailed_ratings = []
+        
+        # Option 1: Check SupervisorEvaluation model in hr app (where VC ratings are stored)
+        if vc_user:
+            try:
+                from hr.models import SupervisorEvaluation
+                # Get VC evaluations from hr app
+                vc_detailed_ratings = SupervisorEvaluation.objects.filter(
+                    supervisor=supervisor,
+                    period=current_period,
+                    hr_user=vc_user  # VC is stored as hr_user in this model
+                ).select_related("attribute", "indicator")
+                
+                print(f"DEBUG: Found {vc_detailed_ratings.count()} VC ratings in hr.SupervisorEvaluation")
+                
+                if vc_detailed_ratings.exists():
+                    has_vc_detailed_ratings = True
+                else:
+                    # Try SupervisorOverallEvaluation model
+                    from hr.models import SupervisorOverallEvaluation
+                    overall_evaluations = SupervisorOverallEvaluation.objects.filter(
+                        supervisor=supervisor,
+                        period=current_period,
+                        evaluated_by=vc_user
+                    )
+                    print(f"DEBUG: Found {overall_evaluations.count()} ratings in SupervisorOverallEvaluation")
+                    
+                    if overall_evaluations.exists():
+                        vc_detailed_ratings = overall_evaluations
+                        has_vc_detailed_ratings = True
+                        
+            except ImportError as e:
+                print(f"DEBUG: Error importing hr models: {e}")
+            except Exception as e:
+                print(f"DEBUG: Error checking hr models: {e}")
+
+        # Get approved targets
+        approved_targets = SupervisorPerformanceTarget.objects.filter(
+            supervisor=supervisor, period=current_period, status="approved"
+        ).order_by("target_number")
+
+        print(f"DEBUG: Found {approved_targets.count()} approved targets")
+
+        # Create dictionaries for lookup
+        self_ratings_dict = {
+            r.indicator.id: r for r in self_ratings if r.indicator
+        }
+        
+        # Create VC ratings dictionary
+        vc_ratings_dict = {}
+        if has_vc_detailed_ratings and vc_detailed_ratings:
+            for evaluation in vc_detailed_ratings:
+                # Check what type of model we have
+                if hasattr(evaluation, 'indicator') and evaluation.indicator:
+                    # hr.SupervisorEvaluation or hr.SupervisorOverallEvaluation
+                    vc_ratings_dict[evaluation.indicator.id] = evaluation
+                    print(f"DEBUG: Mapped VC rating for indicator {evaluation.indicator.id}")
+                elif hasattr(evaluation, 'self_assessment') and evaluation.self_assessment:
+                    # spe.SupervisorEvaluation (unlikely for supervisors)
+                    if hasattr(evaluation.self_assessment, 'indicator') and evaluation.self_assessment.indicator:
+                        vc_ratings_dict[evaluation.self_assessment.indicator.id] = evaluation
+
+        # Prepare criteria data
+        criteria_data = []
+        total_vc_ratings = 0
+        total_indicators = supervisor_indicators.count()
+        
+        for ind in supervisor_indicators:
+            self_eval = self_ratings_dict.get(ind.id)
+            
+            # Get VC rating if exists
+            vc_eval = vc_ratings_dict.get(ind.id)
+            vc_rating_value = None
+            vc_comments_value = ""
+            
+            if vc_eval:
+                # Extract rating and comments based on model type
+                if hasattr(vc_eval, 'rating'):  # hr.SupervisorEvaluation or hr.SupervisorOverallEvaluation
+                    vc_rating_value = vc_eval.rating
+                    vc_comments_value = getattr(vc_eval, 'comments', '') or getattr(vc_eval, 'remarks', '') or ''
+                    print(f"DEBUG: Found VC rating {vc_rating_value} for indicator {ind.id}: {ind.description[:50]}...")
+            
+            # Count VC ratings
+            if vc_rating_value is not None:
+                total_vc_ratings += 1
+            
+            # Calculate rating gap if both exist
+            rating_gap = None
+            if self_eval and vc_rating_value is not None and self_eval.rating is not None:
+                rating_gap = vc_rating_value - self_eval.rating
+
+            criteria_data.append({
+                "attribute": ind.attribute,
+                "indicator": ind,
+                "vc_rating": vc_rating_value,
+                "vc_comments": vc_comments_value,
+                "self_rating": self_eval.rating if self_eval else None,
+                "self_comments": self_eval.comments if self_eval else "",
+                "rating_gap": rating_gap,
+                "has_vc_rating": vc_rating_value is not None,
+            })
+
+        # Calculate percentages
+        criteria_percentage = (
+            (vc_appraisal.criteria_score / 5 * 100)
+            if vc_appraisal.criteria_score is not None
+            else 0
+        )
+        target_percentage = (
+            (vc_appraisal.target_score / 5 * 100) if vc_appraisal.target_score is not None else 0
+        )
+        
+        vc_rating_percentage = (total_vc_ratings / total_indicators * 100) if total_indicators > 0 else 0
+        
+        # CRITICAL: FIXED STATUS DETERMINATION LOGIC
+        # Check if targets have VC ratings
+        target_vc_ratings = 0
+        target_data = []
+        for t in approved_targets:
+            has_vc_target_rating = t.performance_rating is not None
+            target_data.append({
+                "target_number": t.target_number,
+                "description": t.description,
+                "performance_rating": t.performance_rating,
+                "performance_comments": t.performance_comments,
+                "has_vc_rating": has_vc_target_rating,
+            })
+            if has_vc_target_rating:
+                target_vc_ratings += 1
+        
+        total_targets = len(approved_targets)
+        targets_fully_evaluated = target_vc_ratings == total_targets if total_targets > 0 else False
+        
+        # NEW LOGIC: A supervisor is fully evaluated when:
+        # 1. Has VC appraisal (overall evaluation)
+        # 2. All indicators have VC ratings (total_vc_ratings == total_indicators)
+        # 3. All targets have VC ratings (targets_fully_evaluated)
+        # 4. Has VC detailed ratings (has_vc_detailed_ratings)
+        
+        is_fully_evaluated = (
+            vc_appraisal is not None and
+            total_vc_ratings == total_indicators and  # Use == instead of >=
+            targets_fully_evaluated and
+            has_vc_detailed_ratings
+        )
+        
+        # Partially evaluated means SOME but not ALL requirements are met
+        is_partially_evaluated = (
+            (vc_appraisal is not None or has_vc_detailed_ratings) and  # Has SOME evaluation
+            not is_fully_evaluated  # But not fully evaluated
+        )
+        
+        # Not evaluated means NO evaluation at all
+        is_not_evaluated = (
+            vc_appraisal is None and 
+            not has_vc_detailed_ratings and 
+            total_vc_ratings == 0
+        )
+
+        # Prepare context
+        context = {
+            "supervisor": supervisor,
+            "appraisal": vc_appraisal,
+            "current_period": current_period,
+            "criteria_data": criteria_data,
+            "target_data": target_data,
+            "evaluated_by": vc_appraisal.evaluated_by.get_full_name() if vc_appraisal.evaluated_by else "Vice Chancellor",
+            "report_date": vc_appraisal.evaluated_at if vc_appraisal.evaluated_at else timezone.now(),
+            "criteria_percentage": criteria_percentage,
+            "target_percentage": target_percentage,
+            "has_vc_detailed_ratings": has_vc_detailed_ratings,
+            "total_vc_ratings": total_vc_ratings,
+            "total_indicators": total_indicators,
+            "vc_rating_percentage": vc_rating_percentage,
+            "target_vc_ratings": target_vc_ratings,
+            "total_targets": total_targets,
+            "is_fully_evaluated": is_fully_evaluated,
+            "is_partially_evaluated": is_partially_evaluated,
+            "is_not_evaluated": is_not_evaluated,
+            "overall_score": vc_appraisal.overall_score or 0,
+            "total_score": vc_appraisal.total_score or 0,
+            "average_score": vc_appraisal.average_score or 0,
+            "criteria_score": vc_appraisal.criteria_score or 0,
+            "target_score": vc_appraisal.target_score or 0,
+        }
+
+        print(f"\n=== DEBUG SUMMARY ===")
+        print(f"Supervisor: {supervisor.get_full_name()}")
+        print(f"VC Appraisal exists: {vc_appraisal is not None}")
+        print(f"Total indicators: {total_indicators}")
+        print(f"Self ratings: {len(self_ratings_dict)}")
+        print(f"VC ratings found: {total_vc_ratings}/{total_indicators}")
+        print(f"Targets with VC ratings: {target_vc_ratings}/{total_targets}")
+        print(f"VC rating percentage: {vc_rating_percentage:.1f}%")
+        print(f"Has VC detailed ratings: {has_vc_detailed_ratings}")
+        print(f"Targets fully evaluated: {targets_fully_evaluated}")
+        print(f"Status - Fully evaluated: {is_fully_evaluated}")
+        print(f"Status - Partially evaluated: {is_partially_evaluated}")
+        print(f"Status - Not evaluated: {is_not_evaluated}")
+        
+        # Show which indicators have VC ratings
+        print(f"\nIndicators with VC ratings:")
+        for i, item in enumerate(criteria_data):
+            if item['has_vc_rating']:
+                indicator_desc = item['indicator'].description[:50] + "..." if len(item['indicator'].description) > 50 else item['indicator'].description
+                print(f"  {i+1}. {indicator_desc}: {item['vc_rating']}/5")
+        
+        print(f"===================\n")
+
+        # Handle PDF download
+        if request.GET.get("download") == "pdf":
+            if is_not_evaluated:
+                messages.warning(
+                    request,
+                    f"Cannot generate PDF report: {supervisor.get_full_name()} has no detailed VC ratings. "
+                    f"Please complete the evaluation first."
+                )
+                return redirect("vc:vc_evaluate_supervisor", supervisor_id=supervisor_id)
+            
+            # Check if we have enough data for PDF
+            if total_vc_ratings == 0:
+                messages.warning(
+                    request,
+                    f"Cannot generate PDF: No VC ratings found. Please complete the detailed evaluation."
+                )
+                return redirect("vc:vc_evaluate_supervisor", supervisor_id=supervisor_id)
+                
+            return generate_supervisor_evaluation_pdf(request, vc_appraisal, context)
+
+        # Show appropriate messages
+        if is_not_evaluated:
+            messages.info(
+                request,
+                f"Note: {supervisor.get_full_name()} has an overall VC evaluation but no detailed ratings per indicator. "
+                f"Click 'Evaluate Now' to add detailed ratings.",
+                extra_tags='info'
+            )
+        elif is_partially_evaluated:
+            messages.warning(
+                request,
+                f"Note: {supervisor.get_full_name()} has {total_vc_ratings}/{total_indicators} indicators rated by VC and {target_vc_ratings}/{total_targets} targets rated. "
+                f"Consider completing the evaluation.",
+                extra_tags='warning'
+            )
+        elif is_fully_evaluated:
+            messages.success(
+                request,
+                f"{supervisor.get_full_name()} has been fully evaluated by VC.",
+                extra_tags='success'
+            )
+
+        return render(request, "vc/vc_supervisor_report.html", context)
+
+    # Handle non-supervisor staff (existing code remains)
     else:
         appraisal = StaffAppraisal.objects.filter(
             profile__user=supervisor,
@@ -732,137 +1064,46 @@ def vc_download_supervisor_report(request, supervisor_id):
             status__in=["evaluated", "completed", "approved"],
         ).first()
 
-    if not appraisal:
-        messages.error(
-            request,
-            f"No evaluation found for {supervisor.get_full_name()} in current period.",
-        )
-        return redirect("vc:vc_evaluate_supervisor_list")
-
-    if supervisor.role == "supervisor":
-        supervisor_attributes = SupervisorAttribute.objects.filter(
-            is_active=True
-        )
-        supervisor_indicators = SupervisorIndicator.objects.filter(
-            attribute__in=supervisor_attributes, is_active=True
-        ).select_related("attribute")
-
-        vc_evaluations = SupervisorEvaluation.objects.filter(
-            supervisor=supervisor, period=current_period
-        ).select_related("attribute", "indicator")
-
-        self_ratings = SupervisorRating.objects.filter(
-            supervisor=supervisor, period=current_period
-        ).select_related("attribute", "indicator")
-
-        approved_targets = SupervisorPerformanceTarget.objects.filter(
-            supervisor=supervisor, period=current_period, status="approved"
-        ).order_by("target_number")
-
-        vc_ratings_dict = {
-            e.indicator.id: e for e in vc_evaluations if e.indicator
-        }
-        self_ratings_dict = {
-            r.indicator.id: r for r in self_ratings if r.indicator
-        }
-
-        criteria_data = []
-        for ind in supervisor_indicators:
-            vc_eval = vc_ratings_dict.get(ind.id)
-            self_eval = self_ratings_dict.get(ind.id)
-
-            criteria_data.append(
-                {
-                    "attribute": ind.attribute,
-                    "indicator": ind,
-                    "vc_rating": vc_eval.rating if vc_eval else None,
-                    "vc_comments": vc_eval.comments if vc_eval else "",
-                    "self_rating": self_eval.rating if self_eval else None,
-                    "rating_gap": (
-                        (vc_eval.rating - self_eval.rating)
-                        if (vc_eval and self_eval)
-                        else None
-                    ),
-                }
+        if not appraisal:
+            messages.error(
+                request,
+                f"No evaluation found for {supervisor.get_full_name()} in current period.",
             )
-
-        target_data = [
-            {
-                "target_number": t.target_number,
-                "description": t.description,
-                "performance_rating": t.performance_rating,
-                "performance_comments": t.performance_comments,
-            }
-            for t in approved_targets
-        ]
-
-        criteria_percentage = (
-            (appraisal.criteria_score / 5 * 100)
-            if appraisal.criteria_score
-            else 0
-        )
-        target_percentage = (
-            (appraisal.target_score / 5 * 100) if appraisal.target_score else 0
-        )
+            return redirect("vc:vc_department_staff", department_id=supervisor.department.id)
 
         context = {
-            "supervisor": supervisor,
-            "appraisal": appraisal,
-            "current_period": current_period,
-            "criteria_data": criteria_data,
-            "target_data": target_data,
-            "evaluated_by": "Vice Chancellor",
-            "report_date": timezone.now(),
-            "criteria_percentage": criteria_percentage,
-            "target_percentage": target_percentage,
+            "summary": {
+                "supervisor_name": supervisor.get_full_name(),
+                "percentage_score": appraisal.overall_score,
+                "total_indicators": 0,
+                "combined_overall_score": appraisal.overall_score,
+            },
+            "overall_target_performance": {
+                "average_score": (
+                    appraisal.target_score if appraisal.target_score else 0
+                ),
+                "evaluated_count": 0,
+                "overall_rating": "",
+            },
+            "target_stats": {
+                "total_targets": 0,
+                "approved_targets": 0,
+                "evaluated_targets": 0,
+                "completed_targets": 0,
+            },
+            "has_targets": False,
+            "has_evaluated_targets": False,
+            "self_assessments": [],
+            "supervisor_evals": {},
+            "target_evaluations": [],
+            "performance": "",
         }
 
         if request.GET.get("download") == "pdf":
-            return generate_supervisor_evaluation_pdf(
-                request, appraisal, context
-            )
+            from dashboards.views import generate_staff_evaluation_pdf
+            return generate_staff_evaluation_pdf(request, appraisal, context)
 
         return render(request, "vc/vc_supervisor_report.html", context)
-
-    context = {
-        "summary": {
-            "supervisor_name": (
-                appraisal.supervisor.get_full_name()
-                if appraisal.supervisor
-                else "Supervisor"
-            ),
-            "percentage_score": appraisal.overall_score,
-            "total_indicators": 0,
-            "combined_overall_score": appraisal.overall_score,
-        },
-        "overall_target_performance": {
-            "average_score": (
-                appraisal.target_score if appraisal.target_score else 0
-            ),
-            "evaluated_count": 0,
-            "overall_rating": "",
-        },
-        "target_stats": {
-            "total_targets": 0,
-            "approved_targets": 0,
-            "evaluated_targets": 0,
-            "completed_targets": 0,
-        },
-        "has_targets": False,
-        "has_evaluated_targets": False,
-        "self_assessments": [],
-        "supervisor_evals": {},
-        "target_evaluations": [],
-        "performance": "",
-    }
-
-    if request.GET.get("download") == "pdf":
-        from dashboards.views import generate_staff_evaluation_pdf
-
-        return generate_staff_evaluation_pdf(request, appraisal, context)
-
-    return render(request, "vc/vc_supervisor_report.html", context)
-
 
 @login_required
 def vc_download_department_report(request, department_id=None):

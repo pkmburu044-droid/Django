@@ -336,6 +336,180 @@
             height: 300px;
             width: 100%;
         }
+        
+        /* ====== BADGE STYLES ====== */
+        /* Fix badge visibility issue */
+        .badge {
+            display: inline-block !important;
+            padding: 0.35em 0.65em !important;
+            font-size: 0.75em !important;
+            font-weight: 700 !important;
+            line-height: 1 !important;
+            text-align: center !important;
+            white-space: nowrap !important;
+            vertical-align: baseline !important;
+            border-radius: 0.25rem !important;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+        }
+        
+        /* Bootstrap Badge Colors - Ensure they're visible */
+        .badge-success {
+            background-color: #28a745 !important;
+            color: white !important;
+        }
+        
+        .badge-primary {
+            background-color: #007bff !important;
+            color: white !important;
+        }
+        
+        .badge-warning {
+            background-color: #ffc107 !important;
+            color: #212529 !important;
+        }
+        
+        .badge-danger {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+        
+        .badge-info {
+            background-color: #17a2b8 !important;
+            color: white !important;
+        }
+        
+        .badge-secondary {
+            background-color: #6c757d !important;
+            color: white !important;
+        }
+        
+        .badge-light {
+            background-color: #f8f9fa !important;
+            color: #212529 !important;
+        }
+        
+        .badge-dark {
+            background-color: #343a40 !important;
+            color: white !important;
+        }
+        
+        /* Larger badges for better visibility */
+        .badge-lg {
+            padding: 0.5em 0.8em !important;
+            font-size: 0.85em !important;
+        }
+        
+        .badge-xl {
+            padding: 0.6em 1em !important;
+            font-size: 1em !important;
+        }
+        
+        /* Status badges with icons */
+        .status-badge {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 5px !important;
+            min-width: 100px !important;
+            justify-content: center !important;
+            padding: 0.4em 0.8em !important;
+        }
+        
+        /* Table specific badge styles */
+        .table .badge {
+            font-size: 0.7em !important;
+            padding: 0.25em 0.6em !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Make badges in table more visible */
+        .table td .badge {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Status-specific styles */
+        .badge-success {
+            background: linear-gradient(135deg, #28a745 0%, #1e964f 100%) !important;
+            border: 1px solid #1e7e34 !important;
+        }
+        
+        .badge-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+            border: 1px solid #0056b3 !important;
+        }
+        
+        .badge-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
+            border: 1px solid #d39e00 !important;
+        }
+        
+        .badge-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+            border: 1px solid #bd2130 !important;
+        }
+        
+        /* Hover effects for badges */
+        .badge:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+        
+        /* Table cell styling for badges */
+        td .badge {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-width: 90px !important;
+        }
+        
+        /* Ensure table text is visible */
+        .table td, .table th {
+            vertical-align: middle !important;
+        }
+        
+        .table td {
+            padding: 0.75rem !important;
+        }
+        
+        /* Text contrast for better visibility */
+        .text-success { color: #28a745 !important; }
+        .text-danger { color: #dc3545 !important; }
+        .text-warning { color: #ffc107 !important; }
+        .text-info { color: #17a2b8 !important; }
+        .text-primary { color: #007bff !important; }
+        
+        /* Action buttons in table */
+        .btn-sm {
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.875rem !important;
+            line-height: 1.5 !important;
+        }
+        
+        .btn-circle {
+            width: 32px !important;
+            height: 32px !important;
+            padding: 0 !important;
+            border-radius: 50% !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        
+        /* Ensure icons are visible */
+        .fas, .fa {
+            font-size: inherit !important;
+        }
+        
+        /* Score display */
+        .score-badge {
+            background: linear-gradient(135deg, #6f42c1 0%, #563d7c 100%) !important;
+            color: white !important;
+            font-weight: bold !important;
+            padding: 0.3em 0.8em !important;
+            border-radius: 20px !important;
+            font-size: 0.8em !important;
+        }
     </style>
 </head>
 <body>

@@ -11,6 +11,8 @@ urlpatterns = [
         views.vc_department_overview,
         name="vc_department_overview",
     ),
+    # urls.py
+    path('staff-results/<int:staff_id>/', views.vc_view_staff_results, name='vc_view_staff_results'),
     path(
         "departments/<int:department_id>/",
         views.vc_department_staff,

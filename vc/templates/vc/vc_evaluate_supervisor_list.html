@@ -1,0 +1,976 @@
+{% extends "vc/base.html" %}
+
+{% block title %}Evaluate Supervisors - VC Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Evaluate Supervisors</h1>
+    
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Supervisors
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_supervisors }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Ready for Evaluation
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ evaluatable_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Fully Evaluated
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ evaluated_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Completion Rate
+                            </div>
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-auto">
+                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ completion_rate }}%</div>
+                                </div>
+                                <div class="col">
+                                    <div class="progress progress-sm mr-2">
+                                        <div class="progress-bar bg-info" role="progressbar" 
+                                             style="width: {{ completion_rate }}%" 
+                                             aria-valuenow="{{ completion_rate }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Stats -->
+    <div class="row mb-4">
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                No Targets
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="no-targets-count">
+                                <span class="loading-spinner" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin fa-xs"></i>
+                                </span>
+                                <span class="count-value">{{ no_targets_count|default:0 }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-ban fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Incomplete Self
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="incomplete-self-count">
+                                <span class="loading-spinner" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin fa-xs"></i>
+                                </span>
+                                <span class="count-value">{{ incomplete_self_count|default:0 }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Partial Evaluation
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ partially_evaluated_count|default:0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-2 col-md-4 mb-4">
+            <div class="card border-left-secondary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                                Needs Details
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ needs_detailed_ratings_count|default:0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-8 mb-4">
+            <div class="card shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
+                                Evaluation Requirements
+                            </div>
+                            <div class="small text-muted">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                For full evaluation: <strong>Approved Targets</strong> + 
+                                <strong>Complete Self-Ratings</strong> + 
+                                <strong>Complete VC Ratings</strong> + 
+                                <strong>VC Appraisal</strong>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Buttons (Will be inserted by JavaScript) -->
+    <div id="filter-container"></div>
+
+    <!-- Supervisor Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Supervisor Evaluation List</h6>
+            <div aria-label="Evaluation status summary">
+                <span class="badge badge-primary mr-2">Ready: {{ evaluatable_count }}</span>
+                <span class="badge badge-success mr-2">Evaluated: {{ evaluated_count }}</span>
+                <span class="badge badge-info mr-2">Partial: {{ partially_evaluated_count|default:0 }}</span>
+                <span class="badge badge-warning mr-2">Pending: {{ pending_count }}</span>
+                <span class="badge badge-danger">No Targets: <span id="no-targets-count-badge">{{ no_targets_count|default:0 }}</span></span>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if supervisors %}
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>PF Number</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Targets</th>
+                            <th>Self-Ratings</th>
+                            <th>VC Ratings</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in supervisors %}
+                        <tr>
+                            <td>
+                                {% if item.supervisor.get_full_name %}
+                                    {{ item.supervisor.get_full_name }}
+                                {% elif item.supervisor.first_name %}
+                                    {{ item.supervisor.first_name }} {{ item.supervisor.last_name|default:"" }}
+                                {% elif item.supervisor.email %}
+                                    {{ item.supervisor.email|truncatechars:20 }}
+                                {% else %}
+                                    User #{{ item.supervisor.id }}
+                                {% endif %}
+                            </td>
+                            <td>{{ item.supervisor.pf_number|default:"N/A" }}</td>
+                            <td>
+                                {% if item.department %}
+                                    {{ item.department.name }}
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.status == "evaluated" %}
+                                    <span class="badge badge-success p-2" aria-label="Fully evaluated">
+                                        <i class="fas fa-check-double mr-1"></i> {{ item.status_label|default:"Evaluated" }}
+                                    </span>
+                                    {% if item.appraisal and item.appraisal.overall_score %}
+                                    <br>
+                                    <small class="text-muted">
+                                        Score: {{ item.appraisal.overall_score|floatformat:1 }}%
+                                    </small>
+                                    {% endif %}
+                                    
+                                {% elif item.status == "partially_evaluated" %}
+                                    <span class="badge badge-info p-2" aria-label="Partially evaluated">
+                                        <i class="fas fa-exclamation-circle mr-1"></i> {{ item.status_label|default:"Partially Evaluated" }}
+                                    </span>
+                                    {% if item.vc_rating_percentage %}
+                                    <br>
+                                    <small class="text-muted">
+                                        VC: {{ item.vc_rating_percentage|floatformat:0 }}%
+                                    </small>
+                                    {% endif %}
+                                    
+                                {% elif item.status == "needs_detailed_ratings" %}
+                                    <span class="badge badge-secondary p-2" aria-label="Needs detailed ratings">
+                                        <i class="fas fa-clipboard-list mr-1"></i> {{ item.status_label|default:"Needs Detailed Ratings" }}
+                                    </span>
+                                    {% if item.appraisal %}
+                                    <br>
+                                    <small class="text-muted">
+                                        Has appraisal, needs details
+                                    </small>
+                                    {% endif %}
+                                    
+                                {% elif item.status == "ready_for_evaluation" %}
+                                    <span class="badge badge-primary p-2" aria-label="Ready for evaluation">
+                                        <i class="fas fa-thumbs-up mr-1"></i> {{ item.status_label|default:"Ready for Evaluation" }}
+                                    </span>
+                                    {% if item.self_rating_percentage %}
+                                    <br>
+                                    <small class="text-muted">
+                                        Self: {{ item.self_rating_percentage|floatformat:0 }}%
+                                    </small>
+                                    {% endif %}
+                                    
+                                {% elif item.status == "incomplete_self_ratings" %}
+                                    <span class="badge badge-warning p-2" aria-label="Incomplete self ratings">
+                                        <i class="fas fa-user-clock mr-1"></i> {{ item.status_label|default:"Incomplete Self-Ratings" }}
+                                    </span>
+                                    {% if item.self_rating_percentage %}
+                                    <br>
+                                    <small class="text-muted">
+                                        Self: {{ item.self_rating_percentage|floatformat:0 }}%
+                                    </small>
+                                    {% endif %}
+                                    
+                                {% elif item.status == "pending_self_rating" %}
+                                    <span class="badge badge-warning p-2" aria-label="Pending self rating">
+                                        <i class="fas fa-user-clock mr-1"></i> {{ item.status_label|default:"Pending Self-Rating" }}
+                                    </span>
+                                    
+                                {% elif item.status == "no_targets" %}
+                                    <span class="badge badge-danger p-2" aria-label="No approved targets">
+                                        <i class="fas fa-ban mr-1"></i> {{ item.status_label|default:"No Approved Targets" }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge badge-secondary p-2">{{ item.status|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if item.has_targets %}
+                                    <span class="text-success" title="Has approved targets">
+                                        <i class="fas fa-check-circle fa-lg"></i>
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ item.approved_targets_count }} approved
+                                        {% if item.evaluated_targets_count > 0 %}
+                                            <br>{{ item.evaluated_targets_count }} rated
+                                        {% endif %}
+                                    </small>
+                                {% else %}
+                                    <span class="text-danger" title="No approved targets">
+                                        <i class="fas fa-times-circle fa-lg"></i>
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if item.self_rated %}
+                                    <span class="text-{% if item.has_all_self_ratings %}success{% else %}warning{% endif %}" 
+                                          title="{% if item.has_all_self_ratings %}Complete self-ratings{% else %}Incomplete self-ratings{% endif %}">
+                                        <i class="fas fa-{% if item.has_all_self_ratings %}check{% else %}exclamation{% endif %}-circle fa-lg"></i>
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ item.self_rating_count }}/{{ item.total_indicators_required }}
+                                        ({{ item.self_rating_percentage|floatformat:0 }}%)
+                                    </small>
+                                {% else %}
+                                    <span class="text-danger" title="No self-ratings">
+                                        <i class="fas fa-times-circle fa-lg"></i>
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if item.has_vc_detailed_ratings %}
+                                    <span class="text-{% if item.has_full_vc_ratings %}success{% else %}warning{% endif %}" 
+                                          title="{% if item.has_full_vc_ratings %}Complete VC ratings{% else %}Incomplete VC ratings{% endif %}">
+                                        <i class="fas fa-{% if item.has_full_vc_ratings %}check{% else %}exclamation{% endif %}-circle fa-lg"></i>
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ item.vc_rating_count }}/{{ item.total_indicators_required }}
+                                        ({{ item.vc_rating_percentage|floatformat:0 }}%)
+                                    </small>
+                                {% else %}
+                                    <span class="text-muted" title="No VC ratings">
+                                        <i class="fas fa-minus-circle fa-lg"></i>
+                                    </span>
+                                    {% if item.has_vc_appraisal %}
+                                    <br>
+                                    <small class="text-muted text-info">
+                                        Has appraisal
+                                    </small>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <!-- Action buttons with status indicator -->
+                                <div class="d-flex align-items-center">
+                                    {% if item.status == "evaluated" %}
+                                        <!-- Fully Evaluated: Show View Report -->
+                                        <a href="{% url 'vc:vc_download_supervisor_report' item.supervisor.id %}" 
+                                           class="btn btn-sm btn-success mr-2" title="View Evaluation Report" aria-label="View evaluation report for {{ item.supervisor.get_full_name }}">
+                                            <i class="fas fa-eye mr-1"></i> View Report
+                                        </a>
+                                        {% if item.appraisal and item.appraisal.overall_score %}
+                                            <span class="badge badge-info" aria-label="Overall score {{ item.appraisal.overall_score|floatformat:1 }} percent">
+                                                {{ item.appraisal.overall_score|floatformat:1 }}%
+                                            </span>
+                                        {% endif %}
+                                        
+                                    {% elif item.status == "ready_for_evaluation" %}
+                                        <!-- Ready: Show Evaluate button -->
+                                        <a href="{% url 'vc:vc_evaluate_supervisor' item.supervisor.id %}" 
+                                           class="btn btn-sm btn-primary" title="Evaluate Supervisor" aria-label="Evaluate {{ item.supervisor.get_full_name }}">
+                                            <i class="fas fa-edit mr-1"></i> Evaluate Now
+                                        </a>
+                                        
+                                    {% elif item.status == "partially_evaluated" %}
+                                        <!-- Partially evaluated: Can view or complete -->
+                                        <div class="d-flex">
+                                            <a href="{% url 'vc:vc_evaluate_supervisor' item.supervisor.id %}" 
+                                               class="btn btn-sm btn-info mr-2" title="Complete Evaluation" aria-label="Complete evaluation for {{ item.supervisor.get_full_name }}">
+                                                <i class="fas fa-edit mr-1"></i> Complete
+                                            </a>
+                                            <a href="{% url 'vc:vc_download_supervisor_report' item.supervisor.id %}" 
+                                               class="btn btn-sm btn-outline-info" title="View Current Report" aria-label="View current report for {{ item.supervisor.get_full_name }}">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                        
+                                    {% elif item.status == "needs_detailed_ratings" %}
+                                        <!-- Has appraisal but needs detailed ratings -->
+                                        <div class="d-flex">
+                                            <a href="{% url 'vc:vc_evaluate_supervisor' item.supervisor.id %}" 
+                                               class="btn btn-sm btn-secondary mr-2" title="Add Detailed Ratings" aria-label="Add detailed ratings for {{ item.supervisor.get_full_name }}">
+                                                <i class="fas fa-edit mr-1"></i> Add Details
+                                            </a>
+                                            {% if item.appraisal %}
+                                            <a href="{% url 'vc:vc_download_supervisor_report' item.supervisor.id %}" 
+                                               class="btn btn-sm btn-outline-secondary" title="View Appraisal" aria-label="View appraisal for {{ item.supervisor.get_full_name }}">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                        
+                                    {% elif item.status == "incomplete_self_ratings" %}
+                                        <!-- Incomplete self-ratings -->
+                                        <div class="d-flex flex-column">
+                                            <span class="badge badge-warning mb-1">
+                                                <i class="fas fa-user-clock mr-1"></i> Incomplete
+                                            </span>
+                                            <small class="text-muted">
+                                                {{ item.self_rating_count|default:0 }}/{{ item.total_indicators_required }} self-rated
+                                            </small>
+                                        </div>
+                                        
+                                    {% elif item.status == "pending_self_rating" %}
+                                        <!-- Needs self-ratings -->
+                                        <div class="d-flex flex-column">
+                                            <span class="badge badge-warning mb-1">
+                                                <i class="fas fa-user-clock mr-1"></i> Waiting
+                                            </span>
+                                            <small class="text-muted">Needs self-ratings</small>
+                                        </div>
+                                        
+                                    {% elif item.status == "no_targets" %}
+                                        <!-- No approved targets -->
+                                        <div class="d-flex flex-column align-items-start">
+                                            <span class="badge badge-danger mb-1">
+                                                <i class="fas fa-ban mr-1"></i> Cannot Evaluate
+                                            </span>
+                                            <small class="text-muted">Approved targets required</small>
+                                        </div>
+                                        
+                                    {% else %}
+                                        <!-- Other status -->
+                                        <span class="badge badge-secondary">{{ item.status|title }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info" role="alert">
+                <i class="fas fa-info-circle"></i> No supervisors found for evaluation.
+                {% if current_period %}
+                    <p class="mt-2 mb-0">Current period: <strong>{{ current_period.name }}</strong></p>
+                {% else %}
+                    <p class="mt-2 mb-0">No active evaluation period found.</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col-md-8">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Evaluation Requirements:</strong> 
+                        1. Approved Targets, 2. Complete Self-Ratings, 3. Complete VC Ratings, 4. VC Appraisal
+                    </small>
+                </div>
+                <div class="col-md-4 text-right">
+                    <!-- Status Legend -->
+                    <div class="status-legend">
+                        <small class="text-muted mr-2">
+                            <span class="badge badge-success mr-1">✓✓</span> Evaluated
+                        </small>
+                        <small class="text-muted mr-2">
+                            <span class="badge badge-info mr-1">!</span> Partial
+                        </small>
+                        <small class="text-muted mr-2">
+                            <span class="badge badge-secondary mr-1">📋</span> Needs Details
+                        </small>
+                        <small class="text-muted mr-2">
+                            <span class="badge badge-primary mr-1">✓</span> Ready
+                        </small>
+                        <small class="text-muted mr-2">
+                            <span class="badge badge-warning mr-1">⏱</span> Incomplete Self
+                        </small>
+                        <small class="text-muted">
+                            <span class="badge badge-danger mr-1">✗</span> No Targets
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Show loading indicators for dynamic counters
+    function showLoading() {
+        $('.loading-spinner').show();
+    }
+    
+    function hideLoading() {
+        $('.loading-spinner').hide();
+    }
+    
+    // Calculate counts for the stats cards with error handling
+    function calculateStats() {
+        try {
+            let noTargetsCount = 0;
+            let incompleteSelfCount = 0;
+            let needsSelfRatingsCount = 0;
+            
+            showLoading();
+            
+            // Count through the table rows safely
+            const tableBody = $('#dataTable tbody');
+            if (tableBody.length && tableBody.find('tr').length > 0) {
+                $('#dataTable tbody tr').each(function() {
+                    const statusBadge = $(this).find('.badge');
+                    if (statusBadge.length) {
+                        const statusText = statusBadge.text().toLowerCase();
+                        const statusClass = statusBadge.attr('class') || '';
+                        
+                        if (statusText.includes('no targets') || 
+                            statusText.includes('no approved') || 
+                            statusClass.includes('badge-danger')) {
+                            noTargetsCount++;
+                        }
+                        
+                        if (statusText.includes('incomplete self') || 
+                            statusText.includes('incomplete self-ratings')) {
+                            incompleteSelfCount++;
+                        }
+                        
+                        if (statusText.includes('pending self') || 
+                            statusText.includes('need self-rating')) {
+                            needsSelfRatingsCount++;
+                        }
+                    }
+                });
+            } else {
+                // If no table rows, use server-side values
+                noTargetsCount = parseInt($('#no-targets-count .count-value').text()) || 0;
+                incompleteSelfCount = parseInt($('#incomplete-self-count .count-value').text()) || 0;
+            }
+            
+            // Update the counters with fallback values
+            $('#no-targets-count .count-value').text(noTargetsCount);
+            $('#no-targets-count-badge').text(noTargetsCount);
+            $('#incomplete-self-count .count-value').text(incompleteSelfCount + needsSelfRatingsCount);
+            
+            hideLoading();
+            
+            return {
+                noTargets: noTargetsCount,
+                incompleteSelf: incompleteSelfCount + needsSelfRatingsCount
+            };
+        } catch (error) {
+            console.error('Error calculating stats:', error);
+            hideLoading();
+            return { noTargets: 0, incompleteSelf: 0 };
+        }
+    }
+    
+    // Clean up existing DataTable instance
+    function cleanupDataTable() {
+        if ($.fn.DataTable.isDataTable('#dataTable')) {
+            $('#dataTable').DataTable().destroy();
+            $('#dataTable').empty();
+        }
+    }
+    
+    // Initialize DataTable
+    function initializeDataTable() {
+        cleanupDataTable();
+        
+        const table = $('#dataTable').DataTable({
+            "pageLength": 10,
+            "ordering": true,
+            "responsive": true,
+            "order": [[3, 'asc']], // Sort by Status column
+            "columnDefs": [
+                {
+                    "targets": [7], // Actions column
+                    "orderable": false,
+                    "searchable": false
+                }
+            ],
+            "language": {
+                "search": "Search supervisors:",
+                "zeroRecords": "No matching supervisors found",
+                "info": "Showing _START_ to _END_ of _TOTAL_ supervisors",
+                "infoEmpty": "No supervisors available",
+                "infoFiltered": "(filtered from _MAX_ total supervisors)"
+            },
+            "initComplete": function() {
+                // Calculate stats after table is initialized
+                const stats = calculateStats();
+                updateFilterButtons(stats);
+            },
+            "drawCallback": function() {
+                // Recalculate stats after each table draw
+                const stats = calculateStats();
+                updateFilterButtons(stats);
+                
+                // Add row highlighting based on status
+                $('#dataTable tbody tr').each(function() {
+                    var statusBadge = $(this).find('.badge');
+                    if (statusBadge.length) {
+                        var statusClass = statusBadge.attr('class');
+                        if (statusClass.includes('badge-success')) {
+                            $(this).addClass('table-success');
+                        } else if (statusClass.includes('badge-primary')) {
+                            $(this).addClass('table-primary-light');
+                        } else if (statusClass.includes('badge-warning')) {
+                            $(this).addClass('table-warning-light');
+                        } else if (statusClass.includes('badge-danger')) {
+                            $(this).addClass('table-danger-light');
+                        } else if (statusClass.includes('badge-info')) {
+                            $(this).addClass('table-info-light');
+                        } else if (statusClass.includes('badge-secondary')) {
+                            $(this).addClass('table-secondary-light');
+                        }
+                    }
+                });
+            }
+        });
+        
+        return table;
+    }
+    
+    // Initialize Bootstrap tooltips
+    function initializeTooltips() {
+        $('[title]').tooltip({
+            trigger: 'hover',
+            placement: 'top'
+        });
+    }
+    
+    // Create filter buttons
+    function createFilterButtons(stats) {
+        const incompleteSelfCount = stats?.incompleteSelf || parseInt($('#incomplete-self-count .count-value').text()) || 0;
+        const noTargetsCount = stats?.noTargets || parseInt($('#no-targets-count .count-value').text()) || 0;
+        
+        const filterButtons = `
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Filter supervisors by status">
+                        <button type="button" class="btn btn-outline-primary filter-btn" data-filter="all">All ({{ total_supervisors }})</button>
+                        <button type="button" class="btn btn-outline-success filter-btn" data-filter="evaluated">Evaluated ({{ evaluated_count }})</button>
+                        <button type="button" class="btn btn-outline-primary filter-btn" data-filter="ready_for_evaluation">Ready ({{ evaluatable_count }})</button>
+                        <button type="button" class="btn btn-outline-info filter-btn" data-filter="partially_evaluated">Partial ({{ partially_evaluated_count|default:0 }})</button>
+                        <button type="button" class="btn btn-outline-secondary filter-btn" data-filter="needs_detailed_ratings">Needs Details ({{ needs_detailed_ratings_count|default:0 }})</button>
+                        <button type="button" class="btn btn-outline-warning filter-btn" data-filter="incomplete_self_ratings">Incomplete Self (${incompleteSelfCount})</button>
+                        <button type="button" class="btn btn-outline-danger filter-btn" data-filter="no_targets">No Targets (${noTargetsCount})</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('#filter-container').html(filterButtons);
+    }
+    
+    // Update filter button counts
+    function updateFilterButtons(stats) {
+        const incompleteSelfCount = stats?.incompleteSelf || parseInt($('#incomplete-self-count .count-value').text()) || 0;
+        const noTargetsCount = stats?.noTargets || parseInt($('#no-targets-count .count-value').text()) || 0;
+        
+        $('.filter-btn[data-filter="incomplete_self_ratings"]').text(`Incomplete Self (${incompleteSelfCount})`);
+        $('.filter-btn[data-filter="no_targets"]').text(`No Targets (${noTargetsCount})`);
+    }
+    
+    // Add filter functionality
+    function setupFiltering(table) {
+        $('.filter-btn').on('click', function(e) {
+            e.preventDefault();
+            var filter = $(this).data('filter');
+            
+            // Remove active class from all buttons
+            $('.filter-btn').removeClass('active');
+            // Add active class to clicked button
+            $(this).addClass('active');
+            
+            if (filter === 'all') {
+                table.search('').columns().search('').draw();
+            } else {
+                // Search in the status column (index 3)
+                table.columns(3).search(filter).draw();
+            }
+        });
+    }
+    
+    // Main initialization
+    function initialize() {
+        try {
+            const table = initializeDataTable();
+            initializeTooltips();
+            
+            // Create and setup filter buttons
+            createFilterButtons(calculateStats());
+            setupFiltering(table);
+            
+            // Set initial active filter
+            $('.filter-btn[data-filter="all"]').addClass('active');
+            
+            // Cleanup on page unload
+            $(window).on('beforeunload', function() {
+                cleanupDataTable();
+            });
+            
+        } catch (error) {
+            console.error('Error initializing dashboard:', error);
+            // Fallback: Show basic table if DataTables fails
+            $('#dataTable').addClass('table').addClass('table-striped');
+        }
+    }
+    
+    // Start initialization
+    initialize();
+});
+</script>
+
+<style>
+/* Custom styles for better visibility */
+.status-legend {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.badge.p-2 {
+    min-width: 120px;
+    text-align: center;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Filter buttons */
+.filter-btn {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.filter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.filter-btn.active {
+    font-weight: bold;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.filter-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: currentColor;
+    opacity: 0.7;
+}
+
+/* Status badge colors */
+.badge.badge-success { background-color: #28a745; }
+.badge.badge-primary { background-color: #007bff; }
+.badge.badge-warning { background-color: #ffc107; color: #212529; }
+.badge.badge-danger { background-color: #dc3545; }
+.badge.badge-info { background-color: #17a2b8; }
+.badge.badge-secondary { background-color: #6c757d; }
+
+/* Light background for status rows */
+.table-success {
+    background-color: rgba(40, 167, 69, 0.05) !important;
+}
+
+.table-primary-light {
+    background-color: rgba(0, 123, 255, 0.05) !important;
+}
+
+.table-warning-light {
+    background-color: rgba(255, 193, 7, 0.05) !important;
+}
+
+.table-danger-light {
+    background-color: rgba(220, 53, 69, 0.05) !important;
+}
+
+.table-info-light {
+    background-color: rgba(23, 162, 184, 0.05) !important;
+}
+
+.table-secondary-light {
+    background-color: rgba(108, 117, 125, 0.05) !important;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: inline-block;
+    margin-right: 5px;
+    color: #6c757d;
+}
+
+/* Make table more readable */
+#dataTable th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+#dataTable td {
+    vertical-align: middle;
+}
+
+/* Progress bar styling */
+.progress {
+    background-color: #e9ecef;
+    height: 0.5rem;
+}
+
+.progress-bar {
+    background-color: #17a2b8;
+    transition: width 0.6s ease;
+}
+
+/* Card improvements */
+.card-header {
+    border-bottom: 1px solid #e3e6f0;
+    background-color: #f8f9fc;
+}
+
+.card-footer {
+    border-top: 1px solid #e3e6f0;
+    background-color: #f8f9fc;
+}
+
+/* Icon colors */
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.text-info {
+    color: #17a2b8 !important;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* Focus states for accessibility */
+.btn:focus,
+.filter-btn:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .status-legend {
+        justify-content: flex-start;
+        margin-top: 10px;
+    }
+    
+    .badge.p-2 {
+        min-width: 100px;
+        font-size: 0.8rem;
+    }
+    
+    .card-header .d-flex {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    
+    .card-header .badge {
+        margin-top: 5px;
+        margin-right: 5px;
+    }
+    
+    .filter-btn {
+        margin-bottom: 5px;
+        font-size: 0.75rem;
+    }
+    
+    #dataTable {
+        font-size: 0.85rem;
+    }
+    
+    #dataTable td, #dataTable th {
+        padding: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .h5 {
+        font-size: 1.1rem;
+    }
+    
+    .text-xs {
+        font-size: 0.7rem;
+    }
+    
+    .status-legend {
+        font-size: 0.7rem;
+    }
+}
+
+/* Print styles */
+@media print {
+    .filter-btn,
+    .card-header .badge,
+    .card-footer,
+    .btn-group {
+        display: none !important;
+    }
+    
+    #dataTable {
+        font-size: 10pt;
+    }
+    
+    .table-success,
+    .table-primary-light,
+    .table-warning-light,
+    .table-danger-light,
+    .table-info-light,
+    .table-secondary-light {
+        background-color: transparent !important;
+    }
+}
+</style>
+{% endblock %}

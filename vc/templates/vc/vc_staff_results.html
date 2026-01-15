@@ -1,0 +1,8 @@
+{% extends 'vc/base.html' %}
+
+{% block content %}
+<h1>Debug Page</h1>
+<p>Staff: {{ staff.get_full_name }}</p>
+<p>Period: {{ current_period.name|default:"No period" }}</p>
+{% endblock %}
+<p>Test: {{ test }}</p>
