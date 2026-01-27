@@ -11,7 +11,6 @@ urlpatterns = [
         views.vc_department_overview,
         name="vc_department_overview",
     ),
-    # urls.py
     path('staff-results/<int:staff_id>/', views.vc_view_staff_results, name='vc_view_staff_results'),
     path(
         "departments/<int:department_id>/",
@@ -33,7 +32,6 @@ urlpatterns = [
         views.vc_download_supervisor_report,
         name="vc_download_supervisor_report",
     ),
-    # FIXED: Use same name for both patterns
     path(
         "reports/department/",
         views.vc_download_department_report,
@@ -58,4 +56,15 @@ urlpatterns = [
     path(
         "export/<str:data_type>/", views.vc_export_data, name="vc_export_data"
     ),
+    
+    # TARGET APPROVAL URLs
+    path('targets/approval/', views.vc_targets_approval, name='vc_targets_approval'),
+    
+    # Individual target detail (for specific target)
+    path('targets/<str:target_type>/<int:target_id>/', views.vc_target_detail, name='vc_target_detail'),
+    
+    # NEW: Supervisor targets view (for viewing all targets of a supervisor)
+    path('targets/supervisor/<int:supervisor_id>/', views.vc_supervisor_targets, name='vc_supervisor_targets'),
+    
+    path('targets/approved/', views.vc_approved_targets, name='vc_approved_targets'),
 ]

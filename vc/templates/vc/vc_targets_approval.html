@@ -1,0 +1,292 @@
+{% extends "vc/base.html" %}
+{% load static %}
+{% block title %}Approve Targets - Vice Chancellor{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">✅ Approve Performance Targets</h2>
+            <p class="text-muted mb-0">Review and approve performance targets across all departments.</p>
+        </div>
+        <div class="text-end mt-3 mt-md-0">
+            <span class="badge bg-primary text-white me-2 p-2">
+                👨‍🏫 Vice Chancellor Dashboard
+            </span>
+            {% if total_pending > 0 %}
+            <span class="badge bg-warning text-dark p-2">
+                ⏳ {{ total_pending }} Pending
+            </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="mb-4">
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'vc:vc_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+            </a>
+            <a href="{% url 'vc:vc_approved_targets' %}" class="btn btn-success btn-sm">
+                <i class="bi bi-check-circle me-1"></i>View Approved
+            </a>
+        </div>
+    </div>
+
+    <!-- Current Period -->
+    {% if active_period %}
+    <div class="alert alert-primary mb-4">
+        <strong><i class="bi bi-calendar-check me-2"></i>Current Evaluation Period:</strong> {{ active_period.name }}
+        ({{ active_period.start_date|date:"M d, Y" }} - {{ active_period.end_date|date:"M d, Y" }})
+        <span class="badge bg-light text-primary ms-2">Active</span>
+    </div>
+    {% else %}
+    <div class="alert alert-warning mb-4">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        No active evaluation period found.
+    </div>
+    {% endif %}
+
+    <!-- Quick Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center bg-primary text-white">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ total_supervisors }}</h3>
+                    <p class="mb-0">Total Supervisors</p>
+                    <small>All departments</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center {% if supervisors_with_pending > 0 %}bg-warning text-dark{% else %}bg-light{% endif %}">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ supervisors_with_pending }}</h3>
+                    <p class="mb-0">Need Approval</p>
+                    <small>Have pending targets</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center {% if total_pending > 0 %}bg-danger text-white{% else %}bg-light{% endif %}">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ total_pending }}</h3>
+                    <p class="mb-0">Pending Targets</p>
+                    <small>Awaiting approval</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center bg-success text-white">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ approved_count|default:0 }}</h3>
+                    <p class="mb-0">Approved Targets</p>
+                    <small>Already approved</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <select name="type" class="form-select" onchange="this.form.submit()">
+                                <option value="">All Types</option>
+                                <option value="supervisors" {% if request.GET.type == 'supervisors' %}selected{% endif %}>Supervisor Targets</option>
+                                <option value="regular" {% if request.GET.type == 'regular' %}selected{% endif %}>Regular Staff Targets</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="department" class="form-select" onchange="this.form.submit()">
+                                <option value="">All Departments</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept.name }}" {% if request.GET.department == dept.name %}selected{% endif %}>
+                                    {{ dept.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="status" class="form-select" onchange="this.form.submit()">
+                                <option value="">All Status</option>
+                                <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending Only</option>
+                                <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved Only</option>
+                                <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected Only</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{% url 'vc:vc_targets_approval' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Clear Filters
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Targets Table -->
+    {% if supervisors %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-person-badge me-2"></i>University Supervisors
+                <span class="badge bg-light text-dark ms-2">{{ supervisors|length }} total</span>
+            </h5>
+            <a href="#" class="btn btn-light btn-sm" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+            </a>
+        </div>
+        
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Supervisor</th>
+                            <th class="text-center">Department</th>
+                            <th class="text-center">Target Status</th>
+                            <th class="text-center">Targets Summary</th>
+                            <th class="text-center">Last Updated</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for supervisor in supervisors %}
+                        <tr class="{% if supervisor.pending_count > 0 %}table-warning{% elif supervisor.total_targets == 0 %}table-light{% else %}table-default{% endif %}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-placeholder me-3">
+                                        <i class="bi bi-person-circle fs-4 text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="d-block">{{ supervisor.full_name }}</strong>
+                                        <small class="text-muted">{{ supervisor.email }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-info text-white">
+                                    <i class="bi bi-building me-1"></i>{{ supervisor.department }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                {% if supervisor.total_targets == 0 %}
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-dash-circle me-1"></i>No Targets
+                                    </span>
+                                {% elif supervisor.pending_count > 0 %}
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-clock me-1"></i>{{ supervisor.pending_count }} Pending
+                                    </span>
+                                {% elif supervisor.approved_count == supervisor.total_targets %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle me-1"></i>All Approved
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning">
+                                        <i class="bi bi-exclamation-circle me-1"></i>Mixed Status
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    {% if supervisor.total_targets > 0 %}
+                                    <span class="badge bg-primary" title="Total Targets">
+                                        {{ supervisor.total_targets }}
+                                    </span>
+                                    {% endif %}
+                                    {% if supervisor.approved_count > 0 %}
+                                    <span class="badge bg-success" title="Approved">
+                                        {{ supervisor.approved_count }}
+                                    </span>
+                                    {% endif %}
+                                    {% if supervisor.pending_count > 0 %}
+                                    <span class="badge bg-warning" title="Pending">
+                                        {{ supervisor.pending_count }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                {% if supervisor.latest_update %}
+                                <small>{{ supervisor.latest_update|date:"M d, Y" }}</small>
+                                {% else %}
+                                <small class="text-muted">-</small>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if supervisor.total_targets > 0 %}
+                                <a href="{% url 'vc:vc_supervisor_targets' supervisor.id %}" 
+                                   class="btn {% if supervisor.pending_count > 0 %}btn-warning{% else %}btn-primary{% endif %} btn-sm">
+                                    <i class="bi bi-eye me-1"></i>
+                                    {% if supervisor.pending_count > 0 %}
+                                    Review Targets
+                                    {% else %}
+                                    View Targets
+                                    {% endif %}
+                                </a>
+                                {% else %}
+                                <span class="text-muted small">No targets set</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card mb-4">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-people display-4 text-muted mb-3"></i>
+            <h5 class="text-muted mb-3">No Supervisors Found</h5>
+            <p class="text-muted">There are no active supervisors in the system.</p>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<style>
+.card {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+.table-primary {
+    background-color: rgba(13, 110, 253, 0.1);
+}
+.table-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+}
+.table-light {
+    background-color: rgba(248, 249, 250, 0.5);
+}
+.avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(13, 110, 253, 0.1);
+}
+.badge {
+    font-weight: 500;
+    padding: 4px 8px;
+}
+.btn-sm {
+    padding: 4px 12px;
+    font-size: 0.875rem;
+    {% endblock %}
+
+}
+</style>

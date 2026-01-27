@@ -40,9 +40,9 @@ from users.models import (
     StaffAppraisal,
     StaffProfile,
 )
+from vc.services.vc_target_approval_service import VCTargetApprovalService
 from vc.services.vc_department_service import VCDepartmentService
 from vc.services.vc_evaluation_service import VCEvaluationService
-
 
 @login_required
 def vc_dashboard(request):
@@ -558,33 +558,290 @@ def vc_department_staff(request, department_id):
         traceback.print_exc()
         return redirect("vc:vc_department_overview")
 
+
 @login_required
-def vc_view_staff_results(request, staff_id):
+def vc_view_staff_results(request, staff_id=None):
+    """
+    View staff evaluation results - supports both list and detail views
+    Regular staff only (not supervisors)
+    """
     if not request.user.is_vc_staff:
         messages.error(request, "Only Vice Chancellor can access this page.")
         return redirect("users:role_based_redirect")
     
     try:
-        staff = get_object_or_404(CustomUser, id=staff_id)
-        active_period = SPEPeriod.objects.filter(is_active=True).first()
+        # Check if we're viewing a specific staff member or listing
+        if staff_id:
+            # DETAIL VIEW: Specific staff results
+            staff = get_object_or_404(CustomUser, id=staff_id)
+            
+            # Check if this is a supervisor - redirect to supervisor view if needed
+            if staff.role == "supervisor":
+                messages.info(request, "Supervisor evaluations are handled separately.")
+                return redirect('vc:vc_department_staff', department_id=staff.department.id)
+            
+            active_period = SPEPeriod.objects.filter(is_active=True).first()
+            
+            # Initialize data structures
+            results = {
+                'percentage_score': 0,
+                'avg_score': 0,
+                'total_indicators': 0,
+                'weighted_score': 0,
+                'completed_evaluations': 0
+            }
+            
+            # Get self assessment data
+            self_assessments_data = []
+            
+            # Get performance targets for regular staff
+            performance_targets_data = []
+            has_targets = False
+            target_stats = {
+                'total': 0,
+                'approved': 0,
+                'evaluated': 0,
+                'average_score': 0
+            }
+            
+            # Initialize target status counts
+            target_status_counts = {
+                'draft': 0,
+                'submitted': 0,
+                'pending': 0,
+                'approved': 0,
+                'rejected': 0,
+                'evaluated': 0
+            }
+            
+            # FIXED: Remove the try-except ImportError block since PerformanceTarget is already imported
+            # Get performance targets for this staff member - USE PerformanceTarget FROM users.models
+            targets = PerformanceTarget.objects.filter(
+                staff=staff,
+                period=active_period
+            ).order_by('target_number')
+            
+            has_targets = targets.exists()
+            target_stats['total'] = targets.count()
+            target_stats['approved'] = targets.filter(status='approved').count()
+            target_stats['evaluated'] = targets.filter(performance_rating__isnull=False).count()
+            
+            # Calculate average target score
+            evaluated_targets_list = targets.filter(performance_rating__isnull=False)
+            if evaluated_targets_list.exists():
+                total_score = sum(t.performance_rating for t in evaluated_targets_list if t.performance_rating)
+                target_stats['average_score'] = total_score / evaluated_targets_list.count()
+            
+            # Count targets by status
+            for target in targets:
+                status = target.status or 'draft'
+                if status in target_status_counts:
+                    target_status_counts[status] += 1
+                # Count evaluated targets separately
+                if target.performance_rating is not None:
+                    target_status_counts['evaluated'] += 1
+            
+            # Prepare targets data for template
+            for i, target in enumerate(targets, 1):
+                target_data = {
+                    'number': i,
+                    'description': target.description or "No description",
+                    'success_measures': target.success_measures or "",
+                    'status': target.status or 'draft',
+                    'performance_rating': target.performance_rating,
+                    'performance_comments': target.supervisor_comments or "",
+                    'evaluated_at': target.updated_at if target.performance_rating else None,
+                    'is_evaluated': target.performance_rating is not None,
+                    'rating_scale': target.rating_scale,
+                }
+                
+                # Determine performance class
+                if target_data['performance_rating']:
+                    rating = target_data['performance_rating']
+                    if rating >= 80:
+                        target_data['performance_class'] = 'success'
+                        target_data['performance_category'] = 'Excellent'
+                    elif rating >= 60:
+                        target_data['performance_class'] = 'info'
+                        target_data['performance_category'] = 'Good'
+                    elif rating >= 50:
+                        target_data['performance_class'] = 'warning'
+                        target_data['performance_category'] = 'Satisfactory'
+                    else:
+                        target_data['performance_class'] = 'danger'
+                        target_data['performance_category'] = 'Needs Improvement'
+                else:
+                    target_data['performance_class'] = 'secondary'
+                    target_data['performance_category'] = 'Not Evaluated'
+                
+                performance_targets_data.append(target_data)
+            
+            try:
+                profile = get_object_or_404(StaffProfile, user=staff)
+                
+                appraisal = StaffAppraisal.objects.filter(
+                    profile=profile,
+                    period=active_period
+                ).order_by('-updated_at').first()
+                
+                if appraisal:
+                    from spe.models import SelfAssessment, SupervisorEvaluation
+                    self_assessments = SelfAssessment.objects.filter(
+                        staff=staff,
+                        period=active_period
+                    ).select_related('attribute', 'indicator')
+                    
+                    evaluations = SupervisorEvaluation.objects.filter(
+                        self_assessment__in=self_assessments
+                    ).select_related('self_assessment__attribute', 'self_assessment__indicator')
+                    
+                    eval_dict = {e.self_assessment.id: e for e in evaluations}
+                    
+                    for assessment in self_assessments:
+                        eval = eval_dict.get(assessment.id)
+                        supervisor_rating = eval.supervisor_rating if eval else None
+                        
+                        assessment_dict = {
+                            'attribute': assessment.attribute,
+                            'indicator': assessment.indicator,
+                            'self_rating': assessment.self_rating,
+                            'supervisor_rating': supervisor_rating,
+                            'supervisor_comments': eval.remarks if eval else '',
+                        }
+                        self_assessments_data.append(assessment_dict)
+                    
+                    if appraisal.overall_score:
+                        results['percentage_score'] = float(appraisal.overall_score)
+                    elif appraisal.total_score:
+                        results['percentage_score'] = float(appraisal.total_score)
+                        
+            except StaffProfile.DoesNotExist:
+                messages.warning(request, f"No profile found for {staff.get_full_name()}.")
+                return redirect('vc:vc_department_staff', department_id=staff.department.id)
+            except ImportError as e:
+                print(f"Import error: {e}")
+                messages.warning(request, "Self-assessment models not available.")
+            
+            # Calculate average score
+            if self_assessments_data:
+                total_ratings = 0
+                count_with_ratings = 0
+                
+                for assessment in self_assessments_data:
+                    if assessment.get('supervisor_rating') is not None:
+                        total_ratings += assessment['supervisor_rating']
+                        count_with_ratings += 1
+                    elif assessment.get('self_rating') is not None:
+                        total_ratings += assessment['self_rating']
+                        count_with_ratings += 1
+                
+                if count_with_ratings > 0:
+                    results['avg_score'] = total_ratings / count_with_ratings
+                    results['total_indicators'] = count_with_ratings
+                    results['completed_evaluations'] = count_with_ratings
+                    results['weighted_score'] = (total_ratings / count_with_ratings) * 20
+            
+            # Calculate performance class
+            percentage_score = results['percentage_score']
+            if percentage_score >= 90:
+                performance_class = "success"
+                performance = "Outstanding"
+            elif percentage_score >= 80:
+                performance_class = "primary"
+                performance = "Excellent"
+            elif percentage_score >= 70:
+                performance_class = "info"
+                performance = "Good"
+            elif percentage_score >= 60:
+                performance_class = "warning"
+                performance = "Satisfactory"
+            elif percentage_score >= 50:
+                performance_class = "secondary"
+                performance = "Needs Improvement"
+            else:
+                performance_class = "danger"
+                performance = "Unsatisfactory"
+            
+            # Get all staff appraisals for history
+            all_staff_appraisals = []
+            try:
+                profile = StaffProfile.objects.get(user=staff)
+                all_staff_appraisals = StaffAppraisal.objects.filter(
+                    profile=profile
+                ).select_related('period').order_by('-created_at')[:10]
+            except StaffProfile.DoesNotExist:
+                pass
+            
+            # Prepare summary
+            summary = {
+                'percentage_score': f"{percentage_score:.1f}",
+                'avg_score': f"{results['avg_score']:.1f}",
+                'total_indicators': results['total_indicators'],
+                'weighted_score': f"{results['weighted_score']:.1f}",
+            }
+            
+            context = {
+                'appraisal': True,  # Flag to show detail view
+                'staff': staff,
+                'performance': performance,
+                'performance_class': performance_class,
+                'summary': summary,
+                'self_assessments': self_assessments_data,
+                'all_staff_appraisals': all_staff_appraisals,
+                'has_targets': has_targets,
+                'performance_targets': performance_targets_data,
+                'target_stats': target_stats,
+                'target_status_counts': target_status_counts,
+                'evaluated_targets': target_stats['evaluated'],
+                'current_period': active_period,
+            }
+            
+        else:
+            # LIST VIEW: All regular staff in VC's department(s)
+            # Get all departments under VC's purview
+            from hr.models import Department
+            vc_departments = Department.objects.all()  # VC can see all departments
+            
+            # Get all regular staff (non-supervisors) with appraisals
+            appraisals_list = []
+            for dept in vc_departments:
+                # Get only non-supervisor staff
+                dept_staff = CustomUser.objects.filter(
+                    department=dept
+                ).exclude(role="supervisor")
+                
+                for staff_member in dept_staff:
+                    try:
+                        profile = StaffProfile.objects.get(user=staff_member)
+                        appraisal = StaffAppraisal.objects.filter(
+                            profile=profile,
+                            period__is_active=True
+                        ).first()
+                        
+                        if appraisal and appraisal.status == 'reviewed':
+                            appraisals_list.append({
+                                'id': appraisal.id,
+                                'staff': staff_member,
+                                'profile': profile,
+                                'period': appraisal.period,
+                                'status': appraisal.status,
+                                'created_at': appraisal.created_at,
+                                'overall_score': getattr(appraisal, 'overall_score', 0),
+                                'is_supervisor': False,
+                            })
+                    except StaffProfile.DoesNotExist:
+                        continue
+            
+            # Get a sample department for display
+            sample_dept = vc_departments.first() if vc_departments.exists() else None
+            
+            context = {
+                'appraisal': None,  # Flag to show list view
+                'appraisals': appraisals_list,
+                'department': sample_dept,
+            }
         
-        # Create a minimal context first to test
-        minimal_context = {
-            'staff': staff,
-            'current_period': active_period,
-            'evaluator_name': 'Vice Chancellor',
-            'test': 'test value',  # Simple test value
-        }
-        
-        print(f"DEBUG: Context type: {type(minimal_context)}")
-        print(f"DEBUG: Context keys: {list(minimal_context.keys())}")
-        
-        # Try with minimal context first
-        return render(
-            request=request, 
-            template_name='vc/vc_staff_results.html', 
-            context=minimal_context
-        )
+        return render(request, 'vc/vc_staff_results.html', context)
         
     except Exception as e:
         messages.error(request, f"Error loading staff results: {str(e)}")
@@ -616,7 +873,6 @@ def vc_evaluate_supervisor_list(request):
 
     return render(request, "vc/vc_evaluate_supervisor_list.html", context)
 
-
 @login_required
 def vc_evaluate_supervisor(request, supervisor_id):
     if not request.user.is_vc_staff:
@@ -632,6 +888,7 @@ def vc_evaluate_supervisor(request, supervisor_id):
         messages.error(request, "No active evaluation period found.")
         return redirect("vc:vc_evaluate_supervisor_list")
 
+    # Get approved performance targets
     approved_targets = SupervisorPerformanceTarget.objects.filter(
         supervisor=supervisor, period=current_period, status="approved"
     )
@@ -643,6 +900,7 @@ def vc_evaluate_supervisor(request, supervisor_id):
         )
         return redirect("vc:vc_evaluate_supervisor_list")
 
+    # Get or create appraisal record
     appraisal, created = SupervisorAppraisal.objects.get_or_create(
         supervisor=supervisor,
         period=current_period,
@@ -652,28 +910,38 @@ def vc_evaluate_supervisor(request, supervisor_id):
         },
     )
 
+    # Get supervisor attributes and indicators from HR app
     supervisor_attributes = SupervisorAttribute.objects.filter(is_active=True)
     supervisor_indicators = SupervisorIndicator.objects.filter(
         attribute__in=supervisor_attributes, is_active=True
     ).select_related("attribute")
-
-    vc_evaluations = SupervisorEvaluation.objects.filter(
-        supervisor=supervisor, period=current_period
-    ).select_related("attribute", "indicator")
-
+    
+    # Get existing supervisor self-ratings
     self_ratings = SupervisorRating.objects.filter(
         supervisor=supervisor, period=current_period
     ).select_related("attribute", "indicator")
 
-    vc_ratings_dict = {
-        e.indicator.id: e for e in vc_evaluations if e.indicator
-    }
+    # Create dictionary for self-ratings lookup
     self_ratings_dict = {
         r.indicator.id: r for r in self_ratings if r.indicator
     }
 
+    # Get existing VC evaluations from HR model
+    from hr.models import SupervisorEvaluation as HRSupervisorEvaluation
+    
+    # Get existing VC evaluations
+    vc_evaluations = HRSupervisorEvaluation.objects.filter(
+        supervisor=supervisor,
+        period=current_period
+    ).select_related("indicator", "attribute")
+    
+    vc_ratings_dict = {
+        eval.indicator.id: eval for eval in vc_evaluations if eval.indicator
+    }
+
     if request.method == "POST":
         try:
+            # Process criteria evaluations - save to HRSupervisorEvaluation
             for indicator in supervisor_indicators:
                 rating_key = f"rating_{indicator.id}"
                 comments_key = f"comments_{indicator.id}"
@@ -682,17 +950,23 @@ def vc_evaluate_supervisor(request, supervisor_id):
                 comments = request.POST.get(comments_key, "")
 
                 if rating:
-                    SupervisorEvaluation.objects.update_or_create(
+                    # Get the attribute from the indicator
+                    attribute = indicator.attribute
+                    
+                    # Save to HRSupervisorEvaluation (where data is actually stored)
+                    HRSupervisorEvaluation.objects.update_or_create(
                         supervisor=supervisor,
-                        period=current_period,
                         indicator=indicator,
+                        period=current_period,
                         defaults={
-                            "rating": float(rating),
-                            "comments": comments,
-                            "evaluated_by": request.user,
-                        },
+                            'attribute': attribute,  # ADD THIS - required field
+                            'rating': float(rating),
+                            'comments': comments,
+                            'hr_user': request.user,  # VC user
+                        }
                     )
 
+            # Process target evaluations
             for target in approved_targets:
                 target_rating_key = f"target_rating_{target.id}"
                 target_comments_key = f"target_comments_{target.id}"
@@ -705,12 +979,56 @@ def vc_evaluate_supervisor(request, supervisor_id):
                     target.performance_comments = target_comments
                     target.save()
 
-            appraisal.criteria_score = appraisal.calculate_criteria_score()
-            appraisal.target_score = appraisal.calculate_target_score()
-            appraisal.overall_score = appraisal.calculate_overall_score()
+            # Get overall comments
+            overall_comments = request.POST.get("overall_comments", "")
+            
+            # Update appraisal
+            appraisal.remarks = overall_comments
             appraisal.status = "evaluated"
             appraisal.evaluated_at = timezone.now()
             appraisal.evaluated_by = request.user
+            
+            # Calculate scores
+            from django.db.models import Avg
+            
+            # Calculate criteria score from HRSupervisorEvaluation
+            hr_evaluations = HRSupervisorEvaluation.objects.filter(
+                supervisor=supervisor,
+                period=current_period
+            )
+            
+            if hr_evaluations.exists():
+                avg_criteria_rating = hr_evaluations.aggregate(
+                    Avg('rating')
+                )['rating__avg'] or 0
+                # Convert 1-5 scale to percentage (1=20%, 5=100%)
+                appraisal.criteria_score = (avg_criteria_rating / 5) * 100
+            
+            # Calculate target score
+            if approved_targets.exists():
+                avg_target_rating = approved_targets.aggregate(
+                    Avg('performance_rating')
+                )['performance_rating__avg'] or 0
+                # Convert 1-5 scale to percentage
+                appraisal.target_score = (avg_target_rating / 5) * 100
+            
+            # Calculate overall score
+            criteria_score = getattr(appraisal, 'criteria_score', 0)
+            target_score = getattr(appraisal, 'target_score', 0)
+            
+            if criteria_score > 0 and target_score > 0:
+                # Use appropriate weights
+                criteria_weight = 0.6  # 60% weight for criteria
+                target_weight = 0.4    # 40% weight for targets
+                appraisal.overall_score = (
+                    (criteria_score * criteria_weight) +
+                    (target_score * target_weight)
+                )
+            elif criteria_score > 0:
+                appraisal.overall_score = criteria_score
+            elif target_score > 0:
+                appraisal.overall_score = target_score
+            
             appraisal.save()
 
             messages.success(
@@ -721,22 +1039,40 @@ def vc_evaluate_supervisor(request, supervisor_id):
 
         except Exception as e:
             messages.error(request, f"Error submitting evaluation: {str(e)}")
+            import traceback
+            traceback.print_exc()
 
+    # Prepare criteria data for template
     criteria_data = []
-    for ind in supervisor_indicators:
-        vc_eval = vc_ratings_dict.get(ind.id)
-        self_eval = self_ratings_dict.get(ind.id)
+    for indicator in supervisor_indicators:
+        vc_eval = vc_ratings_dict.get(indicator.id)
+        self_eval = self_ratings_dict.get(indicator.id)
+
+        # Get the indicator display name
+        indicator_name = None
+        for field_name in ['name', 'title', 'description', 'criteria']:
+            if hasattr(indicator, field_name):
+                field_value = getattr(indicator, field_name)
+                if field_value:
+                    indicator_name = field_value
+                    break
+        
+        if not indicator_name:
+            indicator_name = f"Indicator {indicator.id}"
 
         criteria_data.append(
             {
-                "attribute": ind.attribute,
-                "indicator": ind,
+                "attribute": indicator.attribute,
+                "indicator": indicator,
+                "indicator_name": indicator_name,
                 "vc_rating": vc_eval.rating if vc_eval else None,
                 "vc_comments": vc_eval.comments if vc_eval else "",
                 "self_rating": self_eval.rating if self_eval else None,
                 "rating_gap": (
                     (vc_eval.rating - self_eval.rating)
-                    if (vc_eval and self_eval)
+                    if (vc_eval and self_eval and 
+                        vc_eval.rating is not None and 
+                        self_eval.rating is not None)
                     else None
                 ),
             }
@@ -905,17 +1241,14 @@ def vc_download_supervisor_report(request, supervisor_id):
                 "has_vc_rating": vc_rating_value is not None,
             })
 
-        # Calculate percentages
-        criteria_percentage = (
-            (vc_appraisal.criteria_score / 5 * 100)
-            if vc_appraisal.criteria_score is not None
-            else 0
-        )
-        target_percentage = (
-            (vc_appraisal.target_score / 5 * 100) if vc_appraisal.target_score is not None else 0
-        )
+        # ============ FIXED: Percentage Calculations ============
+        # criteria_score and target_score are already percentages (0-100) in database
+        # NO NEED to divide by 5 and multiply by 100 again!
+        criteria_percentage = vc_appraisal.criteria_score if vc_appraisal.criteria_score is not None else 0
+        target_percentage = vc_appraisal.target_score if vc_appraisal.target_score is not None else 0
         
         vc_rating_percentage = (total_vc_ratings / total_indicators * 100) if total_indicators > 0 else 0
+        # ============ END FIX ============
         
         # CRITICAL: FIXED STATUS DETERMINATION LOGIC
         # Check if targets have VC ratings
@@ -971,8 +1304,9 @@ def vc_download_supervisor_report(request, supervisor_id):
             "target_data": target_data,
             "evaluated_by": vc_appraisal.evaluated_by.get_full_name() if vc_appraisal.evaluated_by else "Vice Chancellor",
             "report_date": vc_appraisal.evaluated_at if vc_appraisal.evaluated_at else timezone.now(),
-            "criteria_percentage": criteria_percentage,
-            "target_percentage": target_percentage,
+            # FIXED: No double percentage calculation
+            "criteria_percentage": criteria_percentage,  # Already a percentage
+            "target_percentage": target_percentage,      # Already a percentage
             "has_vc_detailed_ratings": has_vc_detailed_ratings,
             "total_vc_ratings": total_vc_ratings,
             "total_indicators": total_indicators,
@@ -985,8 +1319,8 @@ def vc_download_supervisor_report(request, supervisor_id):
             "overall_score": vc_appraisal.overall_score or 0,
             "total_score": vc_appraisal.total_score or 0,
             "average_score": vc_appraisal.average_score or 0,
-            "criteria_score": vc_appraisal.criteria_score or 0,
-            "target_score": vc_appraisal.target_score or 0,
+            "criteria_score": vc_appraisal.criteria_score or 0,  # Already percentage
+            "target_score": vc_appraisal.target_score or 0,      # Already percentage
         }
 
         print(f"\n=== DEBUG SUMMARY ===")
@@ -1002,6 +1336,12 @@ def vc_download_supervisor_report(request, supervisor_id):
         print(f"Status - Fully evaluated: {is_fully_evaluated}")
         print(f"Status - Partially evaluated: {is_partially_evaluated}")
         print(f"Status - Not evaluated: {is_not_evaluated}")
+        
+        # Show actual percentage values (FIXED)
+        print(f"\n=== PERCENTAGE VALUES (FIXED) ===")
+        print(f"Criteria Score: {criteria_percentage:.1f}% (from database: {vc_appraisal.criteria_score})")
+        print(f"Target Score: {target_percentage:.1f}% (from database: {vc_appraisal.target_score})")
+        print(f"Overall Score: {vc_appraisal.overall_score or 0:.1f}%")
         
         # Show which indicators have VC ratings
         print(f"\nIndicators with VC ratings:")
@@ -1104,7 +1444,7 @@ def vc_download_supervisor_report(request, supervisor_id):
             return generate_staff_evaluation_pdf(request, appraisal, context)
 
         return render(request, "vc/vc_supervisor_report.html", context)
-
+        
 @login_required
 def vc_download_department_report(request, department_id=None):
     if not request.user.is_vc_staff:
@@ -2017,8 +2357,545 @@ def vc_export_data(request, data_type):
     if not request.user.is_vc_staff:
         messages.error(request, "Only Vice Chancellor can access this page.")
         return redirect("users:role_based_redirect")
+    messages.info(request, f"Export functionality for {data_type} coming soon!")
 
-    messages.info(
-        request, f"Export functionality for {data_type} coming soon!"
+@login_required
+def vc_targets_approval(request):
+    """
+    View all supervisors with their target status
+    """
+
+    if not getattr(request.user, 'is_vc_staff', False):
+        messages.error(request, "Only Vice Chancellor can access this page.")
+        return redirect("users:role_based_redirect")
+
+    # ---- Active period ----
+    active_period = SPEPeriod.objects.filter(is_active=True).first()
+    if not active_period:
+        messages.warning(request, "No active evaluation period found.")
+        return redirect('vc:vc_dashboard')
+
+    # ---- Filters ----
+    target_type = request.GET.get('type', '')
+    department_filter = request.GET.get('department', '')
+    status_filter = request.GET.get('status', '')
+    search_filter = request.GET.get('search', '')
+
+    departments = Department.objects.all().order_by('name')
+
+    supervisors_qs = CustomUser.objects.filter(
+        role='supervisor',
+        is_active=True
+    ).select_related('department')
+
+    if department_filter:
+        supervisors_qs = supervisors_qs.filter(
+            department__name__icontains=department_filter
+        )
+
+    if search_filter:
+        supervisors_qs = supervisors_qs.filter(
+            Q(first_name__icontains=search_filter) |
+            Q(last_name__icontains=search_filter) |
+            Q(email__icontains=search_filter) |
+            Q(pf_number__icontains=search_filter)
+        )
+
+    supervisors = []
+    total_pending = 0
+    supervisors_with_pending = 0
+    approved_count = 0
+
+    for supervisor in supervisors_qs:
+        supervisor_targets = SupervisorPerformanceTarget.objects.filter(
+            supervisor=supervisor,
+            period=active_period
+        )
+
+        total_targets = supervisor_targets.count()
+        pending_count = supervisor_targets.filter(status='pending').count()
+        approved_count_supervisor = supervisor_targets.filter(status='approved').count()
+        rejected_count = supervisor_targets.filter(status='rejected').count()
+
+        if status_filter == 'pending' and pending_count == 0:
+            continue
+        if status_filter == 'approved' and approved_count_supervisor == 0:
+            continue
+        if status_filter == 'rejected' and rejected_count == 0:
+            continue
+
+        latest_target = supervisor_targets.order_by('-updated_at').first()
+        latest_update = latest_target.updated_at if latest_target else None
+
+        total_pending += pending_count
+        approved_count += approved_count_supervisor
+        if pending_count > 0:
+            supervisors_with_pending += 1
+
+        supervisors.append({
+            'id': supervisor.id,
+            'full_name': supervisor.get_full_name(),
+            'email': supervisor.email,
+            'department': supervisor.department.name if supervisor.department else 'N/A',
+            'total_targets': total_targets,
+            'pending_count': pending_count,
+            'approved_count': approved_count_supervisor,
+            'rejected_count': rejected_count,
+            'latest_update': latest_update,
+        })
+
+    context = {
+        'supervisors': supervisors,
+        'total_supervisors': len(supervisors),
+        'total_pending': total_pending,
+        'supervisors_with_pending': supervisors_with_pending,
+        'approved_count': approved_count,
+        'departments': departments,
+        'active_period': active_period,
+        'selected_type': target_type,
+        'selected_department': department_filter,
+        'selected_status': status_filter,
+        'search_query': search_filter,
+    }
+
+    return render(request, 'vc/vc_targets_approval.html', context)
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Q
+from django.utils import timezone
+
+@login_required
+def vc_supervisor_targets(request, supervisor_id):
+    """
+    View and approve/reject a specific supervisor's targets
+    """
+
+    # ---- Permission check (fail early) ----
+    if not getattr(request.user, 'is_vc_staff', False):
+        messages.error(request, "Only Vice Chancellor can access this page.")
+        return redirect("users:role_based_redirect")
+
+    # ---- Get supervisor (safe & explicit) ----
+    supervisor = get_object_or_404(
+        CustomUser,
+        id=supervisor_id,
+        role='supervisor',
+        is_active=True
     )
+
+    # ---- Get active period ----
+    active_period = SPEPeriod.objects.filter(is_active=True).first()
+    if not active_period:
+        messages.warning(request, "No active evaluation period found.")
+        return redirect('vc:vc_dashboard')
+
+    # ---- Get targets ----
+    all_targets = SupervisorPerformanceTarget.objects.filter(
+        supervisor=supervisor,
+        period=active_period
+    ).order_by('target_number')
+
+    pending_targets = all_targets.filter(
+        Q(status='pending') | Q(status='submitted')
+    )
+    approved_targets = all_targets.filter(status='approved')
+    rejected_targets = all_targets.filter(status='rejected')
+
+    # ---- Handle POST ----
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        target_ids = request.POST.getlist('target_ids')
+        comments = request.POST.get('comments', '').strip()
+
+        if not action or not target_ids:
+            messages.warning(request, "No action or targets selected.")
+            return redirect('vc:vc_supervisor_targets', supervisor_id=supervisor.id)
+
+        processed = 0
+
+        targets = all_targets.filter(id__in=target_ids)
+
+        for target in targets:
+            if target.status not in ['pending', 'submitted']:
+                continue
+
+            if action == 'approve':
+                target.status = 'approved'
+                target.approved_by = request.user
+                target.approved_at = timezone.now()
+                if hasattr(target, 'approval_comments'):
+                    target.approval_comments = comments
+
+            elif action == 'reject':
+                target.status = 'rejected'
+                target.rejected_by = request.user
+                target.rejected_at = timezone.now()
+                if hasattr(target, 'rejection_reason'):
+                    target.rejection_reason = comments
+                elif hasattr(target, 'rejection_comments'):
+                    target.rejection_comments = comments
+
+            target.save()
+            processed += 1
+
+        if processed:
+            messages.success(
+                request,
+                f"Successfully {action}ed {processed} target(s)."
+            )
+        else:
+            messages.warning(request, "No targets were processed.")
+
+        return redirect('vc:vc_supervisor_targets', supervisor_id=supervisor.id)
+
+    # ---- Context ----
+    context = {
+        'supervisor': supervisor,
+        'active_period': active_period,
+        'pending_targets': pending_targets,
+        'approved_targets': approved_targets,
+        'rejected_targets': rejected_targets,
+        'total_targets': all_targets.count(),
+        'pending_count': pending_targets.count(),
+        'approved_count': approved_targets.count(),
+        'rejected_count': rejected_targets.count(),
+    }
+
+    # ---- Render (template errors now show properly) ----
+    return render(request, 'vc/vc_supervisor_targets.html', context)
+
+        
+from django.core.paginator import Paginator
+from django.db.models import Q
+@login_required
+def vc_target_detail(request, target_id, target_type):
+    """
+    SINGLE FUNCTION: View target details and take action
+    Works for both supervisor and regular targets
+    """
+    if not request.user.is_vc_staff:
+        messages.error(request, "Only Vice Chancellor can access this page.")
+        return redirect("users:role_based_redirect")
+    
+    try:
+        # Get the target based on type
+        if target_type == 'supervisor':
+            target = SupervisorPerformanceTarget.objects.get(id=target_id)
+            staff = target.supervisor
+            staff_role = 'Supervisor'
+            target_model = 'SupervisorPerformanceTarget'
+        else:  # 'regular'
+            target = PerformanceTarget.objects.get(id=target_id)
+            staff = target.staff
+            staff_role = staff.get_role_display()
+            target_model = 'PerformanceTarget'
+        
+        # Handle POST (approve/reject)
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            comments = request.POST.get('comments', '').strip()
+            
+            if action == 'approve':
+                return _approve_single_target(request, target, target_model, staff, comments)
+            elif action == 'reject':
+                return _reject_single_target(request, target, target_model, staff, comments)
+        
+        # GET request - show details
+        context = {
+            'target': target,
+            'target_model': target_model,
+            'staff': staff,
+            'staff_role': staff_role,
+            'active_period': target.period,
+        }
+        
+        return render(request, 'vc/vc_target_detail.html', context)
+        
+    except (SupervisorPerformanceTarget.DoesNotExist, PerformanceTarget.DoesNotExist):
+        messages.error(request, "Target not found.")
+        return redirect('vc:vc_targets_approval')
+    except Exception as e:
+        messages.error(request, f"Error: {str(e)}")
+        return redirect('vc:vc_targets_approval')
+
+        traceback.print_exc()
+        return redirect('vc:vc_dashboard')
+
+@login_required
+def vc_approved_targets(request):
+    """
+    SIMPLE FUNCTION: View all approved targets (read-only)
+    """
+    if not request.user.is_vc_staff:
+        messages.error(request, "Only Vice Chancellor can access this page.")
+        return redirect("users:role_based_redirect")
+    
+    try:
+        active_period = SPEPeriod.objects.filter(is_active=True).first()
+        
+        if not active_period:
+            messages.warning(request, "No active evaluation period found.")
+            return redirect('vc:vc_dashboard')
+        
+        # Get filters
+        department_filter = request.GET.get('department')
+        
+        # Get approved targets
+        supervisor_targets = SupervisorPerformanceTarget.objects.filter(
+            period=active_period, status='approved'
+        ).select_related('supervisor', 'supervisor__department', 'approved_by')
+        
+        regular_targets = PerformanceTarget.objects.filter(
+            period=active_period, status='approved'
+        ).select_related('staff', 'staff__department', 'approved_by')
+        
+        if department_filter:
+            supervisor_targets = supervisor_targets.filter(
+                supervisor__department__name=department_filter
+            )
+            regular_targets = regular_targets.filter(
+                staff__department__name=department_filter
+            )
+        
+        # Combine targets
+        all_targets = []
+        
+        for target in supervisor_targets:
+            all_targets.append({
+                'id': target.id,
+                'target_number': target.target_number,
+                'description': target.description[:100] + '...' if len(target.description) > 100 else target.description,
+                'staff_name': target.supervisor.get_full_name(),
+                'staff_role': 'Supervisor',
+                'department': target.supervisor.department.name if target.supervisor.department else 'N/A',
+                'approved_by': target.approved_by.get_full_name() if target.approved_by else 'System',
+                'approved_at': target.approved_at,
+            })
+        
+        for target in regular_targets:
+            all_targets.append({
+                'id': target.id,
+                'target_number': target.target_number,
+                'description': target.description[:100] + '...' if len(target.description) > 100 else target.description,
+                'staff_name': target.staff.get_full_name(),
+                'staff_role': target.staff.get_role_display(),
+                'department': target.staff.department.name if target.staff.department else 'N/A',
+                'approved_by': target.approved_by.get_full_name() if target.approved_by else 'System',
+                'approved_at': target.approved_at,
+            })
+        
+        # Sort by approval date
+        all_targets.sort(key=lambda x: x['approved_at'] if x['approved_at'] else timezone.now(), reverse=True)
+        
+        # Pagination
+        paginator = Paginator(all_targets, 20)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        departments = Department.objects.all().order_by('name')
+        
+        context = {
+            'page_obj': page_obj,
+            'total_approved': len(all_targets),
+            'departments': departments,
+            'selected_department': department_filter,
+            'active_period': active_period,
+        }
+        
+        return render(request, 'vc/vc_approved_targets.html', context)
+        
+    except Exception as e:
+        messages.error(request, f"Error: {str(e)}")
+        return redirect('vc:vc_dashboard')
+    
+
+def _handle_target_actions(request, active_period):
+    """Handle all target actions (approve/reject)"""
+    # Bulk action
+    if 'bulk_action' in request.POST:
+        target_ids = request.POST.getlist('target_ids')
+        action = request.POST.get('bulk_action')
+        comments = request.POST.get('bulk_comments', '').strip()
+        
+        if not target_ids:
+            messages.error(request, "No targets selected.")
+            return redirect('vc:vc_targets_approval')
+        
+        processed = _process_bulk_action(request.user, target_ids, action, comments)
+        
+        if processed > 0:
+            action_text = "approved" if action == 'approve' else "rejected"
+            messages.success(request, f"Successfully {action_text} {processed} target(s).")
+        else:
+            messages.warning(request, "No targets were processed.")
+        
+        return redirect('vc:vc_targets_approval')
+    
+    # Single target action from list view
+    elif 'target_id' in request.POST:
+        target_id = request.POST.get('target_id')
+        target_type = request.POST.get('target_type')
+        action = request.POST.get('action')
+        
+        return redirect('vc:vc_target_detail', target_id=target_id, target_type=target_type)
+    
+    return redirect('vc:vc_targets_approval')
+def _get_pending_targets_data(period, filters):
+    """Get pending targets data with correct field names"""
+    supervisor_targets = SupervisorPerformanceTarget.objects.filter(
+        period=period, status='pending'
+    ).select_related('supervisor', 'supervisor__department')
+    
+    regular_targets = PerformanceTarget.objects.filter(
+        period=period, status='pending'
+    ).select_related('staff', 'staff__department')
+    
+    # Apply filters
+    target_type = filters.get('type', 'all')
+    department_filter = filters.get('department')
+    search_query = filters.get('search', '')
+    
+    if target_type == 'supervisors':
+        regular_targets = regular_targets.none()
+    elif target_type == 'regular':
+        supervisor_targets = supervisor_targets.none()
+    
+    if department_filter:
+        supervisor_targets = supervisor_targets.filter(
+            supervisor__department__name=department_filter
+        )
+        regular_targets = regular_targets.filter(
+            staff__department__name=department_filter
+        )
+    
+    if search_query:
+        supervisor_targets = supervisor_targets.filter(
+            Q(description__icontains=search_query) |
+            Q(supervisor__first_name__icontains=search_query) |
+            Q(supervisor__last_name__icontains=search_query)
+        )
+        regular_targets = regular_targets.filter(
+            Q(description__icontains=search_query) |
+            Q(staff__first_name__icontains=search_query) |
+            Q(staff__last_name__icontains=search_query)
+        )
+    
+    # Combine into simple format
+    targets_data = []
+    
+    for target in supervisor_targets:
+        targets_data.append({
+            'id': target.id,
+            'target_number': target.target_number,
+            'description': target.description[:80] + '...' if len(target.description) > 80 else target.description,
+            'staff_name': target.supervisor.get_full_name(),
+            'staff_role': 'Supervisor',
+            'department': target.supervisor.department.name if target.supervisor.department else 'N/A',
+            # Use created_at instead of submitted_at
+            'created_date': target.created_at if hasattr(target, 'created_at') else target.created_on,
+            'target_type': 'supervisor',
+        })
+    
+    for target in regular_targets:
+        targets_data.append({
+            'id': target.id,
+            'target_number': target.target_number,
+            'description': target.description[:80] + '...' if len(target.description) > 80 else target.description,
+            'staff_name': target.staff.get_full_name(),
+            'staff_role': target.staff.get_role_display(),
+            'department': target.staff.department.name if target.staff.department else 'N/A',
+            # Use created_at instead of submitted_at
+            'created_date': target.created_at if hasattr(target, 'created_at') else target.created_on,
+            'target_type': 'regular',
+        })
+    
+    # Sort by creation date
+    targets_data.sort(key=lambda x: x['created_date'], reverse=True)
+    
+    return targets_data
+
+def _calculate_target_statistics(targets_data):
+    """Calculate simple statistics"""
+    total = len(targets_data)
+    supervisor_count = len([t for t in targets_data if t['target_type'] == 'supervisor'])
+    regular_count = len([t for t in targets_data if t['target_type'] == 'regular'])
+    
+    return {
+        'total_pending': total,
+        'supervisor_pending': supervisor_count,
+        'regular_pending': regular_count,
+    }
+
+
+def _process_bulk_action(user, target_ids, action, comments):
+    """Process bulk approve/reject"""
+    processed = 0
+    
+    for target_id in target_ids:
+        # Format: "supervisor_123" or "regular_456"
+        parts = target_id.split('_')
+        if len(parts) < 2:
+            continue
+        
+        target_type = parts[0]
+        target_pk = parts[1]
+        
+        try:
+            if target_type == 'supervisor':
+                target = SupervisorPerformanceTarget.objects.get(id=target_pk, status='pending')
+            else:  # 'regular'
+                target = PerformanceTarget.objects.get(id=target_pk, status='pending')
+            
+            if action == 'approve':
+                target.status = 'approved'
+                target.approved_by = user
+                target.approved_at = timezone.now()
+                target.approval_comments = comments
+            else:  # 'reject'
+                target.status = 'rejected'
+                target.rejected_by = user
+                target.rejected_at = timezone.now()
+                target.rejection_reason = comments
+            
+            target.save()
+            processed += 1
+            
+        except (SupervisorPerformanceTarget.DoesNotExist, PerformanceTarget.DoesNotExist):
+            continue
+    
+    return processed
+
+
+def _approve_single_target(request, target, target_model, staff, comments):
+    """Approve a single target"""
+    target.status = 'approved'
+    target.approved_by = request.user
+    target.approved_at = timezone.now()
+    target.approval_comments = comments
+    target.save()
+    
+    messages.success(request, f"Target #{target.target_number} approved for {staff.get_full_name()}!")
+    return redirect('vc:vc_targets_approval')
+
+
+def _reject_single_target(request, target, target_model, staff, comments):
+    """Reject a single target"""
+    target.status = 'rejected'
+    target.rejected_by = request.user
+    target.rejected_at = timezone.now()
+    target.rejection_reason = comments
+    target.save()
+    
+    messages.warning(request, f"Target #{target.target_number} rejected for {staff.get_full_name()}.")
+    return redirect('vc:vc_targets_approval')
     return redirect("vc:vc_dashboard")
+
+
+
+
+
+
+
+

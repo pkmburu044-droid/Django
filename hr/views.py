@@ -2,14 +2,13 @@
 import io
 
 import openpyxl
+from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Max, Min, Q
 from django.http import HttpResponse, JsonResponse
-
-# Add these missing imports at the top
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from openpyxl.styles import Alignment, Font
@@ -25,27 +24,39 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+# Import models from spe app
 from spe.models import (
     NonTeachingStaffEvaluation,
     SelfAssessment,
     SPEPeriod,
+    SupervisorEvaluation as SpeSupervisorEvaluation,  # Aliased to avoid conflict
     SupervisorRating,
     TeachingStaffEvaluation,
 )
+
+# Import models from users app
 from users.models import (
     CustomUser,
     Department,
     PerformanceTarget,
     StaffAppraisal,
+    StaffProfile,
 )
 
+# Import models from hr app
 from .models import (
     SupervisorAppraisal,
     SupervisorAttribute,
-    SupervisorEvaluation,
+    SupervisorEvaluation as HrSupervisorEvaluation,  # Aliased to avoid conflict
     SupervisorIndicator,
     SupervisorPerformanceTarget,
 )
+
+# Import services if available
+try:
+    from vc.services import VCSupervisorService
+except ImportError:
+    VCSupervisorService = None  # Handle gracefully if VC app not available
 
 
 def is_hr_user(user):
@@ -67,8 +78,6 @@ def hr_dashboard(request):
     total_staff = CustomUser.objects.filter(
         role__in=["teaching", "non_teaching"]
     ).count()
-
-    # REMOVED: total_supervisors = CustomUser.objects.filter(role='supervisor').count()
 
     # Staff Appraisals statistics
     staff_appraisals = StaffAppraisal.objects.all()
@@ -127,7 +136,6 @@ def hr_dashboard(request):
         staff_count=Count(
             "users", filter=Q(users__role__in=["teaching", "non_teaching"])
         ),
-        # REMOVED: supervisor_count=Count('users', filter=Q(users__role='supervisor')),
         appraisal_count=Count(
             "users__staffprofile__appraisals",
             filter=Q(users__staffprofile__appraisals__isnull=False),
@@ -137,7 +145,6 @@ def hr_dashboard(request):
     context = {
         # Statistics (STAFF ONLY)
         "total_staff": total_staff,
-        # REMOVED: 'total_supervisors': total_supervisors,
         "total_appraisals": total_appraisals,
         "submitted_count": submitted_count,
         "reviewed_count": reviewed_count,
@@ -203,8 +210,7 @@ def hr_department_appraisals(request):
                         staff=staff, period=active_period
                     ).exists()
 
-                    # FIXED: Use a different approach to check supervisor evaluations
-                    # Get self-assessments for this staff and check if any have supervisor evaluations
+                    # Check supervisor evaluations
                     staff_self_assessments = SelfAssessment.objects.filter(
                         staff=staff, period=active_period
                     )
@@ -587,23 +593,6 @@ def hr_view_reports(request):
         messages.error(request, "Only HR staff can access this page.")
         return redirect("users:role_based_redirect")
 
-    # Add necessary imports
-    from hr.models import SupervisorAppraisal
-    from hr.models import (
-        SupervisorEvaluation as VCSupervisorEvaluation,
-    )  # VC evaluations of supervisors
-    from hr.models import SupervisorPerformanceTarget
-    from spe.models import (
-        SupervisorEvaluation as StaffSupervisorEvaluation,
-    )  # Supervisor evaluations of staff
-    from users.models import (
-        CustomUser,
-        Department,
-        PerformanceTarget,
-        StaffAppraisal,
-        StaffProfile,
-    )
-
     # Get active period
     active_period = SPEPeriod.objects.filter(is_active=True).first()
 
@@ -670,8 +659,8 @@ def hr_view_reports(request):
             )
 
             # Get supervisor evaluations for attributes/indicators
-            # Use StaffSupervisorEvaluation (from spe) for staff evaluations
-            supervisor_evaluations = StaffSupervisorEvaluation.objects.filter(
+            # Use SpeSupervisorEvaluation (from spe) for staff evaluations
+            supervisor_evaluations = SpeSupervisorEvaluation.objects.filter(
                 self_assessment__staff=staff,
                 self_assessment__period=active_period,
             )
@@ -741,8 +730,8 @@ def hr_view_reports(request):
                 last_activity = supervisor_appraisal.evaluated_at
             else:
                 # Calculate from components if no appraisal exists
-                # Get VC evaluations (from VCSupervisorEvaluation model in hr app)
-                vc_evaluations = VCSupervisorEvaluation.objects.filter(
+                # Get VC evaluations (from HrSupervisorEvaluation model in hr app)
+                vc_evaluations = HrSupervisorEvaluation.objects.filter(
                     supervisor=staff, period=active_period
                 )
 
@@ -1028,10 +1017,15 @@ def hr_view_reports(request):
 @login_required
 def vc_supervisor_management(request):
     """VC view to manage all supervisors with enhanced data using services"""
-    # from vc.services import VCSupervisorService
-
     if not request.user.is_vc_staff:
         messages.error(request, "Only Vice Chancellor can access this page.")
+        return redirect("users:role_based_redirect")
+
+    # Check if VCSupervisorService is available
+    if VCSupervisorService is None:
+        messages.error(
+            request, "Supervisor management service is not available."
+        )
         return redirect("users:role_based_redirect")
 
     # Get filters from request
@@ -1096,7 +1090,7 @@ def download_evaluation_pdf(request, appraisal_id):
             staff=staff_user, period=period
         )
 
-        supervisor_evaluations = SupervisorEvaluation.objects.filter(
+        supervisor_evaluations = SpeSupervisorEvaluation.objects.filter(
             supervisor__department=staff_user.department, period=period
         )
 
@@ -1436,6 +1430,8 @@ def download_evaluation_pdf(request, appraisal_id):
 
     except Exception as e:
         messages.error(request, f"Error generating PDF: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return redirect(
             "hr:hr_staff_evaluation_detail", appraisal_id=appraisal_id
         )
@@ -1443,19 +1439,9 @@ def download_evaluation_pdf(request, appraisal_id):
 
 @login_required
 @user_passes_test(is_hr_user)
-@login_required
-@user_passes_test(is_hr_user)
 def hr_staff_evaluation_detail(request, appraisal_id):
     """HR view for detailed staff evaluation report - handles ALL staff types"""
     try:
-        # Import the correct SupervisorEvaluation from spe.models
-        from hr.models import SupervisorPerformanceTarget
-        from spe.models import SupervisorEvaluation as SpeSupervisorEvaluation
-        from spe.models import (
-            SupervisorRating,
-        )  # CHANGED: Import from spe instead
-
-        # REMOVE this line: SupervisorRating = apps.get_model('hr', 'SupervisorRating')
         # Get the existing StaffAppraisal
         appraisal = get_object_or_404(
             StaffAppraisal.objects.select_related(
@@ -1629,7 +1615,7 @@ def hr_staff_evaluation_detail(request, appraisal_id):
                 .order_by("target_number")
             )
 
-            # Get supervisor ratings (VC ratings) - NOW USING CORRECT IMPORT
+            # Get supervisor ratings (VC ratings) - using SupervisorRating from spe.models
             supervisor_ratings = SupervisorRating.objects.filter(
                 supervisor=staff_user, period=period
             ).select_related("attribute", "indicator")
@@ -1922,11 +1908,7 @@ def hr_staff_evaluation_detail(request, appraisal_id):
                     "performance_targets": performance_targets,
                     "self_assessments": self_assessments,
                     "matched_evaluations": matched_evaluations,
-                    "has_both_evaluations": (
-                        has_both_evaluations
-                        if "has_both_evaluations" in locals()
-                        else False
-                    ),
+                    "has_both_evaluations": has_both_evaluations,
                 }
             )
         elif staff_role == "supervisor":
@@ -1935,11 +1917,7 @@ def hr_staff_evaluation_detail(request, appraisal_id):
                     "supervisor_targets": supervisor_targets,
                     "supervisor_ratings": supervisor_ratings,
                     "matched_evaluations": matched_evaluations,
-                    "has_both_evaluations": (
-                        has_both_evaluations
-                        if "has_both_evaluations" in locals()
-                        else False
-                    ),
+                    "has_both_evaluations": has_both_evaluations,
                 }
             )
 
@@ -1948,7 +1926,6 @@ def hr_staff_evaluation_detail(request, appraisal_id):
     except Exception as e:
         messages.error(request, f"Error loading evaluation: {str(e)}")
         import traceback
-
         traceback.print_exc()
         return redirect("hr:hr_view_reports")
 
@@ -2091,6 +2068,8 @@ def hr_performance_analytics(request):
 
     except Exception as e:
         messages.error(request, f"Error loading analytics: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return redirect("hr:hr_dashboard")
 
 
@@ -2121,7 +2100,7 @@ def hr_api_performance_data(request):
 
     elif data_type == "attribute_scores":
         data = list(
-            SupervisorEvaluation.objects.filter(
+            HrSupervisorEvaluation.objects.filter(
                 appraisal__status="approved", rating__gt=0
             )
             .values("indicator__attribute__name")
@@ -2199,6 +2178,8 @@ def hr_generate_reports(request):
 
         except Exception as e:
             messages.error(request, f"Error generating report: {str(e)}")
+            import traceback
+            traceback.print_exc()
 
     context = {
         "periods": periods,
@@ -2304,7 +2285,7 @@ def generate_supervisor_ranking_report(
 ):
     """Generate supervisor ranking report"""
     # Get supervisor evaluations
-    supervisor_evaluations = SupervisorEvaluation.objects.filter(
+    supervisor_evaluations = SpeSupervisorEvaluation.objects.filter(
         period=period
     ).select_related("supervisor", "supervisor__department")
 

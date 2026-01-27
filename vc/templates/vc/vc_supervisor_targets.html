@@ -1,0 +1,520 @@
+{% extends "vcc/base.html" %}
+{% load static %}
+{% block title %}Approve Targets - {{ supervisor.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">✅ Approve Performance Targets</h2>
+            <p class="text-muted mb-0">Review and approve targets for {{ supervisor.get_full_name }}</p>
+        </div>
+        <div class="text-end mt-3 mt-md-0">
+            <a href="{% url 'vc:vc_targets_approval' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Back to All Supervisors
+            </a>
+        </div>
+    </div>
+
+    <!-- Supervisor Info -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-placeholder me-3">
+                            <i class="bi bi-person-circle fs-2 text-primary"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">{{ supervisor.get_full_name }}</h5>
+                            <p class="mb-1">
+                                <i class="bi bi-envelope me-1"></i>{{ supervisor.email }}
+                            </p>
+                            <p class="mb-0">
+                                <i class="bi bi-building me-1"></i>{{ supervisor.department.name|default:"No Department" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    {% if active_period %}
+                    <h6 class="mb-2">Current Period</h6>
+                    <p class="mb-1">{{ active_period.name }}</p>
+                    <small>{{ active_period.start_date|date:"M d, Y" }} - {{ active_period.end_date|date:"M d, Y" }}</small>
+                    {% else %}
+                    <h6 class="mb-2">No Active Period</h6>
+                    <p>Please set an active evaluation period</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center {% if total_targets == 0 %}bg-light{% else %}bg-primary text-white{% endif %}">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ total_targets }}</h3>
+                    <p class="mb-0">Total Targets</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center {% if pending_count > 0 %}bg-warning text-dark{% else %}bg-light{% endif %}">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ pending_count }}</h3>
+                    <p class="mb-0">Pending Approval</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center {% if approved_count > 0 %}bg-success text-white{% else %}bg-light{% endif %}">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ approved_count }}</h3>
+                    <p class="mb-0">Approved</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center {% if rejected_count > 0 %}bg-danger text-white{% else %}bg-light{% endif %}">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ rejected_count }}</h3>
+                    <p class="mb-0">Rejected</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Targets - Bulk Approval Section -->
+    {% if pending_targets %}
+    <div class="card mb-4 border-warning">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+                <i class="bi bi-clock-history me-2"></i>Pending Targets ({{ pending_count }})
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-warning">
+                            <tr>
+                                <th width="5%">
+                                    <input type="checkbox" id="select-all" class="form-check-input">
+                                </th>
+                                <th>Target #</th>
+                                <th>Description</th>
+                                <th>Success Measures</th>
+                                <th>Created</th>
+                                <th width="25%">Individual Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for target in pending_targets %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="target_ids" value="{{ target.id }}" class="form-check-input target-checkbox">
+                                </td>
+                                <td class="fw-bold">
+                                    #{{ target.target_number }}
+                                </td>
+                                <td>
+                                    <strong>{{ target.description|truncatechars:100 }}</strong>
+                                </td>
+                                <td>
+                                    {% if target.success_measures %}
+                                    <small class="text-muted">{{ target.success_measures|truncatechars:80 }}</small>
+                                    {% else %}
+                                    <small class="text-muted">No success measures</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ target.created_at|date:"M d, Y" }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <!-- Individual Approve -->
+                                        <button type="submit" name="action" value="approve" class="btn btn-success btn-sm"
+                                                onclick="setSingleTarget('{{ target.id }}')">
+                                            <i class="bi bi-check-lg me-1"></i>Approve
+                                        </button>
+                                        <!-- Individual Reject -->
+                                        <button type="button" class="btn btn-danger btn-sm" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#rejectModal{{ target.id }}">
+                                            <i class="bi bi-x-lg me-1"></i>Reject
+                                        </button>
+                                    </div>
+
+                                    <!-- Reject Modal for Individual Target -->
+                                    <div class="modal fade" id="rejectModal{{ target.id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Reject Target #{{ target.target_number }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Please provide a reason for rejecting this target:</p>
+                                                    <textarea id="rejectReason{{ target.id }}" class="form-control" rows="3" 
+                                                              placeholder="Enter rejection reason..."></textarea>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="button" class="btn btn-danger" 
+                                                            onclick="rejectSingleTarget('{{ target.id }}')">
+                                                        Reject Target
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Bulk Action Buttons -->
+                <div class="d-flex gap-2 mt-3 p-3 bg-light rounded">
+                    <div class="me-3 flex-grow-1">
+                        <label for="bulkComments" class="form-label">Comments for bulk action (optional):</label>
+                        <textarea id="bulkComments" name="comments" class="form-control" rows="2" 
+                                  placeholder="Add comments for bulk approval/rejection..."></textarea>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <strong>Bulk Actions:</strong>
+                        <div class="d-flex gap-2">
+                            <button type="submit" name="action" value="approve" class="btn btn-success">
+                                <i class="bi bi-check-lg me-1"></i>Approve Selected
+                            </button>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#bulkRejectModal">
+                                <i class="bi bi-x-lg me-1"></i>Reject Selected
+                            </button>
+                            <button type="button" id="clear-selection" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-1"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Reject Modal -->
+    <div class="modal fade" id="bulkRejectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reject Selected Targets</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Please provide a reason for rejecting the selected targets:</p>
+                    <textarea id="bulkRejectReason" class="form-control" rows="3" 
+                              placeholder="Enter rejection reason..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="rejectBulkTargets()">
+                        Reject Selected Targets
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Approved Targets -->
+    {% if approved_targets %}
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-check-circle me-2"></i>Approved Targets
+                <span class="badge bg-light text-dark ms-2">{{ approved_count }} approved</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Target #</th>
+                            <th>Description</th>
+                            <th>Approved By</th>
+                            <th>Approval Date</th>
+                            <th>Comments</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for target in approved_targets %}
+                        <tr>
+                            <td class="fw-bold">#{{ target.target_number }}</td>
+                            <td>
+                                <strong>{{ target.description|truncatechars:100 }}</strong>
+                            </td>
+                            <td>
+                                <i class="bi bi-person-check me-1"></i>
+                                {{ target.approved_by.get_full_name|default:"System" }}
+                            </td>
+                            <td>
+                                <i class="bi bi-calendar-check me-1"></i>
+                                {{ target.approved_at|date:"M d, Y" }}
+                            </td>
+                            <td>
+                                {% if target.approval_comments %}
+                                <small class="text-muted">{{ target.approval_comments|truncatechars:50 }}</small>
+                                {% else %}
+                                <small class="text-muted">-</small>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Rejected Targets -->
+    {% if rejected_targets %}
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-x-circle me-2"></i>Rejected Targets
+                <span class="badge bg-light text-dark ms-2">{{ rejected_count }} rejected</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Target #</th>
+                            <th>Description</th>
+                            <th>Rejected By</th>
+                            <th>Rejection Date</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for target in rejected_targets %}
+                        <tr>
+                            <td class="fw-bold">#{{ target.target_number }}</td>
+                            <td>
+                                <strong>{{ target.description|truncatechars:100 }}</strong>
+                            </td>
+                            <td>
+                                <i class="bi bi-person-x me-1"></i>
+                                {{ target.rejected_by.get_full_name|default:"System" }}
+                            </td>
+                            <td>
+                                <i class="bi bi-calendar-x me-1"></i>
+                                {{ target.rejected_at|date:"M d, Y" }}
+                            </td>
+                            <td>
+                                {% if target.rejection_reason %}
+                                <small class="text-danger">{{ target.rejection_reason|truncatechars:50 }}</small>
+                                {% else %}
+                                <small class="text-muted">-</small>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- JavaScript for Bulk Selection -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Select all checkbox
+    const selectAll = document.getElementById('select-all');
+    const targetCheckboxes = document.querySelectorAll('.target-checkbox');
+    
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            targetCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+        });
+    }
+    
+    // Clear selection button
+    const clearSelection = document.getElementById('clear-selection');
+    if (clearSelection) {
+        clearSelection.addEventListener('click', function() {
+            targetCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            if (selectAll) selectAll.checked = false;
+        });
+    }
+    
+    // Update select all when individual checkboxes change
+    targetCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (selectAll) {
+                const allChecked = Array.from(targetCheckboxes).every(cb => cb.checked);
+                selectAll.checked = allChecked;
+            }
+        });
+    });
+});
+
+// Function to set single target for individual approve buttons
+function setSingleTarget(targetId) {
+    // Uncheck all checkboxes first
+    document.querySelectorAll('.target-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    // Check the specific target
+    const targetCheckbox = document.querySelector(`input[name="target_ids"][value="${targetId}"]`);
+    if (targetCheckbox) {
+        targetCheckbox.checked = true;
+    }
+    
+    // Submit the form
+    document.querySelector('form').submit();
+}
+
+// Function to reject single target
+function rejectSingleTarget(targetId) {
+    // Set the target ID
+    setSingleTarget(targetId);
+    
+    // Get rejection reason
+    const reason = document.getElementById('rejectReason' + targetId).value;
+    if (!reason.trim()) {
+        alert('Please provide a rejection reason.');
+        return;
+    }
+    
+    // Add rejection reason to form
+    const commentsField = document.getElementById('bulkComments');
+    if (commentsField) {
+        commentsField.value = reason;
+    }
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('rejectModal' + targetId));
+    if (modal) modal.hide();
+    
+    // Submit form with reject action
+    const form = document.querySelector('form');
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'reject';
+    form.appendChild(actionInput);
+    form.submit();
+}
+
+// Function to reject bulk targets
+function rejectBulkTargets() {
+    const checkedBoxes = document.querySelectorAll('.target-checkbox:checked');
+    if (checkedBoxes.length === 0) {
+        alert('Please select at least one target to reject.');
+        return;
+    }
+    
+    const reason = document.getElementById('bulkRejectReason').value;
+    if (!reason.trim()) {
+        alert('Please provide a rejection reason.');
+        return;
+    }
+    
+    // Add rejection reason to form
+    const commentsField = document.getElementById('bulkComments');
+    if (commentsField) {
+        commentsField.value = reason;
+    }
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('bulkRejectModal'));
+    if (modal) modal.hide();
+    
+    // Submit form with reject action
+    const form = document.querySelector('form');
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = 'reject';
+    form.appendChild(actionInput);
+    form.submit();
+}
+
+// Add confirmation for bulk actions
+document.addEventListener('DOMContentLoaded', function() {
+    const bulkButtons = document.querySelectorAll('button[name="action"]');
+    bulkButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (this.value === 'approve') {
+                const checkedBoxes = document.querySelectorAll('.target-checkbox:checked');
+                if (checkedBoxes.length === 0 && !this.hasAttribute('onclick')) {
+                    e.preventDefault();
+                    alert('Please select at least one target to approve.');
+                    return;
+                }
+                
+                if (!confirm(`Are you sure you want to approve ${checkedBoxes.length} target(s)?`)) {
+                    e.preventDefault();
+                }
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+.card {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 5px 10px;
+}
+
+.table-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}

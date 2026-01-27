@@ -55,6 +55,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "university_appraisal.urls"
 
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -67,6 +68,8 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
+            # ADD THIS LINE:
+            'debug': DEBUG,  # This enables template debug mode
         },
     },
 ]

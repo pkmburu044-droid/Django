@@ -1,0 +1,465 @@
+{% extends "vc/base.html" %}
+{% load static %}
+{% block title %}Approved Targets - Vice Chancellor{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">✅ Approved Performance Targets</h2>
+            <p class="text-muted mb-0">View all approved targets across all departments.</p>
+        </div>
+        <div class="text-end mt-3 mt-md-0">
+            <span class="badge bg-success text-white me-2 p-2">
+                👨‍🏫 Vice Chancellor Dashboard
+            </span>
+            <span class="badge bg-info text-white p-2">
+                📊 {{ total_approved }} Targets Approved
+            </span>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="mb-4">
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'vc:vc_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+            </a>
+            <a href="{% url 'vc:vc_targets_approval' %}" class="btn btn-warning btn-sm">
+                <i class="bi bi-clock-history me-1"></i>Pending Approvals
+            </a>
+            <div class="btn-group btn-group-sm" role="group">
+                <a href="{% url 'vc:vc_approved_targets' %}" class="btn btn-success">
+                    <i class="bi bi-check-circle me-1"></i>Approved
+                </a>
+                <button type="button" class="btn btn-success dropdown-toggle dropdown-toggle-split" 
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="visually-hidden">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{% url 'vc:vc_targets_approval' %}?type=supervisors">
+                        <i class="bi bi-person-badge me-1"></i>Supervisor Targets
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'vc:vc_targets_approval' %}?type=regular">
+                        <i class="bi bi-people me-1"></i>Regular Staff Targets
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center bg-success text-white">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ total_approved }}</h3>
+                    <p class="mb-0">Total Approved</p>
+                    <small>All targets</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center bg-primary text-white">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ page_obj.paginator.count }}</h3>
+                    <p class="mb-0">Displayed</p>
+                    <small>On this page</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center bg-info text-white">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">
+                        {% if active_period %}
+                        {{ active_period.name }}
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </h3>
+                    <p class="mb-0">Active Period</p>
+                    <small>Evaluation period</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100 text-center bg-warning text-dark">
+                <div class="card-body py-3">
+                    <h3 class="fw-bold mb-1">{{ departments.count }}</h3>
+                    <p class="mb-0">Departments</p>
+                    <small>Across campus</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Period & Filters -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            {% if active_period %}
+            <div class="alert alert-success">
+                <strong><i class="bi bi-calendar-check me-2"></i>Current Period:</strong> {{ active_period.name }}
+                ({{ active_period.start_date|date:"M d, Y" }} - {{ active_period.end_date|date:"M d, Y" }})
+                <span class="badge bg-light text-success ms-2">Active</span>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                No active evaluation period found.
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-md-4">
+            <form method="get" class="card p-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="bi bi-funnel"></i>
+                    </span>
+                    <select name="department" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Departments</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.name }}" 
+                                {% if selected_department == dept.name %}selected{% endif %}>
+                            {{ dept.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <a href="{% url 'vc:vc_approved_targets' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Approved Targets Table -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-check-circle me-2"></i>All Approved Targets
+                <span class="badge bg-light text-dark ms-2">{{ page_obj.paginator.count }} total</span>
+            </h5>
+            {% if selected_department %}
+            <span class="badge bg-info text-white">
+                <i class="bi bi-building me-1"></i>{{ selected_department }}
+            </span>
+            {% endif %}
+        </div>
+        
+        {% if page_obj.object_list %}
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-success">
+                        <tr>
+                            <th>#</th>
+                            <th>Target Description</th>
+                            <th>Staff Member</th>
+                            <th>Role</th>
+                            <th>Department</th>
+                            <th>Approved By</th>
+                            <th>Approval Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for target in page_obj %}
+                        <tr>
+                            <td class="fw-bold">{{ forloop.counter0|add:page_obj.start_index }}</td>
+                            <td>
+                                <strong class="text-success">{{ target.target_number }}</strong><br>
+                                {{ target.description }}
+                                {% if target.description|length > 100 %}
+                                <br><small class="text-muted">(truncated)</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <i class="bi bi-person-circle me-1"></i>
+                                {{ target.staff_name }}
+                            </td>
+                            <td>
+                                <span class="badge {% if target.staff_role == 'Supervisor' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                    {{ target.staff_role }}
+                                </span>
+                            </td>
+                            <td>
+                                <i class="bi bi-building me-1"></i>
+                                {{ target.department }}
+                            </td>
+                            <td>
+                                <i class="bi bi-person-check me-1"></i>
+                                {{ target.approved_by }}
+                            </td>
+                            <td>
+                                <i class="bi bi-calendar-check me-1"></i>
+                                {{ target.approved_at|date:"M d, Y" }}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    {% if target.staff_role == 'Supervisor' %}
+                                    <!-- For supervisors, use the new vc_supervisor_targets URL with supervisor ID -->
+                                    <a href="{% url 'vc:vc_supervisor_targets' target.id %}" 
+                                       class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </a>
+                                    {% else %}
+                                    <!-- For regular staff, use vc_target_detail with two arguments -->
+                                    <a href="{% url 'vc:vc_target_detail' 'regular' target.id %}" 
+                                       class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </a>
+                                    {% endif %}
+                                    <button type="button" class="btn btn-outline-info btn-sm" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#detailsModal{{ forloop.counter }}">
+                                        <i class="bi bi-info-circle me-1"></i>Quick View
+                                    </button>
+                                </div>
+
+                                <!-- Quick View Modal -->
+                                <div class="modal fade" id="detailsModal{{ forloop.counter }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-success text-white">
+                                                <h5 class="modal-title">
+                                                    <i class="bi bi-check-circle me-2"></i>
+                                                    Target Details
+                                                </h5>
+                                                <button type="button" class="btn-close btn-close-white" 
+                                                        data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <h6><strong>Target Information</strong></h6>
+                                                        <p><strong>Target #:</strong> {{ target.target_number }}</p>
+                                                        <p><strong>Description:</strong> {{ target.description }}</p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h6><strong>Staff Information</strong></h6>
+                                                        <p><strong>Name:</strong> {{ target.staff_name }}</p>
+                                                        <p><strong>Role:</strong> {{ target.staff_role }}</p>
+                                                        <p><strong>Department:</strong> {{ target.department }}</p>
+                                                        <hr>
+                                                        <h6><strong>Approval Details</strong></h6>
+                                                        <p><strong>Approved By:</strong> {{ target.approved_by }}</p>
+                                                        <p><strong>Date:</strong> {{ target.approved_at|date:"M d, Y H:i" }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" 
+                                                        data-bs-dismiss="modal">Close</button>
+                                                {% if target.staff_role == 'Supervisor' %}
+                                                <!-- For supervisors, use the new vc_supervisor_targets URL -->
+                                                <a href="{% url 'vc:vc_supervisor_targets' target.id %}" 
+                                                   class="btn btn-success">
+                                                    <i class="bi bi-eye me-1"></i>Full Details
+                                                </a>
+                                                {% else %}
+                                                <!-- For regular staff, use vc_target_detail with two arguments -->
+                                                <a href="{% url 'vc:vc_target_detail' 'regular' target.id %}" 
+                                                   class="btn btn-success">
+                                                    <i class="bi bi-eye me-1"></i>Full Details
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.paginator.num_pages > 1 %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if selected_department %}&department={{ selected_department }}{% endif %}">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_department %}&department={{ selected_department }}{% endif %}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if selected_department %}&department={{ selected_department }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_department %}&department={{ selected_department }}{% endif %}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if selected_department %}&department={{ selected_department }}{% endif %}">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <p class="text-center text-muted mt-2">
+                    Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} approved targets
+                </p>
+            </nav>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="card-body text-center py-5">
+            <i class="bi bi-check-circle display-4 text-muted mb-3"></i>
+            <h5 class="text-muted mb-3">No Approved Targets Found</h5>
+            <p class="text-muted mb-4">
+                {% if selected_department %}
+                There are no approved targets in the "{{ selected_department }}" department.
+                {% else %}
+                There are no approved targets in the system yet.
+                {% endif %}
+            </p>
+            {% if selected_department %}
+            <a href="{% url 'vc:vc_approved_targets' %}" class="btn btn-outline-success">
+                <i class="bi bi-eye me-1"></i>View All Departments
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Export Options -->
+    {% if page_obj.object_list %}
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0">
+                <i class="bi bi-download me-2"></i>Export Options
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <button class="btn btn-outline-success w-100">
+                        <i class="bi bi-file-earmark-excel me-1"></i>Excel
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-primary w-100">
+                        <i class="bi bi-file-earmark-pdf me-1"></i>PDF Report
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-printer me-1"></i>Print List
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-info w-100">
+                        <i class="bi bi-graph-up me-1"></i>Analytics
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add active class to current department in dropdown
+    const departmentSelect = document.querySelector('select[name="department"]');
+    if (departmentSelect) {
+        departmentSelect.addEventListener('change', function() {
+            // Show loading state
+            const submitBtn = this.closest('form').querySelector('[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Loading...';
+                submitBtn.disabled = true;
+            }
+        });
+    }
+
+    // Print functionality
+    const printBtn = document.querySelector('[class*="bi-printer"]');
+    if (printBtn) {
+        printBtn.addEventListener('click', function() {
+            window.print();
+        });
+    }
+
+    // Auto-refresh page every 30 seconds to show new approvals
+    setInterval(function() {
+        // Only refresh if user is not interacting with page
+        if (!document.querySelector(':hover')) {
+            location.reload();
+        }
+    }, 30000); // 30 seconds
+});
+</script>
+
+<style>
+.card {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+.table-success {
+    background-color: rgba(40, 167, 69, 0.1);
+}
+.badge {
+    font-weight: 500;
+}
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+.modal-header {
+    border-radius: 10px 10px 0 0;
+}
+.pagination .page-item.active .page-link {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+.pagination .page-link {
+    color: #28a745;
+}
+.pagination .page-link:hover {
+    color: #1e7e34;
+}
+/* Print styles */
+@media print {
+    .btn, .modal, .dropdown, .alert {
+        display: none !important;
+    }
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+    .table {
+        border: 1px solid #ddd;
+    }
+}
+</style>
+
+{% endblock %}

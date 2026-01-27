@@ -63,38 +63,38 @@
             </div>
         </div>
 
-        <!-- Evaluated Supervisors -->
+        <!-- Pending Target Approvals -->
         <div class="col-xl-2 col-md-4 col-sm-6">
             <div class="card border-0 shadow-sm h-100 text-center bg-university-gold text-white">
                 <div class="card-body py-4">
                     <i class="bi bi-clipboard-check fs-1 mb-2"></i>
-                    <h6 class="mb-1">Evaluated</h6>
-                    <h3 class="fw-bold mb-0">{{ evaluated_count|default:"0" }}</h3>
-                    <small>Supervisors evaluated</small>
+                    <h6 class="mb-1">Pending Targets</h6>
+                    <h3 class="fw-bold mb-0">{{ pending_targets_count|default:"0" }}</h3>
+                    <small>Awaiting approval</small>
                 </div>
             </div>
         </div>
 
-        <!-- Pending Evaluations -->
+        <!-- Approved Targets -->
         <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="card border-0 shadow-sm h-100 text-center bg-university-gold text-white">
+            <div class="card border-0 shadow-sm h-100 text-center bg-university-green text-white">
                 <div class="card-body py-4">
-                    <i class="bi bi-hourglass-split fs-1 mb-2"></i>
-                    <h6 class="mb-1">Pending</h6>
-                    <h3 class="fw-bold mb-0">{{ pending_count|default:"0" }}</h3>
-                    <small>Awaiting evaluation</small>
+                    <i class="bi bi-check-circle fs-1 mb-2"></i>
+                    <h6 class="mb-1">Approved Targets</h6>
+                    <h3 class="fw-bold mb-0">{{ approved_targets_count|default:"0" }}</h3>
+                    <small>Already approved</small>
                 </div>
             </div>
         </div>
 
-        <!-- Completion Rate -->
+        <!-- Target Completion -->
         <div class="col-xl-2 col-md-4 col-sm-6">
             <div class="card border-0 shadow-sm h-100 text-center bg-university-green text-white">
                 <div class="card-body py-4">
                     <i class="bi bi-percent fs-1 mb-2"></i>
-                    <h6 class="mb-1">Completion</h6>
-                    <h3 class="fw-bold mb-0">{{ completion_rate|default:"0" }}%</h3>
-                    <small>Overall progress</small>
+                    <h6 class="mb-1">Targets Approval Rate</h6>
+                    <h3 class="fw-bold mb-0">{{ target_approval_rate|default:"0" }}%</h3>
+                    <small>Approval progress</small>
                 </div>
             </div>
         </div>
@@ -136,15 +136,9 @@
                         </div>
                         <div class="col-md-3">
                             <div class="text-end">
-                                {% if current_period.is_active %}
-                                <span class="badge bg-success bg-opacity-25 text-success p-2">
-                                    <i class="bi bi-check-circle me-1"></i>Active Period
+                                <span class="badge bg-warning bg-opacity-25 text-warning p-2">
+                                    <i class="bi bi-clock me-1"></i>Targets Pending: {{ pending_targets_count|default:"0" }}
                                 </span>
-                                {% else %}
-                                <span class="badge bg-danger bg-opacity-25 text-danger p-2">
-                                    <i class="bi bi-x-circle me-1"></i>Inactive
-                                </span>
-                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -160,124 +154,109 @@
         </div>
     </div>
 
-    <!-- Evaluation Progress Section -->
+    <!-- Targets Approval Section -->
     <div class="row g-4 mb-4">
         <div class="col-md-8">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-university-green text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-graph-up-arrow me-2"></i>University Evaluation Progress
+                        <i class="bi bi-clipboard-check me-2"></i>Performance Targets Awaiting Approval
                     </h5>
                 </div>
                 <div class="card-body">
-                    {% if total_supervisors and total_supervisors > 0 %}
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="fw-semibold text-university-green">Supervisor Evaluations</span>
-                            <span class="text-muted">{{ evaluated_count }}/{{ total_supervisors }} completed</span>
+                    {% if pending_targets %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Staff Name</th>
+                                        <th>Role</th>
+                                        <th>Department</th>
+                                        <th>Target Description</th>
+                                        <th>Submitted</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for target in pending_targets|slice:":5" %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ target.staff_name }}</strong>
+                                            {% if target.staff_role == 'Supervisor' %}
+                                                <span class="badge bg-info ms-1">Supervisor</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ target.staff_role }}</td>
+                                        <td>{{ target.department }}</td>
+                                        <td>
+                                            <small>{{ target.description|truncatechars:60 }}</small>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ target.submitted_at|timesince }} ago</small>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'vc:vc_target_detail' target_type=target.target_type target_id=target.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i> Review
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="progress" style="height: 25px;">
-                            <div class="progress-bar bg-university-green" role="progressbar" 
-                                 style="width: {{ completion_rate|default:"0" }}%"
-                                 aria-valuenow="{{ completion_rate|default:"0" }}" 
-                                 aria-valuemin="0" 
-                                 aria-valuemax="100">
-                                {{ completion_rate|default:"0" }}% Complete
-                            </div>
+                        <div class="mt-3 text-center">
+                            <a href="{% url 'vc:vc_targets_approval' %}" class="btn btn-university-green">
+                                <i class="bi bi-clipboard-check me-1"></i> View All Pending Targets ({{ pending_targets_count }})
+                            </a>
                         </div>
-                    </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-clipboard-check fs-1 text-success mb-3"></i>
+                            <h5 class="text-success mb-2">No Pending Targets</h5>
+                            <p class="text-muted mb-0">All performance targets have been approved.</p>
+                        </div>
                     {% endif %}
-
-                    <!-- Status Distribution -->
-                    <div class="row g-3">
-                        <div class="col-6 col-md-3">
-                            <div class="text-center p-3 border rounded bg-success bg-opacity-10 border-success">
-                                <h3 class="fw-bold text-success">{{ evaluated_count|default:"0" }}</h3>
-                                <small class="text-success">Evaluated</small>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="text-center p-3 border rounded bg-primary bg-opacity-10 border-primary">
-                                <h3 class="fw-bold text-primary">{{ evaluatable_count|default:"0" }}</h3>
-                                <small class="text-primary">Ready</small>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="text-center p-3 border rounded bg-warning bg-opacity-10 border-warning">
-                                <h3 class="fw-bold text-warning">{{ pending_count|default:"0" }}</h3>
-                                <small class="text-warning">Pending</small>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="text-center p-3 border rounded bg-danger bg-opacity-10 border-danger">
-                                <h3 class="fw-bold text-danger">{{ no_targets_count|default:"0" }}</h3>
-                                <small class="text-danger">No Targets</small>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Recent Activities -->
+        <!-- Recent Target Approvals -->
         <div class="col-md-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-university-gold text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-clock-history me-2"></i>Recent Activities
+                        <i class="bi bi-clock-history me-2"></i>Recent Target Approvals
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="list-group list-group-flush">
-                        {% if recent_activities %}
-                        {% for activity in recent_activities|slice:":5" %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-3">
-                            <div>
-                                <strong>{{ activity.title }}</strong>
-                                <br>
-                                <small class="text-muted">{{ activity.description }}</small>
+                        {% if recent_approvals %}
+                            {% for approval in recent_approvals|slice:":5" %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                <div>
+                                    <strong>{{ approval.staff_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ approval.description|truncatechars:40 }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">{{ approval.approved_at|timesince }} ago</small>
+                                    <br>
+                                    <span class="badge bg-success">Approved</span>
+                                </div>
                             </div>
-                            <div class="text-end">
-                                <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
-                            </div>
-                        </div>
-                        {% endfor %}
+                            {% endfor %}
                         {% else %}
-                        <!-- Sample activities -->
-                        <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-3">
-                            <div>
-                                <strong>Department Report Generated</strong>
-                                <br>
-                                <small class="text-muted">Computer Science Department report</small>
+                            <div class="text-center py-4">
+                                <i class="bi bi-clock-history fs-1 text-muted mb-3"></i>
+                                <h6 class="text-muted mb-2">No Recent Approvals</h6>
                             </div>
-                            <div class="text-end">
-                                <small class="text-muted">Just now</small>
-                            </div>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-3">
-                            <div>
-                                <strong>Supervisor Evaluated</strong>
-                                <br>
-                                <small class="text-muted">Dr. Jane Smith evaluation completed</small>
-                            </div>
-                            <div class="text-end">
-                                <small class="text-muted">2 hours ago</small>
-                            </div>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-3">
-                            <div>
-                                <strong>Performance Metrics Updated</strong>
-                                <br>
-                                <small class="text-muted">Monthly university metrics</small>
-                            </div>
-                            <div class="text-end">
-                                <small class="text-muted">1 day ago</small>
-                            </div>
-                        </div>
                         {% endif %}
                     </div>
                     <div class="text-center mt-3">
-                        <a href="#" class="btn btn-outline-university-green btn-sm">View All Activities</a>
+                        <a href="{% url 'vc:vc_approved_targets' %}" class="btn btn-outline-university-gold btn-sm">
+                            <i class="bi bi-list-check me-1"></i> View All Approved
+                        </a>
                     </div>
                 </div>
             </div>
@@ -292,10 +271,22 @@
             </h5>
         </div>
 
-        <!-- 1. Evaluate Supervisors -->
+        <!-- 1. Approve Targets -->
         <div class="col-xl-3 col-md-6">
             <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-green text-white h-100">
                 <i class="bi bi-clipboard-check fs-2 mb-3"></i>
+                <h6 class="fw-bold mb-2">Approve Targets</h6>
+                <p class="small mb-3 opacity-90">Review and approve performance targets for all staff.</p>
+                <a href="{% url 'vc:vc_targets_approval' %}" class="btn btn-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-check-circle me-1"></i> Review Targets
+                </a>
+            </div>
+        </div>
+
+        <!-- 2. Evaluate Supervisors -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-green text-white h-100">
+                <i class="bi bi-person-check fs-2 mb-3"></i>
                 <h6 class="fw-bold mb-2">Evaluate Supervisors</h6>
                 <p class="small mb-3 opacity-90">Review and evaluate department heads and supervisors.</p>
                 <a href="{% url 'vc:vc_evaluate_supervisor_list' %}" class="btn btn-light btn-sm px-3 fw-semibold">
@@ -304,7 +295,31 @@
             </div>
         </div>
 
-        <!-- 2. View Evaluation Reports -->
+        <!-- 3. View Approved Targets -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-gold text-white h-100">
+                <i class="bi bi-file-earmark-check fs-2 mb-3"></i>
+                <h6 class="fw-bold mb-2">Approved Targets</h6>
+                <p class="small mb-3 opacity-90">View all approved performance targets.</p>
+                <a href="{% url 'vc:vc_approved_targets' %}" class="btn btn-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-list-check me-1"></i>View Approved
+                </a>
+            </div>
+        </div>
+
+        <!-- 4. Department Performance -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-gold text-white h-100">
+                <i class="bi bi-trophy fs-2 mb-3"></i>
+                <h6 class="fw-bold mb-2">Department Rankings</h6>
+                <p class="small mb-3 opacity-90">View department performance rankings and scores.</p>
+                <a href="{% url 'vc:vc_department_overview' %}" class="btn btn-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-award me-1"></i>View Rankings
+                </a>
+            </div>
+        </div>
+
+        <!-- 5. View Reports -->
         <div class="col-xl-3 col-md-6">
             <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-green text-white h-100">
                 <i class="bi bi-file-earmark-text fs-2 mb-3"></i>
@@ -312,42 +327,6 @@
                 <p class="small mb-3 opacity-90">Access comprehensive evaluation reports and analytics.</p>
                 <a href="{% url 'vc:vc_download_department_report' %}" class="btn btn-light btn-sm px-3 fw-semibold">
                     <i class="bi bi-eye me-1"></i>View Reports
-                </a>
-            </div>
-        </div>
-
-        <!-- 3. Performance Analytics -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-gold text-white h-100">
-                <i class="bi bi-bar-chart fs-2 mb-3"></i>
-                <h6 class="fw-bold mb-2">Analytics Dashboard</h6>
-                <p class="small mb-3 opacity-90">University-wide performance metrics and trends.</p>
-                <a href="#" class="btn btn-light btn-sm px-3 fw-semibold">
-                    <i class="bi bi-graph-up me-1"></i>View Analytics
-                </a>
-            </div>
-        </div>
-
-        <!-- 4. Search Staff/Supervisors -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-gold text-white h-100">
-                <i class="bi bi-search fs-2 mb-3"></i>
-                <h6 class="fw-bold mb-2">Search Personnel</h6>
-                <p class="small mb-3 opacity-90">Find staff and supervisors across all departments.</p>
-                <a href="{% url 'vc:vc_search_staff' %}" class="btn btn-light btn-sm px-3 fw-semibold">
-                    <i class="bi bi-search me-1"></i>Search Now
-                </a>
-            </div>
-        </div>
-
-        <!-- 5. Department Performance -->
-        <div class="col-xl-3 col-md-6">
-            <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-green text-white h-100">
-                <i class="bi bi-trophy fs-2 mb-3"></i>
-                <h6 class="fw-bold mb-2">Department Rankings</h6>
-                <p class="small mb-3 opacity-90">View department performance rankings and scores.</p>
-                <a href="{% url 'vc:vc_department_overview' %}" class="btn btn-light btn-sm px-3 fw-semibold">
-                    <i class="bi bi-award me-1"></i>View Rankings
                 </a>
             </div>
         </div>
@@ -364,80 +343,90 @@
             </div>
         </div>
 
-        <!-- 7. Manage Evaluation Period -->
+        <!-- 7. Search Staff -->
         <div class="col-xl-3 col-md-6">
             <div class="card shadow-sm border-0 p-4 text-center action-card bg-university-gold text-white h-100">
-                <i class="bi bi-calendar-range fs-2 mb-3"></i>
-                <h6 class="fw-bold mb-2">Manage Period</h6>
-                <p class="small mb-3 opacity-90">Configure current evaluation period settings.</p>
-                <a href="#" class="btn btn-light btn-sm px-3 fw-semibold">
-                    <i class="bi bi-gear me-1"></i>Configure
+                <i class="bi bi-search fs-2 mb-3"></i>
+                <h6 class="fw-bold mb-2">Search Personnel</h6>
+                <p class="small mb-3 opacity-90">Find staff and supervisors across all departments.</p>
+                <a href="{% url 'vc:vc_search_staff' %}" class="btn btn-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-search me-1"></i>Search Now
                 </a>
             </div>
         </div>
 
-        <!-- 8. System Overview -->
+        <!-- 8. Target Statistics -->
         <div class="col-xl-3 col-md-6">
             <div class="card shadow-sm border-0 p-4 text-center action-card bg-gradient-info text-white h-100">
-                <i class="bi bi-speedometer2 fs-2 mb-3"></i>
-                <h6 class="fw-bold mb-2">System Status</h6>
-                <p class="small mb-3 opacity-90">Monitor system health and evaluation progress.</p>
-                <a href="#" class="btn btn-light btn-sm px-3 fw-semibold">
-                    <i class="bi bi-info-circle me-1"></i>View Status
+                <i class="bi bi-bar-chart fs-2 mb-3"></i>
+                <h6 class="fw-bold mb-2">Target Statistics</h6>
+                <p class="small mb-3 opacity-90">View target approval statistics and metrics.</p>
+                <a href="{% url 'vc:vc_approved_targets' %}" class="btn btn-light btn-sm px-3 fw-semibold">
+                    <i class="bi bi-graph-up me-1"></i>View Stats
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Performance Overview -->
-    {% if performance_data %}
+    <!-- Targets Status Overview -->
     <div class="row g-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-university-green text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-trophy me-2"></i>Top Performing Departments
+                        <i class="bi bi-clipboard-data me-2"></i>Targets Status Overview
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        {% for dept in performance_data|slice:":6" %}
-                        <div class="col-md-4 mb-4">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <div>
-                                            <h6 class="fw-bold mb-1">{{ dept.department.name|truncatechars:30 }}</h6>
-                                            <small class="text-muted">{{ dept.evaluated_supervisors }}/{{ dept.total_supervisors }} evaluated</small>
+                        {% if targets_summary %}
+                            {% for summary in targets_summary %}
+                            <div class="col-md-4 mb-4">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div>
+                                                <h6 class="fw-bold mb-1">{{ summary.department|truncatechars:30 }}</h6>
+                                                <small class="text-muted">{{ summary.staff_count }} staff members</small>
+                                            </div>
+                                            <div>
+                                                <span class="badge {% if summary.pending_targets == 0 %}bg-success{% else %}bg-warning{% endif %} p-2">
+                                                    {{ summary.pending_targets }} pending
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span class="badge {% if dept.avg_score >= 80 %}bg-success{% elif dept.avg_score >= 70 %}bg-warning{% else %}bg-secondary{% endif %} p-2">
-                                                {{ dept.avg_score|floatformat:1 }}
-                                            </span>
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-success" style="width: {{ summary.approval_rate }}%"></div>
+                                            <div class="progress-bar bg-warning" style="width: {{ summary.pending_rate }}%"></div>
                                         </div>
-                                    </div>
-                                    <div class="progress" style="height: 8px;">
-                                        <div class="progress-bar {% if dept.evaluation_rate >= 80 %}bg-success{% elif dept.evaluation_rate >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
-                                             style="width: {{ dept.evaluation_rate }}%"></div>
-                                    </div>
-                                    <div class="d-flex justify-content-between mt-2">
-                                        <small class="text-muted">{{ dept.evaluation_rate|floatformat:0 }}% complete</small>
-                                        <small class="text-muted">Rank: {{ forloop.counter }}</small>
+                                        <div class="d-flex justify-content-between mt-2">
+                                            <small class="text-success">
+                                                <i class="bi bi-check-circle"></i> {{ summary.approved_targets }} approved
+                                            </small>
+                                            <small class="text-warning">
+                                                <i class="bi bi-clock"></i> {{ summary.pending_targets }} pending
+                                            </small>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        {% endfor %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12 text-center py-5">
+                                <i class="bi bi-clipboard-data fs-1 text-muted mb-3"></i>
+                                <h5 class="text-muted mb-2">No Target Data Available</h5>
+                                <p class="text-muted mb-0">Target approval data will appear here.</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    {% endif %}
 
 </div>
 
-<!-- Styling -->
+<!-- Styling (same as before) -->
 <style>
 :root {
     --university-green: #1e964f;
@@ -538,7 +527,6 @@
     background-color: rgba(30, 150, 79, 0.1);
 }
 
-/* Button improvements */
 .btn-light {
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -552,18 +540,10 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-/* Gradient backgrounds for action cards */
 .bg-gradient-info {
     background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
 }
 
-/* Performance badges */
-.badge-excellent { background-color: #28a745 !important; color: white !important; }
-.badge-good { background-color: #17a2b8 !important; color: white !important; }
-.badge-average { background-color: #ffc107 !important; color: #212529 !important; }
-.badge-poor { background-color: #dc3545 !important; color: white !important; }
-
-/* Custom animations */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -581,10 +561,8 @@
 }
 </style>
 
-<!-- JavaScript for interactivity -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Animate cards on scroll
     const observerOptions = {
         threshold: 0.1
     };
@@ -598,13 +576,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, observerOptions);
 
-    // Observe all cards
     document.querySelectorAll('.card').forEach(card => {
         observer.observe(card);
     });
 });
 </script>
 
-<!-- Bootstrap Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 {% endblock %}

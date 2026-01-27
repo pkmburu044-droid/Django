@@ -1,0 +1,640 @@
+{% extends 'vc/base.html' %}
+
+{% block title %}
+    Evaluate Supervisor - {{ supervisor.get_full_name }} - VC Dashboard
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="mb-1">
+                <i class="bi bi-clipboard-check text-primary me-2"></i>
+                Supervisor Evaluation
+            </h3>
+            <p class="text-muted mb-0">Evaluate {{ supervisor.get_full_name }} for {{ current_period.name }}</p>
+        </div>
+        <a href="{% url 'vc:vc_evaluate_supervisor_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary h-100">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                            <i class="bi bi-person text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ supervisor.get_full_name|truncatechars:15 }}</h5>
+                            <small class="text-muted">Supervisor</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info h-100">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-info bg-opacity-10 rounded p-2 me-3">
+                            <i class="bi bi-list-check text-info fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ criteria_data|length }}</h5>
+                            <small class="text-muted">Criteria</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success h-100">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success bg-opacity-10 rounded p-2 me-3">
+                            <i class="bi bi-bullseye text-success fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ approved_targets.count }}</h5>
+                            <small class="text-muted">Targets</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning h-100">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-warning bg-opacity-10 rounded p-2 me-3">
+                            <i class="bi bi-{% if appraisal.status == 'evaluated' %}check-circle{% else %}clock{% endif %} text-warning fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ appraisal.status|title }}</h5>
+                            <small class="text-muted">Status</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evaluation Form -->
+    <form method="post" id="evaluationForm">
+        {% csrf_token %}
+        
+        <!-- Performance Criteria Section -->
+        {% if criteria_data %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-check text-primary me-2"></i>
+                    Performance Criteria
+                    <span class="badge bg-primary ms-2">{{ criteria_data|length }}</span>
+                </h5>
+                <p class="text-muted mb-0 mt-1 small">Rate each indicator on a scale of 1-5</p>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 5%;">#</th>
+                                <th style="width: 35%;">Indicator</th>
+                                <th style="width: 15%;">Self</th>
+                                <th style="width: 25%;">Your Rating</th>
+                                <th style="width: 20%;">Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% regroup criteria_data by attribute as attribute_list %}
+                            {% for attribute in attribute_list %}
+                            <!-- Attribute Header -->
+                            <tr class="bg-light">
+                                <td colspan="5" class="py-2">
+                                    <strong class="text-primary">
+                                        <i class="bi bi-tag me-1"></i>
+                                        {{ attribute.grouper.name }}
+                                        <small class="text-muted">({{ attribute.grouper.weight }}%)</small>
+                                    </strong>
+                                </td>
+                            </tr>
+                            
+                            <!-- Indicators -->
+                            {% for item in attribute.list %}
+                            <tr>
+                                <td class="align-middle text-center">
+                                    <span class="text-muted">{{ forloop.counter }}</span>
+                                </td>
+                                <td class="align-middle">
+                                    <div>
+                                        <strong class="d-block">{{ item.indicator.name }}</strong>
+                                        {% if item.indicator.description %}
+                                        <small class="text-muted">{{ item.indicator.description|truncatechars:80 }}</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="align-middle">
+                                    {% if item.self_rating %}
+                                    <div class="text-center">
+                                        <span class="badge bg-info fs-6 px-3 py-2">{{ item.self_rating }}</span>
+                                        {% if item.rating_gap is not None %}
+                                        <small class="d-block text-muted mt-1">
+                                            Gap: <span class="fw-bold {% if item.rating_gap > 0 %}text-danger{% elif item.rating_gap < 0 %}text-warning{% else %}text-success{% endif %}">
+                                                {{ item.rating_gap|floatformat:1 }}
+                                            </span>
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted text-center d-block">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center">
+                                        <select name="rating_{{ item.indicator.id }}" 
+                                                class="form-select form-select-sm rating-select" 
+                                                style="width: 80px;">
+                                            <option value="">--</option>
+                                            <option value="1" {% if item.vc_rating == 1 %}selected{% endif %}>1</option>
+                                            <option value="2" {% if item.vc_rating == 2 %}selected{% endif %}>2</option>
+                                            <option value="3" {% if item.vc_rating == 3 %}selected{% endif %}>3</option>
+                                            <option value="4" {% if item.vc_rating == 4 %}selected{% endif %}>4</option>
+                                            <option value="5" {% if item.vc_rating == 5 %}selected{% endif %}>5</option>
+                                        </select>
+                                        <div class="ms-2">
+                                            {% for i in "12345" %}
+                                            <span class="rating-star {% if item.vc_rating >= i|add:0 %}active{% endif %}" 
+                                                  data-value="{{ i }}"
+                                                  data-indicator="{{ item.indicator.id }}">
+                                                <i class="bi bi-star{% if item.vc_rating >= i|add:0 %}-fill{% endif %}"></i>
+                                            </span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="align-middle">
+                                    <textarea name="comments_{{ item.indicator.id }}" 
+                                              class="form-control form-control-sm" 
+                                              rows="1"
+                                              placeholder="Feedback">{{ item.vc_comments|default:'' }}</textarea>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Performance Targets Section -->
+        {% if approved_targets %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-bullseye text-success me-2"></i>
+                    Performance Targets
+                    <span class="badge bg-success ms-2">{{ approved_targets.count }}</span>
+                </h5>
+                <p class="text-muted mb-0 mt-1 small">Rate each target on a scale of 1-5</p>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 5%;">#</th>
+                                <th style="width: 45%;">Target Description</th>
+                                <th style="width: 15%;">Previous</th>
+                                <th style="width: 20%;">Your Rating</th>
+                                <th style="width: 15%;">Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for target in approved_targets %}
+                            <tr>
+                                <td class="align-middle text-center">
+                                    <span class="badge bg-secondary">{{ forloop.counter }}</span>
+                                </td>
+                                <td class="align-middle">
+                                    <div>
+                                        <strong class="d-block">{{ target.description|truncatechars:120 }}</strong>
+                                        {% if target.success_measures %}
+                                        <small class="text-muted d-block mt-1">
+                                            <i class="bi bi-check2-circle me-1"></i>
+                                            {{ target.success_measures|truncatechars:80 }}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="align-middle">
+                                    {% if target.performance_rating %}
+                                    <div class="text-center">
+                                        <span class="badge bg-primary fs-6 px-3 py-2">{{ target.performance_rating }}</span>
+                                        {% if target.performance_comments %}
+                                        <small class="text-muted d-block mt-1">
+                                            <i class="bi bi-chat-left me-1"></i>
+                                            {{ target.performance_comments|truncatechars:30 }}
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted text-center d-block">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center">
+                                        <select name="target_rating_{{ target.id }}" 
+                                                class="form-select form-select-sm target-rating-select" 
+                                                style="width: 80px;">
+                                            <option value="">--</option>
+                                            <option value="1" {% if target.performance_rating == 1 %}selected{% endif %}>1</option>
+                                            <option value="2" {% if target.performance_rating == 2 %}selected{% endif %}>2</option>
+                                            <option value="3" {% if target.performance_rating == 3 %}selected{% endif %}>3</option>
+                                            <option value="4" {% if target.performance_rating == 4 %}selected{% endif %}>4</option>
+                                            <option value="5" {% if target.performance_rating == 5 %}selected{% endif %}>5</option>
+                                        </select>
+                                        <div class="ms-2">
+                                            {% for i in "12345" %}
+                                            <span class="target-star {% if target.performance_rating >= i|add:0 %}active{% endif %}" 
+                                                  data-value="{{ i }}"
+                                                  data-target="{{ target.id }}">
+                                                <i class="bi bi-star{% if target.performance_rating >= i|add:0 %}-fill{% endif %}"></i>
+                                            </span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="align-middle">
+                                    <textarea name="target_comments_{{ target.id }}" 
+                                              class="form-control form-control-sm" 
+                                              rows="1"
+                                              placeholder="Feedback">{{ target.performance_comments|default:'' }}</textarea>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Overall Remarks -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-chat-left-text text-info me-2"></i>
+                    Overall Remarks
+                </h5>
+                <p class="text-muted mb-0 mt-1 small">Provide overall feedback for this supervisor</p>
+            </div>
+            <div class="card-body">
+                <textarea name="overall_comments" 
+                          class="form-control" 
+                          rows="3"
+                          placeholder="Enter overall comments about this supervisor's performance...">{{ appraisal.remarks|default:'' }}</textarea>
+            </div>
+        </div>
+
+        <!-- Rating Legend -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h6 class="mb-2">Rating Scale (1-5):</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            <div class="d-flex align-items-center">
+                                <div class="rating-scale me-2">
+                                    {% for i in "12345" %}
+                                    <span class="rating-legend-star {% if i == '1' %}bg-danger{% elif i == '2' %}bg-warning{% elif i == '3' %}bg-info{% elif i == '4' %}bg-primary{% else %}bg-success{% endif %}">
+                                        {{ i }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                                <div class="rating-labels">
+                                    <div class="d-flex justify-content-between small">
+                                        <span class="text-danger">Poor</span>
+                                        <span class="text-warning">Fair</span>
+                                        <span class="text-info">Good</span>
+                                        <span class="text-primary">Very Good</span>
+                                        <span class="text-success">Excellent</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <div class="progress-summary">
+                            <div class="d-flex align-items-center justify-content-end">
+                                <div class="me-3">
+                                    <small class="text-muted d-block">Completion:</small>
+                                    <strong id="completionCount">0/{{ criteria_data|length|add:approved_targets.count }}</strong>
+                                </div>
+                                <div style="width: 100px;">
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar" id="completionProgress" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="d-flex justify-content-between align-items-center bg-white p-3 border-top shadow-sm">
+            <div>
+                <button type="button" class="btn btn-outline-secondary" onclick="clearAllRatings()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Clear All
+                </button>
+                <button type="button" class="btn btn-outline-info ms-2" onclick="fillAllWithRating(3)">
+                    <i class="bi bi-three-dots me-1"></i>Fill All with 3
+                </button>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'vc:vc_evaluate_supervisor_list' %}" class="btn btn-outline-danger">
+                    <i class="bi bi-x-circle me-1"></i>Cancel
+                </a>
+                <button type="submit" class="btn btn-success px-4">
+                    <i class="bi bi-check-circle me-1"></i>
+                    {% if appraisal.status == 'evaluated' %}Update Evaluation{% else %}Submit Evaluation{% endif %}
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+.card {
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+.table {
+    margin-bottom: 0;
+}
+.table td, .table th {
+    padding: 10px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
+}
+.table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: #495057;
+}
+.rating-star, .target-star {
+    cursor: pointer;
+    color: #dee2e6;
+    font-size: 0.9rem;
+    margin-right: 1px;
+    display: inline-block;
+}
+.rating-star:hover,
+.rating-star.active,
+.target-star:hover,
+.target-star.active {
+    color: #ffc107;
+}
+.rating-scale {
+    display: flex;
+    gap: 2px;
+}
+.rating-legend-star {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+.form-control-sm {
+    font-size: 0.875rem;
+    padding: 4px 8px;
+}
+.table tbody tr:hover {
+    background-color: rgba(0,0,0,.02);
+}
+.bg-light tr {
+    background-color: #f8f9fa !important;
+}
+.progress {
+    border-radius: 4px;
+    background-color: #e9ecef;
+}
+.progress-bar {
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+textarea.form-control-sm {
+    resize: vertical;
+    min-height: 38px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize star ratings for criteria
+    document.querySelectorAll('.rating-star').forEach(star => {
+        star.addEventListener('click', function() {
+            const value = this.getAttribute('data-value');
+            const indicatorId = this.getAttribute('data-indicator');
+            const select = document.querySelector(`select[name="rating_${indicatorId}"]`);
+            
+            if (select) {
+                select.value = value;
+                updateStars(`.rating-star[data-indicator="${indicatorId}"]`, value);
+                updateCompletionProgress();
+            }
+        });
+    });
+
+    // Initialize star ratings for targets
+    document.querySelectorAll('.target-star').forEach(star => {
+        star.addEventListener('click', function() {
+            const value = this.getAttribute('data-value');
+            const targetId = this.getAttribute('data-target');
+            const select = document.querySelector(`select[name="target_rating_${targetId}"]`);
+            
+            if (select) {
+                select.value = value;
+                updateStars(`.target-star[data-target="${targetId}"]`, value);
+                updateCompletionProgress();
+            }
+        });
+    });
+
+    // Update stars when select changes (criteria)
+    document.querySelectorAll('.rating-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const value = this.value;
+            const name = this.name;
+            const indicatorId = name.replace('rating_', '');
+            
+            if (value) {
+                updateStars(`.rating-star[data-indicator="${indicatorId}"]`, value);
+            } else {
+                resetStars(`.rating-star[data-indicator="${indicatorId}"]`);
+            }
+            updateCompletionProgress();
+        });
+    });
+
+    // Update stars when select changes (targets)
+    document.querySelectorAll('.target-rating-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const value = this.value;
+            const name = this.name;
+            const targetId = name.replace('target_rating_', '');
+            
+            if (value) {
+                updateStars(`.target-star[data-target="${targetId}"]`, value);
+            } else {
+                resetStars(`.target-star[data-target="${targetId}"]`);
+            }
+            updateCompletionProgress();
+        });
+    });
+
+    // Initialize completion progress
+    updateCompletionProgress();
+
+    // Form validation
+    const form = document.getElementById('evaluationForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Check if at least one rating is provided
+            const totalItems = document.querySelectorAll('.rating-select, .target-rating-select').length;
+            const completedItems = document.querySelectorAll('.rating-select[value!=""], .target-rating-select[value!=""]').length;
+            
+            if (completedItems === 0) {
+                e.preventDefault();
+                alert('Please provide at least one rating before submitting.');
+                return false;
+            }
+            
+            // Optional: Show warning if not all items are rated
+            if (completedItems < totalItems) {
+                if (!confirm(`You have rated ${completedItems} out of ${totalItems} items. Submit anyway?`)) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+    }
+});
+
+function updateStars(selector, value) {
+    const stars = document.querySelectorAll(selector);
+    stars.forEach((star, index) => {
+        if (index < value) {
+            star.innerHTML = '<i class="bi bi-star-fill"></i>';
+            star.classList.add('active');
+        } else {
+            star.innerHTML = '<i class="bi bi-star"></i>';
+            star.classList.remove('active');
+        }
+    });
+}
+
+function resetStars(selector) {
+    const stars = document.querySelectorAll(selector);
+    stars.forEach(star => {
+        star.innerHTML = '<i class="bi bi-star"></i>';
+        star.classList.remove('active');
+    });
+}
+
+function updateCompletionProgress() {
+    const ratingSelects = document.querySelectorAll('.rating-select, .target-rating-select');
+    const totalItems = ratingSelects.length;
+    let completedItems = 0;
+    
+    ratingSelects.forEach(select => {
+        if (select.value && select.value !== '') {
+            completedItems++;
+        }
+    });
+    
+    const progress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+    
+    const progressBar = document.getElementById('completionProgress');
+    const completionCount = document.getElementById('completionCount');
+    
+    if (progressBar) {
+        progressBar.style.width = `${progress}%`;
+        progressBar.className = 'progress-bar ' + 
+            (progress < 25 ? 'bg-danger' : 
+             progress < 50 ? 'bg-warning' : 
+             progress < 75 ? 'bg-info' : 
+             progress < 100 ? 'bg-primary' : 'bg-success');
+    }
+    
+    if (completionCount) {
+        completionCount.textContent = `${completedItems}/${totalItems}`;
+    }
+}
+
+function clearAllRatings() {
+    if (confirm('Are you sure you want to clear all ratings and comments?')) {
+        // Clear all select elements
+        document.querySelectorAll('.rating-select, .target-rating-select').forEach(select => {
+            select.value = '';
+        });
+        
+        // Clear all stars
+        document.querySelectorAll('.rating-star, .target-star').forEach(star => {
+            star.innerHTML = '<i class="bi bi-star"></i>';
+            star.classList.remove('active');
+        });
+        
+        // Clear all textareas
+        document.querySelectorAll('textarea').forEach(textarea => {
+            textarea.value = '';
+        });
+        
+        updateCompletionProgress();
+    }
+}
+
+function fillAllWithRating(rating) {
+    if (confirm(`Fill all empty ratings with ${rating}?`)) {
+        // Fill criteria ratings
+        document.querySelectorAll('.rating-select').forEach(select => {
+            if (!select.value || select.value === '') {
+                select.value = rating;
+                const name = select.name;
+                const indicatorId = name.replace('rating_', '');
+                updateStars(`.rating-star[data-indicator="${indicatorId}"]`, rating);
+            }
+        });
+        
+        // Fill target ratings
+        document.querySelectorAll('.target-rating-select').forEach(select => {
+            if (!select.value || select.value === '') {
+                select.value = rating;
+                const name = select.name;
+                const targetId = name.replace('target_rating_', '');
+                updateStars(`.target-star[data-target="${targetId}"]`, rating);
+            }
+        });
+        
+        updateCompletionProgress();
+    }
+}
+</script>
+{% endblock %}

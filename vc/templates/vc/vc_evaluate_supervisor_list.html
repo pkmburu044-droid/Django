@@ -1,201 +1,160 @@
 {% extends "vc/base.html" %}
 
-{% block title %}Evaluate Supervisors - VC Dashboard{% endblock %}
+{% block title %}Evaluate Supervisors - Vice Chancellor Dashboard{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Evaluate Supervisors</h1>
-    
-    <!-- Summary Cards -->
+<div class="container-fluid px-4">
+    <!-- Header Section -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-user-tie text-primary mr-2"></i>Supervisor Evaluations
+            </h1>
+            <p class="text-muted mb-0">Evaluate and review supervisor performance for {{ current_period.name|default:"Current Period" }}</p>
+        </div>
+        <div>
+            <a href="{% url 'vc:vc_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card border-left-primary shadow-sm h-100 py-3">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Total Supervisors
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_supervisors }}</div>
+                        <div class="col mr-3">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-2">Total Supervisors</div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800">{{ total_supervisors }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-users fa-2x text-gray-300"></i>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Ready for Evaluation
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ evaluatable_count }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                        </div>
+                    <div class="mt-2 text-xs">
+                        <span class="text-success mr-2">
+                            <i class="fas fa-check-circle"></i> {{ evaluated_count }} Evaluated
+                        </span>
+                        <span class="text-warning">
+                            <i class="fas fa-clock"></i> {{ pending_count }} Pending
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card border-left-success shadow-sm h-100 py-3">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Fully Evaluated
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ evaluated_count }}</div>
+                        <div class="col mr-3">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-2">Ready for Evaluation</div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800">{{ evaluatable_count }}</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
                         </div>
                     </div>
+                    <div class="mt-2">
+                        <span class="badge badge-success">All requirements met</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
+            <div class="card border-left-info shadow-sm h-100 py-3">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Completion Rate
-                            </div>
-                            <div class="row no-gutters align-items-center">
-                                <div class="col-auto">
-                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ completion_rate }}%</div>
-                                </div>
-                                <div class="col">
-                                    <div class="progress progress-sm mr-2">
-                                        <div class="progress-bar bg-info" role="progressbar" 
-                                             style="width: {{ completion_rate }}%" 
-                                             aria-valuenow="{{ completion_rate }}" 
-                                             aria-valuemin="0" 
-                                             aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="col mr-3">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-2">Completion Rate</div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800">{{ completion_rate }}%</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                            <i class="fas fa-chart-pie fa-2x text-gray-300"></i>
                         </div>
+                    </div>
+                    <div class="progress mt-2" style="height: 8px;">
+                        <div class="progress-bar bg-info" role="progressbar" 
+                             style="width: {{ completion_rate }}%" 
+                             aria-valuenow="{{ completion_rate }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow-sm h-100 py-3">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-3">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-2">Need Attention</div>
+                            <div class="h4 mb-0 font-weight-bold text-gray-800">{{ pending_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-xs">
+                        <span class="text-danger">
+                            <i class="fas fa-ban"></i> {{ no_targets_count|default:0 }} No Targets
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Additional Stats -->
+    <!-- Status Breakdown -->
     <div class="row mb-4">
-        <div class="col-xl-2 col-md-4 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                No Targets
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="no-targets-count">
-                                <span class="loading-spinner" style="display: none;">
-                                    <i class="fas fa-spinner fa-spin fa-xs"></i>
-                                </span>
-                                <span class="count-value">{{ no_targets_count|default:0 }}</span>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-ban fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+        <div class="col-lg-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar mr-2"></i>Evaluation Status Breakdown
+                    </h6>
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-2 col-md-4 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Incomplete Self
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="incomplete-self-count">
-                                <span class="loading-spinner" style="display: none;">
-                                    <i class="fas fa-spinner fa-spin fa-xs"></i>
-                                </span>
-                                <span class="count-value">{{ incomplete_self_count|default:0 }}</span>
+                    <div class="row">
+                        <div class="col-md-2 text-center mb-3">
+                            <div class="status-box status-evaluated p-3 rounded">
+                                <div class="h5 mb-1 font-weight-bold text-success">{{ evaluated_count }}</div>
+                                <small class="text-muted">Evaluated</small>
                             </div>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-2 col-md-4 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Partial Evaluation
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ partially_evaluated_count|default:0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-exclamation-circle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-2 col-md-4 mb-4">
-            <div class="card border-left-secondary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
-                                Needs Details
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ needs_detailed_ratings_count|default:0 }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-4 col-md-8 mb-4">
-            <div class="card shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
-                                Evaluation Requirements
-                            </div>
-                            <div class="small text-muted">
-                                <i class="fas fa-info-circle mr-1"></i>
-                                For full evaluation: <strong>Approved Targets</strong> + 
-                                <strong>Complete Self-Ratings</strong> + 
-                                <strong>Complete VC Ratings</strong> + 
-                                <strong>VC Appraisal</strong>
+                        <div class="col-md-2 text-center mb-3">
+                            <div class="status-box status-ready p-3 rounded">
+                                <div class="h5 mb-1 font-weight-bold text-primary">{{ evaluatable_count }}</div>
+                                <small class="text-muted">Ready</small>
                             </div>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clipboard-check fa-2x text-gray-300"></i>
+                        <div class="col-md-2 text-center mb-3">
+                            <div class="status-box status-partial p-3 rounded">
+                                <div class="h5 mb-1 font-weight-bold text-info">{{ partially_evaluated_count|default:0 }}</div>
+                                <small class="text-muted">Partial</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-center mb-3">
+                            <div class="status-box status-details p-3 rounded">
+                                <div class="h5 mb-1 font-weight-bold text-secondary">{{ needs_detailed_ratings_count|default:0 }}</div>
+                                <small class="text-muted">Needs Details</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-center mb-3">
+                            <div class="status-box status-incomplete p-3 rounded">
+                                <div class="h5 mb-1 font-weight-bold text-warning">{{ incomplete_self_count|default:0 }}</div>
+                                <small class="text-muted">Incomplete</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-center mb-3">
+                            <div class="status-box status-notargets p-3 rounded">
+                                <div class="h5 mb-1 font-weight-bold text-danger">{{ no_targets_count|default:0 }}</div>
+                                <small class="text-muted">No Targets</small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -203,319 +162,261 @@
         </div>
     </div>
 
-    <!-- Filter Buttons (Will be inserted by JavaScript) -->
-    <div id="filter-container"></div>
-
-    <!-- Supervisor Table -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">Supervisor Evaluation List</h6>
-            <div aria-label="Evaluation status summary">
-                <span class="badge badge-primary mr-2">Ready: {{ evaluatable_count }}</span>
-                <span class="badge badge-success mr-2">Evaluated: {{ evaluated_count }}</span>
-                <span class="badge badge-info mr-2">Partial: {{ partially_evaluated_count|default:0 }}</span>
-                <span class="badge badge-warning mr-2">Pending: {{ pending_count }}</span>
-                <span class="badge badge-danger">No Targets: <span id="no-targets-count-badge">{{ no_targets_count|default:0 }}</span></span>
+    <!-- Filter Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <span class="text-muted mr-2">Filter by:</span>
+                        <button type="button" class="btn btn-sm btn-outline-primary filter-btn active" data-filter="all">
+                            All <span class="badge badge-light ml-1">{{ total_supervisors }}</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success filter-btn" data-filter="evaluated">
+                            <i class="fas fa-check-double mr-1"></i>Evaluated <span class="badge badge-light ml-1">{{ evaluated_count }}</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary filter-btn" data-filter="ready_for_evaluation">
+                            <i class="fas fa-play-circle mr-1"></i>Ready <span class="badge badge-light ml-1">{{ evaluatable_count }}</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-info filter-btn" data-filter="partially_evaluated">
+                            <i class="fas fa-hourglass-half mr-1"></i>Partial <span class="badge badge-light ml-1">{{ partially_evaluated_count|default:0 }}</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" data-filter="needs_detailed_ratings">
+                            <i class="fas fa-clipboard-list mr-1"></i>Needs Details <span class="badge badge-light ml-1">{{ needs_detailed_ratings_count|default:0 }}</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-warning filter-btn" data-filter="incomplete_self_ratings">
+                            <i class="fas fa-user-clock mr-1"></i>Incomplete Self <span class="badge badge-light ml-1">{{ incomplete_self_count|default:0 }}</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger filter-btn" data-filter="no_targets">
+                            <i class="fas fa-ban mr-1"></i>No Targets <span class="badge badge-light ml-1">{{ no_targets_count|default:0 }}</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="card-body">
-            {% if supervisors %}
-            <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>PF Number</th>
-                            <th>Department</th>
-                            <th>Status</th>
-                            <th>Targets</th>
-                            <th>Self-Ratings</th>
-                            <th>VC Ratings</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in supervisors %}
-                        <tr>
-                            <td>
-                                {% if item.supervisor.get_full_name %}
-                                    {{ item.supervisor.get_full_name }}
-                                {% elif item.supervisor.first_name %}
-                                    {{ item.supervisor.first_name }} {{ item.supervisor.last_name|default:"" }}
-                                {% elif item.supervisor.email %}
-                                    {{ item.supervisor.email|truncatechars:20 }}
-                                {% else %}
-                                    User #{{ item.supervisor.id }}
-                                {% endif %}
-                            </td>
-                            <td>{{ item.supervisor.pf_number|default:"N/A" }}</td>
-                            <td>
-                                {% if item.department %}
-                                    {{ item.department.name }}
-                                {% else %}
-                                    <span class="text-muted">N/A</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if item.status == "evaluated" %}
-                                    <span class="badge badge-success p-2" aria-label="Fully evaluated">
-                                        <i class="fas fa-check-double mr-1"></i> {{ item.status_label|default:"Evaluated" }}
-                                    </span>
-                                    {% if item.appraisal and item.appraisal.overall_score %}
-                                    <br>
-                                    <small class="text-muted">
-                                        Score: {{ item.appraisal.overall_score|floatformat:1 }}%
-                                    </small>
-                                    {% endif %}
-                                    
-                                {% elif item.status == "partially_evaluated" %}
-                                    <span class="badge badge-info p-2" aria-label="Partially evaluated">
-                                        <i class="fas fa-exclamation-circle mr-1"></i> {{ item.status_label|default:"Partially Evaluated" }}
-                                    </span>
-                                    {% if item.vc_rating_percentage %}
-                                    <br>
-                                    <small class="text-muted">
-                                        VC: {{ item.vc_rating_percentage|floatformat:0 }}%
-                                    </small>
-                                    {% endif %}
-                                    
-                                {% elif item.status == "needs_detailed_ratings" %}
-                                    <span class="badge badge-secondary p-2" aria-label="Needs detailed ratings">
-                                        <i class="fas fa-clipboard-list mr-1"></i> {{ item.status_label|default:"Needs Detailed Ratings" }}
-                                    </span>
-                                    {% if item.appraisal %}
-                                    <br>
-                                    <small class="text-muted">
-                                        Has appraisal, needs details
-                                    </small>
-                                    {% endif %}
-                                    
-                                {% elif item.status == "ready_for_evaluation" %}
-                                    <span class="badge badge-primary p-2" aria-label="Ready for evaluation">
-                                        <i class="fas fa-thumbs-up mr-1"></i> {{ item.status_label|default:"Ready for Evaluation" }}
-                                    </span>
-                                    {% if item.self_rating_percentage %}
-                                    <br>
-                                    <small class="text-muted">
-                                        Self: {{ item.self_rating_percentage|floatformat:0 }}%
-                                    </small>
-                                    {% endif %}
-                                    
-                                {% elif item.status == "incomplete_self_ratings" %}
-                                    <span class="badge badge-warning p-2" aria-label="Incomplete self ratings">
-                                        <i class="fas fa-user-clock mr-1"></i> {{ item.status_label|default:"Incomplete Self-Ratings" }}
-                                    </span>
-                                    {% if item.self_rating_percentage %}
-                                    <br>
-                                    <small class="text-muted">
-                                        Self: {{ item.self_rating_percentage|floatformat:0 }}%
-                                    </small>
-                                    {% endif %}
-                                    
-                                {% elif item.status == "pending_self_rating" %}
-                                    <span class="badge badge-warning p-2" aria-label="Pending self rating">
-                                        <i class="fas fa-user-clock mr-1"></i> {{ item.status_label|default:"Pending Self-Rating" }}
-                                    </span>
-                                    
-                                {% elif item.status == "no_targets" %}
-                                    <span class="badge badge-danger p-2" aria-label="No approved targets">
-                                        <i class="fas fa-ban mr-1"></i> {{ item.status_label|default:"No Approved Targets" }}
-                                    </span>
-                                {% else %}
-                                    <span class="badge badge-secondary p-2">{{ item.status|title }}</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center">
-                                {% if item.has_targets %}
-                                    <span class="text-success" title="Has approved targets">
-                                        <i class="fas fa-check-circle fa-lg"></i>
-                                    </span>
-                                    <br>
-                                    <small class="text-muted">
-                                        {{ item.approved_targets_count }} approved
-                                        {% if item.evaluated_targets_count > 0 %}
-                                            <br>{{ item.evaluated_targets_count }} rated
+    </div>
+
+    <!-- Supervisor Evaluation Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list-alt mr-2"></i>Supervisor Evaluation List
+                    </h6>
+                    <div class="d-flex align-items-center">
+                        <span class="text-muted mr-3">Period: <strong>{{ current_period.name }}</strong></span>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="exportDropdown" data-toggle="dropdown">
+                                <i class="fas fa-download mr-1"></i>Export
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="#"><i class="fas fa-file-excel mr-2"></i>Excel</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-file-pdf mr-2"></i>PDF</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-print mr-2"></i>Print</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if supervisors %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="supervisorTable">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="pl-4">Supervisor Details</th>
+                                    <th>Department</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-center">Targets</th>
+                                    <th class="text-center">Self Ratings</th>
+                                    <th class="text-center">VC Ratings</th>
+                                    <th class="text-center">Score</th>
+                                    <th class="text-center pr-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in supervisors %}
+                                <tr class="status-{{ item.status }}">
+                                    <td class="pl-4">
+                                        <div>
+                                            <div class="font-weight-bold text-primary">{{ item.supervisor.get_full_name }}</div>
+                                            <div class="text-muted small">
+                                                <span class="mr-3"><i class="fas fa-id-card mr-1"></i> {{ item.supervisor.pf_number|default:"N/A" }}</span>
+                                                {% if item.supervisor.email %}
+                                                <span><i class="fas fa-envelope mr-1"></i> {{ item.supervisor.email|truncatechars:20 }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if item.department %}
+                                            <span class="badge badge-light">{{ item.department.name|truncatechars:20 }}</span>
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
                                         {% endif %}
-                                    </small>
-                                {% else %}
-                                    <span class="text-danger" title="No approved targets">
-                                        <i class="fas fa-times-circle fa-lg"></i>
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center">
-                                {% if item.self_rated %}
-                                    <span class="text-{% if item.has_all_self_ratings %}success{% else %}warning{% endif %}" 
-                                          title="{% if item.has_all_self_ratings %}Complete self-ratings{% else %}Incomplete self-ratings{% endif %}">
-                                        <i class="fas fa-{% if item.has_all_self_ratings %}check{% else %}exclamation{% endif %}-circle fa-lg"></i>
-                                    </span>
-                                    <br>
-                                    <small class="text-muted">
-                                        {{ item.self_rating_count }}/{{ item.total_indicators_required }}
-                                        ({{ item.self_rating_percentage|floatformat:0 }}%)
-                                    </small>
-                                {% else %}
-                                    <span class="text-danger" title="No self-ratings">
-                                        <i class="fas fa-times-circle fa-lg"></i>
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center">
-                                {% if item.has_vc_detailed_ratings %}
-                                    <span class="text-{% if item.has_full_vc_ratings %}success{% else %}warning{% endif %}" 
-                                          title="{% if item.has_full_vc_ratings %}Complete VC ratings{% else %}Incomplete VC ratings{% endif %}">
-                                        <i class="fas fa-{% if item.has_full_vc_ratings %}check{% else %}exclamation{% endif %}-circle fa-lg"></i>
-                                    </span>
-                                    <br>
-                                    <small class="text-muted">
-                                        {{ item.vc_rating_count }}/{{ item.total_indicators_required }}
-                                        ({{ item.vc_rating_percentage|floatformat:0 }}%)
-                                    </small>
-                                {% else %}
-                                    <span class="text-muted" title="No VC ratings">
-                                        <i class="fas fa-minus-circle fa-lg"></i>
-                                    </span>
-                                    {% if item.has_vc_appraisal %}
-                                    <br>
-                                    <small class="text-muted text-info">
-                                        Has appraisal
-                                    </small>
-                                    {% endif %}
-                                {% endif %}
-                            </td>
-                            <td>
-                                <!-- Action buttons with status indicator -->
-                                <div class="d-flex align-items-center">
-                                    {% if item.status == "evaluated" %}
-                                        <!-- Fully Evaluated: Show View Report -->
-                                        <a href="{% url 'vc:vc_download_supervisor_report' item.supervisor.id %}" 
-                                           class="btn btn-sm btn-success mr-2" title="View Evaluation Report" aria-label="View evaluation report for {{ item.supervisor.get_full_name }}">
-                                            <i class="fas fa-eye mr-1"></i> View Report
-                                        </a>
-                                        {% if item.appraisal and item.appraisal.overall_score %}
-                                            <span class="badge badge-info" aria-label="Overall score {{ item.appraisal.overall_score|floatformat:1 }} percent">
-                                                {{ item.appraisal.overall_score|floatformat:1 }}%
+                                    </td>
+                                    <td class="text-center">
+                                        {% if item.status == "evaluated" %}
+                                            <span class="badge badge-success badge-pill px-3 py-2">
+                                                <i class="fas fa-check-double mr-1"></i>Evaluated
+                                            </span>
+                                        {% elif item.status == "ready_for_evaluation" %}
+                                            <span class="badge badge-primary badge-pill px-3 py-2">
+                                                <i class="fas fa-play-circle mr-1"></i>Ready
+                                            </span>
+                                        {% elif item.status == "partially_evaluated" %}
+                                            <span class="badge badge-info badge-pill px-3 py-2">
+                                                <i class="fas fa-hourglass-half mr-1"></i>Partial
+                                            </span>
+                                        {% elif item.status == "needs_detailed_ratings" %}
+                                            <span class="badge badge-secondary badge-pill px-3 py-2">
+                                                <i class="fas fa-clipboard-list mr-1"></i>Needs Details
+                                            </span>
+                                        {% elif item.status == "incomplete_self_ratings" %}
+                                            <span class="badge badge-warning badge-pill px-3 py-2">
+                                                <i class="fas fa-user-clock mr-1"></i>Incomplete
+                                            </span>
+                                        {% elif item.status == "no_targets" %}
+                                            <span class="badge badge-danger badge-pill px-3 py-2">
+                                                <i class="fas fa-ban mr-1"></i>No Targets
                                             </span>
                                         {% endif %}
-                                        
-                                    {% elif item.status == "ready_for_evaluation" %}
-                                        <!-- Ready: Show Evaluate button -->
-                                        <a href="{% url 'vc:vc_evaluate_supervisor' item.supervisor.id %}" 
-                                           class="btn btn-sm btn-primary" title="Evaluate Supervisor" aria-label="Evaluate {{ item.supervisor.get_full_name }}">
-                                            <i class="fas fa-edit mr-1"></i> Evaluate Now
-                                        </a>
-                                        
-                                    {% elif item.status == "partially_evaluated" %}
-                                        <!-- Partially evaluated: Can view or complete -->
-                                        <div class="d-flex">
-                                            <a href="{% url 'vc:vc_evaluate_supervisor' item.supervisor.id %}" 
-                                               class="btn btn-sm btn-info mr-2" title="Complete Evaluation" aria-label="Complete evaluation for {{ item.supervisor.get_full_name }}">
-                                                <i class="fas fa-edit mr-1"></i> Complete
-                                            </a>
-                                            <a href="{% url 'vc:vc_download_supervisor_report' item.supervisor.id %}" 
-                                               class="btn btn-sm btn-outline-info" title="View Current Report" aria-label="View current report for {{ item.supervisor.get_full_name }}">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        </div>
-                                        
-                                    {% elif item.status == "needs_detailed_ratings" %}
-                                        <!-- Has appraisal but needs detailed ratings -->
-                                        <div class="d-flex">
-                                            <a href="{% url 'vc:vc_evaluate_supervisor' item.supervisor.id %}" 
-                                               class="btn btn-sm btn-secondary mr-2" title="Add Detailed Ratings" aria-label="Add detailed ratings for {{ item.supervisor.get_full_name }}">
-                                                <i class="fas fa-edit mr-1"></i> Add Details
-                                            </a>
-                                            {% if item.appraisal %}
-                                            <a href="{% url 'vc:vc_download_supervisor_report' item.supervisor.id %}" 
-                                               class="btn btn-sm btn-outline-secondary" title="View Appraisal" aria-label="View appraisal for {{ item.supervisor.get_full_name }}">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if item.has_targets %}
+                                            <div class="progress-circle progress-success" data-percentage="{{ item.target_progress|default:100 }}">
+                                                <span class="progress-left">
+                                                    <span class="progress-bar"></span>
+                                                </span>
+                                                <span class="progress-right">
+                                                    <span class="progress-bar"></span>
+                                                </span>
+                                                <div class="progress-value">
+                                                    <small>{{ item.approved_targets_count }}</small>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">Targets</small>
+                                        {% else %}
+                                            <i class="fas fa-times-circle fa-lg text-danger"></i>
+                                            <div><small class="text-muted">None</small></div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if item.self_rated %}
+                                            <div class="progress-circle progress-{% if item.has_all_self_ratings %}success{% else %}warning{% endif %}" 
+                                                 data-percentage="{{ item.self_rating_percentage|default:0 }}">
+                                                <span class="progress-left">
+                                                    <span class="progress-bar"></span>
+                                                </span>
+                                                <span class="progress-right">
+                                                    <span class="progress-bar"></span>
+                                                </span>
+                                                <div class="progress-value">
+                                                    <small>{{ item.self_rating_count|default:0 }}</small>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">{{ item.self_rating_percentage|floatformat:0 }}%</small>
+                                        {% else %}
+                                            <i class="fas fa-times-circle fa-lg text-danger"></i>
+                                            <div><small class="text-muted">None</small></div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if item.has_vc_detailed_ratings %}
+                                            <div class="progress-circle progress-{% if item.has_full_vc_ratings %}success{% else %}info{% endif %}" 
+                                                 data-percentage="{{ item.vc_rating_percentage|default:0 }}">
+                                                <span class="progress-left">
+                                                    <span class="progress-bar"></span>
+                                                </span>
+                                                <span class="progress-right">
+                                                    <span class="progress-bar"></span>
+                                                </span>
+                                                <div class="progress-value">
+                                                    <small>{{ item.vc_rating_count|default:0 }}</small>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">{{ item.vc_rating_percentage|floatformat:0 }}%</small>
+                                        {% else %}
+                                            <i class="fas fa-minus-circle fa-lg text-muted"></i>
+                                            <div><small class="text-muted">None</small></div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if item.appraisal and item.appraisal.overall_score %}
+                                            <div class="score-display">
+                                                <span class="score-value {% if item.appraisal.overall_score >= 80 %}text-success{% elif item.appraisal.overall_score >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                                                    {{ item.appraisal.overall_score|floatformat:1 }}%
+                                                </span>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">--</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center pr-4">
+                                        <div class="btn-group" role="group">
+                                            {% if item.status == "evaluated" %}
+                                                <a href="{% url 'vc:vc_download_supervisor_report' item.supervisor.id %}" 
+                                                   class="btn btn-sm btn-success" title="View Full Report">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'vc:vc_evaluate_supervisor' item.supervisor.id %}" 
+                                                   class="btn btn-sm btn-outline-success" title="Edit Evaluation">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            {% elif item.status == "ready_for_evaluation" %}
+                                                <a href="{% url 'vc:vc_evaluate_supervisor' item.supervisor.id %}" 
+                                                   class="btn btn-sm btn-primary" title="Start Evaluation">
+                                                    <i class="fas fa-play"></i> Start
+                                                </a>
+                                            {% elif item.status == "partially_evaluated" %}
+                                                <a href="{% url 'vc:vc_evaluate_supervisor' item.supervisor.id %}" 
+                                                   class="btn btn-sm btn-info" title="Continue Evaluation">
+                                                    <i class="fas fa-play"></i> Continue
+                                                </a>
+                                            {% elif item.status == "needs_detailed_ratings" %}
+                                                <a href="{% url 'vc:vc_evaluate_supervisor' item.supervisor.id %}" 
+                                                   class="btn btn-sm btn-secondary" title="Add Details">
+                                                    <i class="fas fa-plus"></i> Details
+                                                </a>
+                                            {% else %}
+                                                <button class="btn btn-sm btn-outline-secondary" disabled title="Not Available">
+                                                    <i class="fas fa-lock"></i>
+                                                </button>
                                             {% endif %}
                                         </div>
-                                        
-                                    {% elif item.status == "incomplete_self_ratings" %}
-                                        <!-- Incomplete self-ratings -->
-                                        <div class="d-flex flex-column">
-                                            <span class="badge badge-warning mb-1">
-                                                <i class="fas fa-user-clock mr-1"></i> Incomplete
-                                            </span>
-                                            <small class="text-muted">
-                                                {{ item.self_rating_count|default:0 }}/{{ item.total_indicators_required }} self-rated
-                                            </small>
-                                        </div>
-                                        
-                                    {% elif item.status == "pending_self_rating" %}
-                                        <!-- Needs self-ratings -->
-                                        <div class="d-flex flex-column">
-                                            <span class="badge badge-warning mb-1">
-                                                <i class="fas fa-user-clock mr-1"></i> Waiting
-                                            </span>
-                                            <small class="text-muted">Needs self-ratings</small>
-                                        </div>
-                                        
-                                    {% elif item.status == "no_targets" %}
-                                        <!-- No approved targets -->
-                                        <div class="d-flex flex-column align-items-start">
-                                            <span class="badge badge-danger mb-1">
-                                                <i class="fas fa-ban mr-1"></i> Cannot Evaluate
-                                            </span>
-                                            <small class="text-muted">Approved targets required</small>
-                                        </div>
-                                        
-                                    {% else %}
-                                        <!-- Other status -->
-                                        <span class="badge badge-secondary">{{ item.status|title }}</span>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="alert alert-info" role="alert">
-                <i class="fas fa-info-circle"></i> No supervisors found for evaluation.
-                {% if current_period %}
-                    <p class="mt-2 mb-0">Current period: <strong>{{ current_period.name }}</strong></p>
-                {% else %}
-                    <p class="mt-2 mb-0">No active evaluation period found.</p>
-                {% endif %}
-            </div>
-            {% endif %}
-        </div>
-        <div class="card-footer">
-            <div class="row">
-                <div class="col-md-8">
-                    <small class="text-muted">
-                        <i class="fas fa-info-circle"></i> 
-                        <strong>Evaluation Requirements:</strong> 
-                        1. Approved Targets, 2. Complete Self-Ratings, 3. Complete VC Ratings, 4. VC Appraisal
-                    </small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-users fa-4x text-gray-300"></i>
+                        </div>
+                        <h4 class="text-gray-500">No Supervisors Found</h4>
+                        <p class="text-muted mb-0">There are no supervisors available for evaluation in the current period.</p>
+                    </div>
+                    {% endif %}
                 </div>
-                <div class="col-md-4 text-right">
-                    <!-- Status Legend -->
-                    <div class="status-legend">
-                        <small class="text-muted mr-2">
-                            <span class="badge badge-success mr-1">✓✓</span> Evaluated
-                        </small>
-                        <small class="text-muted mr-2">
-                            <span class="badge badge-info mr-1">!</span> Partial
-                        </small>
-                        <small class="text-muted mr-2">
-                            <span class="badge badge-secondary mr-1">📋</span> Needs Details
-                        </small>
-                        <small class="text-muted mr-2">
-                            <span class="badge badge-primary mr-1">✓</span> Ready
-                        </small>
-                        <small class="text-muted mr-2">
-                            <span class="badge badge-warning mr-1">⏱</span> Incomplete Self
-                        </small>
-                        <small class="text-muted">
-                            <span class="badge badge-danger mr-1">✗</span> No Targets
-                        </small>
+                {% if supervisors %}
+                <div class="card-footer bg-white py-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                Showing {{ supervisors|length }} of {{ total_supervisors }} supervisors
+                            </small>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Last updated: {% now "F j, Y H:i" %}
+                            </small>
+                        </div>
                     </div>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -525,401 +426,265 @@
 {% block extra_js %}
 <script>
 $(document).ready(function() {
-    // Show loading indicators for dynamic counters
-    function showLoading() {
-        $('.loading-spinner').show();
-    }
-    
-    function hideLoading() {
-        $('.loading-spinner').hide();
-    }
-    
-    // Calculate counts for the stats cards with error handling
-    function calculateStats() {
-        try {
-            let noTargetsCount = 0;
-            let incompleteSelfCount = 0;
-            let needsSelfRatingsCount = 0;
-            
-            showLoading();
-            
-            // Count through the table rows safely
-            const tableBody = $('#dataTable tbody');
-            if (tableBody.length && tableBody.find('tr').length > 0) {
-                $('#dataTable tbody tr').each(function() {
-                    const statusBadge = $(this).find('.badge');
-                    if (statusBadge.length) {
-                        const statusText = statusBadge.text().toLowerCase();
-                        const statusClass = statusBadge.attr('class') || '';
-                        
-                        if (statusText.includes('no targets') || 
-                            statusText.includes('no approved') || 
-                            statusClass.includes('badge-danger')) {
-                            noTargetsCount++;
-                        }
-                        
-                        if (statusText.includes('incomplete self') || 
-                            statusText.includes('incomplete self-ratings')) {
-                            incompleteSelfCount++;
-                        }
-                        
-                        if (statusText.includes('pending self') || 
-                            statusText.includes('need self-rating')) {
-                            needsSelfRatingsCount++;
-                        }
-                    }
-                });
-            } else {
-                // If no table rows, use server-side values
-                noTargetsCount = parseInt($('#no-targets-count .count-value').text()) || 0;
-                incompleteSelfCount = parseInt($('#incomplete-self-count .count-value').text()) || 0;
-            }
-            
-            // Update the counters with fallback values
-            $('#no-targets-count .count-value').text(noTargetsCount);
-            $('#no-targets-count-badge').text(noTargetsCount);
-            $('#incomplete-self-count .count-value').text(incompleteSelfCount + needsSelfRatingsCount);
-            
-            hideLoading();
-            
-            return {
-                noTargets: noTargetsCount,
-                incompleteSelf: incompleteSelfCount + needsSelfRatingsCount
-            };
-        } catch (error) {
-            console.error('Error calculating stats:', error);
-            hideLoading();
-            return { noTargets: 0, incompleteSelf: 0 };
-        }
-    }
-    
-    // Clean up existing DataTable instance
-    function cleanupDataTable() {
-        if ($.fn.DataTable.isDataTable('#dataTable')) {
-            $('#dataTable').DataTable().destroy();
-            $('#dataTable').empty();
-        }
-    }
-    
     // Initialize DataTable
-    function initializeDataTable() {
-        cleanupDataTable();
-        
-        const table = $('#dataTable').DataTable({
-            "pageLength": 10,
-            "ordering": true,
-            "responsive": true,
-            "order": [[3, 'asc']], // Sort by Status column
-            "columnDefs": [
-                {
-                    "targets": [7], // Actions column
-                    "orderable": false,
-                    "searchable": false
-                }
-            ],
-            "language": {
-                "search": "Search supervisors:",
-                "zeroRecords": "No matching supervisors found",
-                "info": "Showing _START_ to _END_ of _TOTAL_ supervisors",
-                "infoEmpty": "No supervisors available",
-                "infoFiltered": "(filtered from _MAX_ total supervisors)"
-            },
-            "initComplete": function() {
-                // Calculate stats after table is initialized
-                const stats = calculateStats();
-                updateFilterButtons(stats);
-            },
-            "drawCallback": function() {
-                // Recalculate stats after each table draw
-                const stats = calculateStats();
-                updateFilterButtons(stats);
-                
-                // Add row highlighting based on status
-                $('#dataTable tbody tr').each(function() {
-                    var statusBadge = $(this).find('.badge');
-                    if (statusBadge.length) {
-                        var statusClass = statusBadge.attr('class');
-                        if (statusClass.includes('badge-success')) {
-                            $(this).addClass('table-success');
-                        } else if (statusClass.includes('badge-primary')) {
-                            $(this).addClass('table-primary-light');
-                        } else if (statusClass.includes('badge-warning')) {
-                            $(this).addClass('table-warning-light');
-                        } else if (statusClass.includes('badge-danger')) {
-                            $(this).addClass('table-danger-light');
-                        } else if (statusClass.includes('badge-info')) {
-                            $(this).addClass('table-info-light');
-                        } else if (statusClass.includes('badge-secondary')) {
-                            $(this).addClass('table-secondary-light');
-                        }
-                    }
-                });
-            }
-        });
-        
-        return table;
-    }
-    
-    // Initialize Bootstrap tooltips
-    function initializeTooltips() {
-        $('[title]').tooltip({
-            trigger: 'hover',
-            placement: 'top'
-        });
-    }
-    
-    // Create filter buttons
-    function createFilterButtons(stats) {
-        const incompleteSelfCount = stats?.incompleteSelf || parseInt($('#incomplete-self-count .count-value').text()) || 0;
-        const noTargetsCount = stats?.noTargets || parseInt($('#no-targets-count .count-value').text()) || 0;
-        
-        const filterButtons = `
-            <div class="row mb-3">
-                <div class="col-md-12">
-                    <div class="btn-group btn-group-sm" role="group" aria-label="Filter supervisors by status">
-                        <button type="button" class="btn btn-outline-primary filter-btn" data-filter="all">All ({{ total_supervisors }})</button>
-                        <button type="button" class="btn btn-outline-success filter-btn" data-filter="evaluated">Evaluated ({{ evaluated_count }})</button>
-                        <button type="button" class="btn btn-outline-primary filter-btn" data-filter="ready_for_evaluation">Ready ({{ evaluatable_count }})</button>
-                        <button type="button" class="btn btn-outline-info filter-btn" data-filter="partially_evaluated">Partial ({{ partially_evaluated_count|default:0 }})</button>
-                        <button type="button" class="btn btn-outline-secondary filter-btn" data-filter="needs_detailed_ratings">Needs Details ({{ needs_detailed_ratings_count|default:0 }})</button>
-                        <button type="button" class="btn btn-outline-warning filter-btn" data-filter="incomplete_self_ratings">Incomplete Self (${incompleteSelfCount})</button>
-                        <button type="button" class="btn btn-outline-danger filter-btn" data-filter="no_targets">No Targets (${noTargetsCount})</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        $('#filter-container').html(filterButtons);
-    }
-    
-    // Update filter button counts
-    function updateFilterButtons(stats) {
-        const incompleteSelfCount = stats?.incompleteSelf || parseInt($('#incomplete-self-count .count-value').text()) || 0;
-        const noTargetsCount = stats?.noTargets || parseInt($('#no-targets-count .count-value').text()) || 0;
-        
-        $('.filter-btn[data-filter="incomplete_self_ratings"]').text(`Incomplete Self (${incompleteSelfCount})`);
-        $('.filter-btn[data-filter="no_targets"]').text(`No Targets (${noTargetsCount})`);
-    }
-    
-    // Add filter functionality
-    function setupFiltering(table) {
-        $('.filter-btn').on('click', function(e) {
-            e.preventDefault();
-            var filter = $(this).data('filter');
-            
-            // Remove active class from all buttons
-            $('.filter-btn').removeClass('active');
-            // Add active class to clicked button
-            $(this).addClass('active');
-            
-            if (filter === 'all') {
-                table.search('').columns().search('').draw();
-            } else {
-                // Search in the status column (index 3)
-                table.columns(3).search(filter).draw();
-            }
-        });
-    }
-    
-    // Main initialization
-    function initialize() {
-        try {
-            const table = initializeDataTable();
-            initializeTooltips();
-            
-            // Create and setup filter buttons
-            createFilterButtons(calculateStats());
-            setupFiltering(table);
-            
-            // Set initial active filter
-            $('.filter-btn[data-filter="all"]').addClass('active');
-            
-            // Cleanup on page unload
-            $(window).on('beforeunload', function() {
-                cleanupDataTable();
-            });
-            
-        } catch (error) {
-            console.error('Error initializing dashboard:', error);
-            // Fallback: Show basic table if DataTables fails
-            $('#dataTable').addClass('table').addClass('table-striped');
+    $('#supervisorTable').DataTable({
+        "pageLength": 10,
+        "order": [[2, 'asc']], // Sort by status
+        "language": {
+            "search": "Search supervisors:",
+            "zeroRecords": "No matching supervisors found",
+            "info": "Showing _START_ to _END_ of _TOTAL_ supervisors",
+            "infoEmpty": "No supervisors available",
+            "infoFiltered": "(filtered from _MAX_ total supervisors)"
+        },
+        "columnDefs": [
+            { "orderable": false, "targets": [7] } // Actions column not sortable
+        ],
+        "drawCallback": function(settings) {
+            // Update progress circles after table draw
+            updateProgressCircles();
         }
+    });
+
+    // Filter functionality
+    $('.filter-btn').on('click', function() {
+        $('.filter-btn').removeClass('active');
+        $(this).addClass('active');
+        
+        const filter = $(this).data('filter');
+        const table = $('#supervisorTable').DataTable();
+        
+        if (filter === 'all') {
+            table.search('').draw();
+        } else {
+            table.column(2).search(filter).draw(); // Status column is index 2
+        }
+    });
+
+    // Update progress circles
+    function updateProgressCircles() {
+        $('.progress-circle').each(function() {
+            const percentage = $(this).data('percentage');
+            const left = $(this).find('.progress-left .progress-bar');
+            const right = $(this).find('.progress-right .progress-bar');
+            
+            if (percentage > 0) {
+                if (percentage <= 50) {
+                    right.css('transform', 'rotate(' + percentage * 3.6 + 'deg)');
+                } else {
+                    right.css('transform', 'rotate(180deg)');
+                    left.css('transform', 'rotate(' + ((percentage - 50) * 3.6) + 'deg)');
+                }
+            }
+        });
     }
-    
-    // Start initialization
-    initialize();
+
+    // Initialize progress circles
+    updateProgressCircles();
+
+    // Tooltips
+    $('[title]').tooltip({
+        trigger: 'hover',
+        placement: 'top'
+    });
+
+    // Row hover effects
+    $('#supervisorTable tbody tr').hover(
+        function() {
+            $(this).addClass('hover-row');
+        },
+        function() {
+            $(this).removeClass('hover-row');
+        }
+    );
 });
 </script>
 
 <style>
-/* Custom styles for better visibility */
-.status-legend {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 8px;
+/* Custom styles */
+.card {
+    border-radius: 10px;
+    border: 1px solid #e3e6f0;
 }
 
-.badge.p-2 {
-    min-width: 120px;
-    text-align: center;
+.card-header {
+    border-top-left-radius: 10px !important;
+    border-top-right-radius: 10px !important;
+    border-bottom: 1px solid #e3e6f0;
 }
 
-.table tbody tr:hover {
-    background-color: rgba(0, 0, 0, 0.02);
-}
-
-/* Filter buttons */
-.filter-btn {
-    transition: all 0.3s ease;
+.progress-circle {
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    background: none;
+    margin: 0 auto 5px;
+    box-shadow: none;
     position: relative;
+}
+
+.progress-circle:after {
+    content: "";
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 3px solid #f2f2f2;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.progress-circle > span {
+    width: 50%;
+    height: 100%;
     overflow: hidden;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+}
+
+.progress-circle .progress-left {
+    left: 0;
+}
+
+.progress-circle .progress-bar {
+    width: 100%;
+    height: 100%;
+    background: none;
+    border-width: 3px;
+    border-style: solid;
+    position: absolute;
+    top: 0;
+}
+
+.progress-circle .progress-left .progress-bar {
+    left: 100%;
+    border-top-right-radius: 25px;
+    border-bottom-right-radius: 25px;
+    border-left: 0;
+    transform-origin: center left;
+}
+
+.progress-circle .progress-right {
+    right: 0;
+}
+
+.progress-circle .progress-right .progress-bar {
+    left: -100%;
+    border-top-left-radius: 25px;
+    border-bottom-left-radius: 25px;
+    border-right: 0;
+    transform-origin: center right;
+}
+
+.progress-circle .progress-value {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.progress-success .progress-bar {
+    border-color: #28a745;
+}
+
+.progress-primary .progress-bar {
+    border-color: #007bff;
+}
+
+.progress-warning .progress-bar {
+    border-color: #ffc107;
+}
+
+.progress-info .progress-bar {
+    border-color: #17a2b8;
+}
+
+.progress-danger .progress-bar {
+    border-color: #dc3545;
+}
+
+.status-box {
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.status-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.status-evaluated { border-color: #28a745; }
+.status-ready { border-color: #007bff; }
+.status-partial { border-color: #17a2b8; }
+.status-details { border-color: #6c757d; }
+.status-incomplete { border-color: #ffc107; }
+.status-notargets { border-color: #dc3545; }
+
+.score-display {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.score-value {
+    padding: 3px 8px;
+    border-radius: 5px;
+    background-color: rgba(0,0,0,0.03);
+}
+
+.hover-row {
+    background-color: rgba(78, 115, 223, 0.05) !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(78, 115, 223, 0.05);
+}
+
+.btn-group .btn {
+    border-radius: 5px !important;
+    margin-right: 3px;
+}
+
+.filter-btn.active {
+    background-color: #4e73df;
+    color: white;
+    border-color: #4e73df;
 }
 
 .filter-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 
-.filter-btn.active {
-    font-weight: bold;
-    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+/* Cleaner supervisor name display */
+.font-weight-bold.text-primary {
+    color: #2e59d9 !important;
+    font-size: 1rem;
+    margin-bottom: 2px;
 }
 
-.filter-btn.active::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background-color: currentColor;
-    opacity: 0.7;
-}
-
-/* Status badge colors */
-.badge.badge-success { background-color: #28a745; }
-.badge.badge-primary { background-color: #007bff; }
-.badge.badge-warning { background-color: #ffc107; color: #212529; }
-.badge.badge-danger { background-color: #dc3545; }
-.badge.badge-info { background-color: #17a2b8; }
-.badge.badge-secondary { background-color: #6c757d; }
-
-/* Light background for status rows */
-.table-success {
-    background-color: rgba(40, 167, 69, 0.05) !important;
-}
-
-.table-primary-light {
-    background-color: rgba(0, 123, 255, 0.05) !important;
-}
-
-.table-warning-light {
-    background-color: rgba(255, 193, 7, 0.05) !important;
-}
-
-.table-danger-light {
-    background-color: rgba(220, 53, 69, 0.05) !important;
-}
-
-.table-info-light {
-    background-color: rgba(23, 162, 184, 0.05) !important;
-}
-
-.table-secondary-light {
-    background-color: rgba(108, 117, 125, 0.05) !important;
-}
-
-/* Loading spinner */
-.loading-spinner {
-    display: inline-block;
-    margin-right: 5px;
-    color: #6c757d;
-}
-
-/* Make table more readable */
-#dataTable th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-    border-bottom: 2px solid #dee2e6;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-#dataTable td {
-    vertical-align: middle;
-}
-
-/* Progress bar styling */
-.progress {
-    background-color: #e9ecef;
-    height: 0.5rem;
-}
-
-.progress-bar {
-    background-color: #17a2b8;
-    transition: width 0.6s ease;
-}
-
-/* Card improvements */
-.card-header {
-    border-bottom: 1px solid #e3e6f0;
-    background-color: #f8f9fc;
-}
-
-.card-footer {
-    border-top: 1px solid #e3e6f0;
-    background-color: #f8f9fc;
-}
-
-/* Icon colors */
-.text-success {
-    color: #28a745 !important;
-}
-
-.text-warning {
-    color: #ffc107 !important;
-}
-
-.text-danger {
-    color: #dc3545 !important;
-}
-
-.text-info {
-    color: #17a2b8 !important;
-}
-
-.text-muted {
-    color: #6c757d !important;
-}
-
-/* Focus states for accessibility */
-.btn:focus,
-.filter-btn:focus {
-    outline: 2px solid #007bff;
-    outline-offset: 2px;
+.text-muted.small {
+    font-size: 0.85rem;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .status-legend {
-        justify-content: flex-start;
-        margin-top: 10px;
-    }
-    
-    .badge.p-2 {
-        min-width: 100px;
-        font-size: 0.8rem;
-    }
-    
     .card-header .d-flex {
         flex-direction: column;
         align-items: flex-start !important;
     }
     
-    .card-header .badge {
-        margin-top: 5px;
-        margin-right: 5px;
+    .card-header .dropdown {
+        margin-top: 10px;
     }
     
     .filter-btn {
@@ -927,49 +692,67 @@ $(document).ready(function() {
         font-size: 0.75rem;
     }
     
-    #dataTable {
-        font-size: 0.85rem;
+    .progress-circle {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
     }
     
-    #dataTable td, #dataTable th {
-        padding: 0.5rem;
+    .progress-value small {
+        font-size: 10px;
+    }
+    
+    .font-weight-bold.text-primary {
+        font-size: 0.9rem;
+    }
+    
+    .text-muted.small {
+        font-size: 0.8rem;
     }
 }
 
 @media (max-width: 576px) {
-    .h5 {
-        font-size: 1.1rem;
+    .h3 {
+        font-size: 1.2rem;
     }
     
-    .text-xs {
-        font-size: 0.7rem;
+    .status-box {
+        padding: 15px !important;
     }
     
-    .status-legend {
-        font-size: 0.7rem;
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 5px;
+        width: 100%;
+    }
+    
+    .table td {
+        padding: 8px 4px !important;
     }
 }
 
 /* Print styles */
 @media print {
-    .filter-btn,
-    .card-header .badge,
-    .card-footer,
-    .btn-group {
+    .btn, .dropdown, .filter-buttons, .card-footer {
         display: none !important;
     }
     
-    #dataTable {
-        font-size: 10pt;
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
     }
     
-    .table-success,
-    .table-primary-light,
-    .table-warning-light,
-    .table-danger-light,
-    .table-info-light,
-    .table-secondary-light {
-        background-color: transparent !important;
+    .table th, .table td {
+        padding: 5px !important;
+        font-size: 10pt !important;
+    }
+    
+    .progress-circle {
+        display: none !important;
     }
 }
 </style>
