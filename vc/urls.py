@@ -60,11 +60,10 @@ urlpatterns = [
     # TARGET APPROVAL URLs
     path('targets/approval/', views.vc_targets_approval, name='vc_targets_approval'),
     
-    # Individual target detail (for specific target)
-    path('targets/<str:target_type>/<int:target_id>/', views.vc_target_detail, name='vc_target_detail'),
-    
+  
     # NEW: Supervisor targets view (for viewing all targets of a supervisor)
     path('targets/supervisor/<int:supervisor_id>/', views.vc_supervisor_targets, name='vc_supervisor_targets'),
     
     path('targets/approved/', views.vc_approved_targets, name='vc_approved_targets'),
+
 ]

@@ -223,17 +223,18 @@
                             </td>
                             <td class="text-center">
                                 {% if supervisor.total_targets > 0 %}
-                                <a href="{% url 'vc:vc_supervisor_targets' supervisor.id %}" 
-                                   class="btn {% if supervisor.pending_count > 0 %}btn-warning{% else %}btn-primary{% endif %} btn-sm">
-                                    <i class="bi bi-eye me-1"></i>
-                                    {% if supervisor.pending_count > 0 %}
-                                    Review Targets
-                                    {% else %}
-                                    View Targets
-                                    {% endif %}
-                                </a>
+                                    <!-- FIXED: Using direct URL approach -->
+                                    <a href="/vc/targets/supervisor/{{ supervisor.id }}/" 
+                                       class="btn {% if supervisor.pending_count > 0 %}btn-warning{% else %}btn-primary{% endif %} btn-sm">
+                                        <i class="bi bi-eye me-1"></i>
+                                        {% if supervisor.pending_count > 0 %}
+                                        Review Targets
+                                        {% else %}
+                                        View Targets
+                                        {% endif %}
+                                    </a>
                                 {% else %}
-                                <span class="text-muted small">No targets set</span>
+                                    <span class="text-muted small">No targets set</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -286,7 +287,6 @@
 .btn-sm {
     padding: 4px 12px;
     font-size: 0.875rem;
-    {% endblock %}
-
 }
 </style>
+{% endblock %}

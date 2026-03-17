@@ -15,17 +15,53 @@ from django.utils import timezone
 class Department(models.Model):
     name = models.CharField(max_length=150, unique=True)
     code = models.CharField(max_length=10, unique=True, blank=True, null=True)
-
+    
+    # ✅ MODIFY THIS: Keep staff_type for historical/reporting only
     STAFF_TYPE_CHOICES = [
         ("teaching", "Teaching"),
         ("non_teaching", "Non-Teaching"),
         ("supervisor", "Supervisor"),
-        ("hr", "HR"),  # ✅ ADD HR DEPARTMENT TYPE
+        ("hr", "HR"),
+        ("mixed", "Mixed"),
+        ("any", "Any"),  # ✅ ADD "any" option
     ]
-    staff_type = models.CharField(max_length=20, choices=STAFF_TYPE_CHOICES)
-
+    staff_type = models.CharField(
+        max_length=20, 
+        choices=STAFF_TYPE_CHOICES,
+        default="any"  # ✅ SET DEFAULT to "any"
+    )
+    
+    description = models.TextField(blank=True, help_text="Department description")
+    
     def __str__(self):
-        return f"{self.name} ({self.get_staff_type_display()})"
+        return self.name  # ✅ Simplified - no type in display
+    
+    @property
+    def allows_all_staff(self):
+        """Always returns True since all departments allow all types"""
+        return True
+    
+    @property
+    def primary_staff_type(self):
+        """Get most common staff type for reporting"""
+        from django.db.models import Count
+        staff_roles = self.users.values('role').annotate(count=Count('role')).order_by('-count')
+        if staff_roles.exists():
+            return staff_roles.first()['role']
+        return self.staff_type  # Fallback to stored type
+    
+    @property
+    def staff_count(self):
+        """Count of staff in this department"""
+        return self.users.count()
+    
+    def get_staff_composition(self):
+        """Get breakdown of staff types in this department"""
+        from collections import Counter
+        roles = list(self.users.values_list('role', flat=True))
+        if not roles:
+            return {}
+        return Counter(roles)
 
 
 # --------------------------------
@@ -53,11 +89,6 @@ class CustomUserManager(BaseUserManager):
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Superuser must have is_staff=True.")
-        if extra_fields.get("is_superuser") is not True:
-            raise ValueError("Superuser must have is_superuser=True.")
-
-        return self.create_user(pf_number, email, password, **extra_fields)
-
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     pf_number = models.CharField(max_length=20, unique=True)
@@ -70,7 +101,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ("non_teaching", "Non-Teaching Staff"),
         ("supervisor", "Supervisor"),
         ("hr", "HR Staff"),
-        ("vc", "Vice Chancellor"),  # ADD VC ROLE
+        ("vc", "Vice Chancellor"),
     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
@@ -134,6 +165,33 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             return Department.objects.all()
         return Department.objects.none()
 
+    # ✅ ADD CLEAN METHOD FOR BASIC VALIDATION (NO DEPARTMENT TYPE CHECK)
+    def clean(self):
+        """Validate user data - NO department type validation"""
+        super().clean()
+        
+        # Only check if non-VC users have a department assigned
+        if self.role != 'vc' and not self.department:
+            raise ValidationError(
+                f"Department is required for {self.get_role_display()} staff"
+            )
+        
+        # ✅ NO department type validation - all departments allow all staff types
+
+    # ✅ ADD SAVE METHOD TO AUTO-SET FLAGS AND RUN VALIDATION
+    def save(self, *args, **kwargs):
+        # Auto-set flags based on role
+        if self.role == 'hr':
+            self.is_hr = True
+        elif self.role == 'vc':
+            self.is_vc = True
+        
+        # Run validation
+        self.full_clean()
+        
+        super().save(*args, **kwargs)    
+        # Save the user
+
 
 # --------------------------------
 # Unified Staff Profile
@@ -145,7 +203,7 @@ class StaffProfile(models.Model):
         related_name="staffprofile",
     )
     designation = models.CharField(max_length=100)
-
+    
     department = models.ForeignKey(
         Department,
         on_delete=models.SET_NULL,
@@ -153,7 +211,7 @@ class StaffProfile(models.Model):
         null=True,
         related_name="staff_profiles",
     )
-
+    
     # ✅ ADD THIS: Foreign key to current/latest appraisal
     current_appraisal = models.ForeignKey(
         "StaffAppraisal",  # Use string to avoid circular import
@@ -162,77 +220,34 @@ class StaffProfile(models.Model):
         blank=True,
         related_name="active_profile",
     )
-
-    def clean(self):
-        """Validate that department matches user role, but allow supervisors in any department"""
-        if (
-            self.department and self.user.role != "supervisor"
-        ):  # Only validate for non-supervisors
-            if self.user.role != self.department.staff_type:
-                raise ValidationError(
-                    f"Department '{self.department.name}' is for {self.department.get_staff_type_display()} staff, "
-                    f"but user is {self.user.get_role_display()}."
-                )
-
+    
+    # ✅ REMOVE the clean() method entirely or keep it empty
+    # def clean(self):
+    #     """No validation - all departments allow all staff types"""
+    #     pass
+    
     def save(self, *args, **kwargs):
-        self.clean()
+        # ✅ No validation needed
         super().save(*args, **kwargs)
-
+    
     def __str__(self):
-        return f"{self.user.get_full_name()} - {self.designation} ({self.user.get_role_display()})"
-
+        return f"{self.user.get_full_name()} - {self.designation}"
+    
     @property
     def is_supervisor(self):
         """Check if this staff member is a supervisor"""
         return self.user.role == "supervisor"
-
+    
     @property
     def supervised_staff(self):
         """Get staff members this supervisor oversees (for supervisors only)"""
         if not self.is_supervisor:
             return StaffProfile.objects.none()
-
+        
         # Staff in the same department (for non-teaching supervisors)
         return StaffProfile.objects.filter(department=self.department).exclude(
             user=self.user
         )
-
-    # ✅ ADD THESE PROPERTIES TO ACCESS APPRAISAL DATA
-    @property
-    def display_experience(self):
-        """Get total experience from current appraisal"""
-        if self.current_appraisal:
-            kyu = self.current_appraisal.years_experience_kyu or 0
-            elsewhere = self.current_appraisal.years_experience_elsewhere or 0
-            return f"{kyu + elsewhere} years"
-        return "Not specified"
-
-    @property
-    def display_date_of_appointment(self):
-        """Get appointment date from current appraisal"""
-        if (
-            self.current_appraisal
-            and self.current_appraisal.date_of_appointment
-        ):
-            return self.current_appraisal.date_of_appointment
-        return None
-
-    @property
-    def display_length_of_service(self):
-        """Get length of service from current appraisal"""
-        if self.current_appraisal:
-            return self.current_appraisal.length_of_service
-        return None
-
-    @property
-    def display_acting_duty(self):
-        """Get acting/special duty from current appraisal"""
-        if self.current_appraisal:
-            return (
-                self.current_appraisal.acting_or_special_duty
-                or self.current_appraisal.acting_appointment
-            )
-        return None
 
 
 # --------------------------------

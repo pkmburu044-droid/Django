@@ -1,0 +1,297 @@
+<!-- hr/templates/hr/hr_performance_analytics.html -->
+{% extends "hr/base.html" %}
+{% load static %}
+
+{% block title %}Performance Analytics - HR Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Performance Analytics Dashboard</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Filter Form -->
+                    <form method="get" class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label for="period" class="form-label">Appraisal Period</label>
+                            <select name="period" id="period" class="form-select">
+                                <option value="">All Periods</option>
+                                {% for period in periods %}
+                                    <option value="{{ period.id }}" {% if period.id|stringformat:"s" == selected_period %}selected{% endif %}>
+                                        {{ period.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="department" class="form-label">Department</label>
+                            <select name="department" id="department" class="form-select">
+                                <option value="">All Departments</option>
+                                {% for dept in departments %}
+                                    <option value="{{ dept.name }}" {% if dept.name == selected_department %}selected{% endif %}>
+                                        {{ dept.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 align-self-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter"></i> Apply Filters
+                            </button>
+                            <a href="{% url 'hr:hr_performance_analytics' %}" class="btn btn-outline-secondary">
+                                Clear Filters
+                            </a>
+                        </div>
+                    </form>
+
+                    <!-- Summary Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-primary">Total Appraisals</h5>
+                                    <h2 class="display-6">{{ total_appraisals }}</h2>
+                                    <p class="text-muted">Staff Evaluations</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-success">Average Score</h5>
+                                    <h2 class="display-6">{{ performance_stats.avg_score|default:"0"|floatformat:1 }}%</h2>
+                                    <p class="text-muted">Overall Performance</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-info">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-info">Highest Score</h5>
+                                    <h2 class="display-6">{{ performance_stats.max_score|default:"0"|floatformat:1 }}%</h2>
+                                    <p class="text-muted">Best Performance</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-warning">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title text-warning">Lowest Score</h5>
+                                    <h2 class="display-6">{{ performance_stats.min_score|default:"0"|floatformat:1 }}%</h2>
+                                    <p class="text-muted">Needs Improvement</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Statistics -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Status Distribution</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if status_distribution %}
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Status</th>
+                                                        <th>Count</th>
+                                                        <th>Percentage</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for status in status_distribution %}
+                                                        <tr>
+                                                            <td>
+                                                                <span class="badge {% if status.status == 'finalized' %}bg-success{% elif status.status == 'reviewed' %}bg-info{% elif status.status == 'submitted' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                                                    {{ status.status|title }}
+                                                                </span>
+                                                            </td>
+                                                            <td>{{ status.count }}</td>
+                                                            <td>
+                                                                {% if total_appraisals > 0 %}
+                                                                    {{ status.count|floatformat:0 }}%
+                                                                {% else %}
+                                                                    0%
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted text-center">No appraisal data available.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Performance Targets</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <h3>{{ target_stats.total_targets|default:0 }}</h3>
+                                            <small class="text-muted">Total Targets</small>
+                                        </div>
+                                        <div class="col-4">
+                                            <h3>{{ target_stats.approved_targets|default:0 }}</h3>
+                                            <small class="text-muted">Approved</small>
+                                        </div>
+                                        <div class="col-4">
+                                            <h3>{{ target_stats.evaluated_targets|default:0 }}</h3>
+                                            <small class="text-muted">Evaluated</small>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="text-center mt-3">
+                                        <h4>Average Rating: {{ target_stats.avg_rating|default:"0"|floatformat:1 }}%</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Department Performance -->
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Department Performance</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if department_performance %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Department</th>
+                                                <th>Staff Count</th>
+                                                <th>Appraisals</th>
+                                                <th>Average Score</th>
+                                                <th>Completion</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for dept in department_performance %}
+                                                <tr>
+                                                    <td>{{ dept.profile__user__department__name|default:"No Department" }}</td>
+                                                    <td>{{ dept.staff_count }}</td>
+                                                    <td>{{ dept.appraisal_count }}</td>
+                                                    <td>
+                                                        <span class="badge {% if dept.avg_score >= 80 %}bg-success{% elif dept.avg_score >= 60 %}bg-warning{% else %}bg-danger{% endif %}">
+                                                            {{ dept.avg_score|floatformat:1 }}%
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="progress" style="height: 20px;">
+                                                            <div class="progress-bar {% if dept.appraisal_count == dept.staff_count %}bg-success{% else %}bg-info{% endif %}" 
+                                                                 role="progressbar" 
+                                                                 style="width: {% if dept.staff_count > 0 %}{{ dept.completed_count|default:0|floatformat:0 }}{% else %}0{% endif %}%">
+                                                                {{ dept.completed_count|default:0 }}/{{ dept.staff_count }}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-muted text-center">No department performance data available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Score Distribution -->
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h5 class="mb-0">Score Distribution</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if score_distribution %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Score Range</th>
+                                                <th>Count</th>
+                                                <th>Percentage</th>
+                                                <th>Visual</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for range in score_distribution %}
+                                                <tr>
+                                                    <td>{{ range.score_range }}</td>
+                                                    <td>{{ range.count }}</td>
+                                                    <td>
+                                                        {% if total_appraisals > 0 %}
+                                                            {{ range.count|floatformat:0 }}%
+                                                        {% else %}
+                                                            0%
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <div class="progress" style="height: 10px;">
+                                                            <div class="progress-bar 
+                                                                {% if range.score_range == '90-100' %}bg-success
+                                                                {% elif range.score_range == '80-89' %}bg-info
+                                                                {% elif range.score_range == '70-79' %}bg-primary
+                                                                {% elif range.score_range == '60-69' %}bg-warning
+                                                                {% else %}bg-danger{% endif %}" 
+                                                                role="progressbar" 
+                                                                style="width: {% if total_appraisals > 0 %}{{ range.count|floatformat:0 }}{% else %}0{% endif %}%">
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-muted text-center">No score distribution data available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    <small>Last updated: {% now "F j, Y, g:i a" %}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Simple chart functionality (you can replace with Chart.js if available)
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add interactivity to filters
+        const periodSelect = document.getElementById('period');
+        const departmentSelect = document.getElementById('department');
+        
+        if (periodSelect) {
+            periodSelect.addEventListener('change', function() {
+                this.form.submit();
+            });
+        }
+        
+        if (departmentSelect) {
+            departmentSelect.addEventListener('change', function() {
+                this.form.submit();
+            });
+        }
+    });
+</script>
+{% endblock %}

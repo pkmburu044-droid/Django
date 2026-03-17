@@ -82,7 +82,104 @@ def vc_dashboard(request):
             else 0
         )
 
-        # Get top departments
+        # ============ ADD TARGET STATISTICS HERE ============
+        target_stats = {
+            'total_targets': 0,
+            'pending_targets': 0,
+            'approved_targets': 0,
+            'rejected_targets': 0,
+            'approval_rate': 0,
+        }
+        
+        if current_period:
+            # Supervisor targets
+            supervisor_targets = SupervisorPerformanceTarget.objects.filter(
+                period=current_period
+            )
+            
+            # Regular staff targets
+            regular_targets = PerformanceTarget.objects.filter(
+                period=current_period
+            )
+            
+            # Count all targets
+            total_targets = supervisor_targets.count() + regular_targets.count()
+            
+            # Count by status
+            pending_supervisor = supervisor_targets.filter(
+                status__in=['pending', 'submitted']
+            ).count()
+            pending_regular = regular_targets.filter(
+                status__in=['pending', 'submitted']
+            ).count()
+            pending_targets = pending_supervisor + pending_regular
+            
+            approved_supervisor = supervisor_targets.filter(status='approved').count()
+            approved_regular = regular_targets.filter(status='approved').count()
+            approved_targets = approved_supervisor + approved_regular
+            
+            rejected_supervisor = supervisor_targets.filter(status='rejected').count()
+            rejected_regular = regular_targets.filter(status='rejected').count()
+            rejected_targets = rejected_supervisor + rejected_regular
+            
+            # Calculate approval rate
+            approval_rate = 0
+            if total_targets > 0:
+                approval_rate = round((approved_targets / total_targets) * 100, 1)
+            
+            target_stats = {
+                'total_targets': total_targets,
+                'pending_targets': pending_targets,
+                'approved_targets': approved_targets,
+                'rejected_targets': rejected_targets,
+                'approval_rate': approval_rate,
+            }
+        
+        # ============ ADD RECENT PENDING TARGETS FOR DASHBOARD ============
+        recent_pending_targets = []
+        if current_period:
+            # Get recent supervisor targets
+            recent_supervisor_targets = SupervisorPerformanceTarget.objects.filter(
+                period=current_period,
+                status__in=['pending', 'submitted']
+            ).select_related('supervisor', 'supervisor__department').order_by('-created_at')[:5]
+            
+            # Get recent regular staff targets
+            recent_regular_targets = PerformanceTarget.objects.filter(
+                period=current_period,
+                status__in=['pending', 'submitted']
+            ).select_related('staff', 'staff__department').order_by('-created_at')[:5]
+            
+            # Combine and format for display
+            for target in recent_supervisor_targets:
+                recent_pending_targets.append({
+                    'id': target.id,
+                    'target_number': target.target_number,
+                    'description': target.description[:50] + '...' if len(target.description) > 50 else target.description,
+                    'staff_name': target.supervisor.get_full_name(),
+                    'staff_role': 'Supervisor',
+                    'department': target.supervisor.department.name if target.supervisor.department else 'N/A',
+                    'created_date': target.created_at,
+                    'target_type': 'supervisor',
+                })
+            
+            for target in recent_regular_targets:
+                recent_pending_targets.append({
+                    'id': target.id,
+                    'target_number': target.target_number,
+                    'description': target.description[:50] + '...' if len(target.description) > 50 else target.description,
+                    'staff_name': target.staff.get_full_name(),
+                    'staff_role': target.staff.get_role_display(),
+                    'department': target.staff.department.name if target.staff.department else 'N/A',
+                    'created_date': target.created_at,
+                    'target_type': 'regular',
+                })
+            
+            # Sort by creation date (most recent first)
+            recent_pending_targets.sort(key=lambda x: x['created_date'], reverse=True)
+            recent_pending_targets = recent_pending_targets[:5]  # Keep only top 5
+        
+        # ============ GET TOP DEPARTMENTS WITH TARGET STATS ============
         departments = Department.objects.all()[:5]
         department_stats = []
 
@@ -116,6 +213,37 @@ def vc_dashboard(request):
                     evaluation_rate = round(
                         (evaluated_supervisors / total_evaluable) * 100, 1
                     )
+            
+            # Calculate target completion rate for this department
+            targets_completion = 0
+            if current_period:
+                approved_supervisor_targets = SupervisorPerformanceTarget.objects.filter(
+                    supervisor__in=dept_staff.filter(role="supervisor"),
+                    period=current_period,
+                    status="approved"
+                ).count()
+                
+                approved_regular_targets = PerformanceTarget.objects.filter(
+                    staff__in=dept_staff.filter(role__in=["teaching", "non_teaching"]),
+                    period=current_period,
+                    status="approved"
+                ).count()
+                
+                total_supervisor_targets = SupervisorPerformanceTarget.objects.filter(
+                    supervisor__in=dept_staff.filter(role="supervisor"),
+                    period=current_period
+                ).count()
+                
+                total_regular_targets = PerformanceTarget.objects.filter(
+                    staff__in=dept_staff.filter(role__in=["teaching", "non_teaching"]),
+                    period=current_period
+                ).count()
+                
+                total_approved = approved_supervisor_targets + approved_regular_targets
+                total_targets = total_supervisor_targets + total_regular_targets
+                
+                if total_targets > 0:
+                    targets_completion = round((total_approved / total_targets) * 100, 1)
 
             department_stats.append(
                 {
@@ -123,6 +251,7 @@ def vc_dashboard(request):
                     "total_staff": dept_staff.count(),
                     "supervisors": supervisors_count,
                     "evaluation_rate": evaluation_rate,
+                    "targets_completion": targets_completion,
                     "avg_score": 0,  # You can calculate this if needed
                 }
             )
@@ -136,13 +265,17 @@ def vc_dashboard(request):
             "pending_count": pending_count,
             "completion_rate": completion_rate,
             "department_stats": department_stats,
-            "recent_activities": [],
+            "target_stats": target_stats,  # ADD THIS
+            "recent_pending_targets": recent_pending_targets,  # ADD THIS
+            "recent_activities": [],  # You can populate this with recent activities
         }
 
         return render(request, "vc/vc_dashboard.html", context)
 
     except Exception as e:
         messages.error(request, f"Error loading dashboard: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return redirect("vc:vc_dashboard")
 
 
@@ -2460,168 +2593,118 @@ def vc_targets_approval(request):
 
     return render(request, 'vc/vc_targets_approval.html', context)
 
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Q
-from django.utils import timezone
-
 @login_required
 def vc_supervisor_targets(request, supervisor_id):
     """
-    View and approve/reject a specific supervisor's targets
+    View ALL targets for a specific supervisor
     """
-
-    # ---- Permission check (fail early) ----
     if not getattr(request.user, 'is_vc_staff', False):
         messages.error(request, "Only Vice Chancellor can access this page.")
         return redirect("users:role_based_redirect")
-
-    # ---- Get supervisor (safe & explicit) ----
-    supervisor = get_object_or_404(
-        CustomUser,
-        id=supervisor_id,
-        role='supervisor',
-        is_active=True
-    )
-
-    # ---- Get active period ----
+    
+    # Get supervisor
+    try:
+        supervisor = CustomUser.objects.get(id=supervisor_id)
+    except CustomUser.DoesNotExist:
+        messages.error(request, "Supervisor not found.")
+        return redirect('vc:vc_targets_approval')
+    
+    # Get active period
     active_period = SPEPeriod.objects.filter(is_active=True).first()
     if not active_period:
         messages.warning(request, "No active evaluation period found.")
         return redirect('vc:vc_dashboard')
-
-    # ---- Get targets ----
-    all_targets = SupervisorPerformanceTarget.objects.filter(
-        supervisor=supervisor,
-        period=active_period
-    ).order_by('target_number')
-
-    pending_targets = all_targets.filter(
-        Q(status='pending') | Q(status='submitted')
-    )
-    approved_targets = all_targets.filter(status='approved')
-    rejected_targets = all_targets.filter(status='rejected')
-
-    # ---- Handle POST ----
+    
+    # ============ HANDLE POST REQUESTS ============
     if request.method == 'POST':
+        print(f"DEBUG: POST request for supervisor {supervisor_id}")
+        
+        # Check if CSRF token is valid
+        if not request.META.get('CSRF_COOKIE'):
+            messages.error(request, "CSRF token missing. Please try again.")
+            return redirect('login')
+        
+        # Get form data
         action = request.POST.get('action')
         target_ids = request.POST.getlist('target_ids')
         comments = request.POST.get('comments', '').strip()
-
-        if not action or not target_ids:
-            messages.warning(request, "No action or targets selected.")
-            return redirect('vc:vc_supervisor_targets', supervisor_id=supervisor.id)
-
-        processed = 0
-
-        targets = all_targets.filter(id__in=target_ids)
-
-        for target in targets:
-            if target.status not in ['pending', 'submitted']:
-                continue
-
-            if action == 'approve':
-                target.status = 'approved'
-                target.approved_by = request.user
-                target.approved_at = timezone.now()
-                if hasattr(target, 'approval_comments'):
-                    target.approval_comments = comments
-
-            elif action == 'reject':
-                target.status = 'rejected'
-                target.rejected_by = request.user
-                target.rejected_at = timezone.now()
-                if hasattr(target, 'rejection_reason'):
-                    target.rejection_reason = comments
-                elif hasattr(target, 'rejection_comments'):
-                    target.rejection_comments = comments
-
-            target.save()
-            processed += 1
-
-        if processed:
-            messages.success(
-                request,
-                f"Successfully {action}ed {processed} target(s)."
-            )
+        
+        print(f"DEBUG: Action={action}, Target IDs={target_ids}")
+        
+        if action in ['approve', 'reject'] and target_ids:
+            processed = 0
+            for target_id in target_ids:
+                try:
+                    target = SupervisorPerformanceTarget.objects.get(
+                        id=target_id,
+                        supervisor=supervisor,
+                        period=active_period
+                    )
+                    
+                    if action == 'approve':
+                        target.status = 'approved'
+                        target.approved_by = request.user
+                        target.approved_at = timezone.now()
+                        target.approval_comments = comments
+                        messages.success(request, f"Target #{target.target_number} approved!")
+                    else:  # reject
+                        target.status = 'rejected'
+                        target.rejected_by = request.user
+                        target.rejected_at = timezone.now()
+                        target.rejection_reason = comments
+                        messages.warning(request, f"Target #{target.target_number} rejected!")
+                    
+                    target.save()
+                    processed += 1
+                    
+                except SupervisorPerformanceTarget.DoesNotExist:
+                    continue
+            
+            if processed > 0:
+                action_text = "approved" if action == 'approve' else "rejected"
+                messages.success(request, f"Successfully {action_text} {processed} target(s).")
+            else:
+                messages.warning(request, "No targets were processed.")
         else:
-            messages.warning(request, "No targets were processed.")
-
-        return redirect('vc:vc_supervisor_targets', supervisor_id=supervisor.id)
-
-    # ---- Context ----
+            messages.error(request, "Invalid action or no targets selected.")
+        
+        # Redirect back to same page
+        return redirect('vc:vc_supervisor_targets', supervisor_id=supervisor_id)
+    
+    # ============ GET REQUEST - SHOW TARGETS ============
+    # Get all targets for this supervisor
+    targets = SupervisorPerformanceTarget.objects.filter(
+        supervisor=supervisor,
+        period=active_period
+    ).order_by('target_number')
+    
+    # Group targets by status
+    pending_targets = []
+    approved_targets = []
+    rejected_targets = []
+    
+    for target in targets:
+        if target.status in ['pending', 'submitted']:
+            pending_targets.append(target)
+        elif target.status == 'approved':
+            approved_targets.append(target)
+        elif target.status == 'rejected':
+            rejected_targets.append(target)
+    
     context = {
         'supervisor': supervisor,
         'active_period': active_period,
+        'targets': targets,
         'pending_targets': pending_targets,
         'approved_targets': approved_targets,
         'rejected_targets': rejected_targets,
-        'total_targets': all_targets.count(),
-        'pending_count': pending_targets.count(),
-        'approved_count': approved_targets.count(),
-        'rejected_count': rejected_targets.count(),
+        'total_targets': targets.count(),
+        'pending_count': len(pending_targets),
+        'approved_count': len(approved_targets),
+        'rejected_count': len(rejected_targets),
     }
-
-    # ---- Render (template errors now show properly) ----
-    return render(request, 'vc/vc_supervisor_targets.html', context)
-
-        
-from django.core.paginator import Paginator
-from django.db.models import Q
-@login_required
-def vc_target_detail(request, target_id, target_type):
-    """
-    SINGLE FUNCTION: View target details and take action
-    Works for both supervisor and regular targets
-    """
-    if not request.user.is_vc_staff:
-        messages.error(request, "Only Vice Chancellor can access this page.")
-        return redirect("users:role_based_redirect")
     
-    try:
-        # Get the target based on type
-        if target_type == 'supervisor':
-            target = SupervisorPerformanceTarget.objects.get(id=target_id)
-            staff = target.supervisor
-            staff_role = 'Supervisor'
-            target_model = 'SupervisorPerformanceTarget'
-        else:  # 'regular'
-            target = PerformanceTarget.objects.get(id=target_id)
-            staff = target.staff
-            staff_role = staff.get_role_display()
-            target_model = 'PerformanceTarget'
-        
-        # Handle POST (approve/reject)
-        if request.method == 'POST':
-            action = request.POST.get('action')
-            comments = request.POST.get('comments', '').strip()
-            
-            if action == 'approve':
-                return _approve_single_target(request, target, target_model, staff, comments)
-            elif action == 'reject':
-                return _reject_single_target(request, target, target_model, staff, comments)
-        
-        # GET request - show details
-        context = {
-            'target': target,
-            'target_model': target_model,
-            'staff': staff,
-            'staff_role': staff_role,
-            'active_period': target.period,
-        }
-        
-        return render(request, 'vc/vc_target_detail.html', context)
-        
-    except (SupervisorPerformanceTarget.DoesNotExist, PerformanceTarget.DoesNotExist):
-        messages.error(request, "Target not found.")
-        return redirect('vc:vc_targets_approval')
-    except Exception as e:
-        messages.error(request, f"Error: {str(e)}")
-        return redirect('vc:vc_targets_approval')
-
-        traceback.print_exc()
-        return redirect('vc:vc_dashboard')
+    return render(request, 'vc/vc_supervisor_targets.html', context)
 
 @login_required
 def vc_approved_targets(request):
@@ -2710,192 +2793,3 @@ def vc_approved_targets(request):
         messages.error(request, f"Error: {str(e)}")
         return redirect('vc:vc_dashboard')
     
-
-def _handle_target_actions(request, active_period):
-    """Handle all target actions (approve/reject)"""
-    # Bulk action
-    if 'bulk_action' in request.POST:
-        target_ids = request.POST.getlist('target_ids')
-        action = request.POST.get('bulk_action')
-        comments = request.POST.get('bulk_comments', '').strip()
-        
-        if not target_ids:
-            messages.error(request, "No targets selected.")
-            return redirect('vc:vc_targets_approval')
-        
-        processed = _process_bulk_action(request.user, target_ids, action, comments)
-        
-        if processed > 0:
-            action_text = "approved" if action == 'approve' else "rejected"
-            messages.success(request, f"Successfully {action_text} {processed} target(s).")
-        else:
-            messages.warning(request, "No targets were processed.")
-        
-        return redirect('vc:vc_targets_approval')
-    
-    # Single target action from list view
-    elif 'target_id' in request.POST:
-        target_id = request.POST.get('target_id')
-        target_type = request.POST.get('target_type')
-        action = request.POST.get('action')
-        
-        return redirect('vc:vc_target_detail', target_id=target_id, target_type=target_type)
-    
-    return redirect('vc:vc_targets_approval')
-def _get_pending_targets_data(period, filters):
-    """Get pending targets data with correct field names"""
-    supervisor_targets = SupervisorPerformanceTarget.objects.filter(
-        period=period, status='pending'
-    ).select_related('supervisor', 'supervisor__department')
-    
-    regular_targets = PerformanceTarget.objects.filter(
-        period=period, status='pending'
-    ).select_related('staff', 'staff__department')
-    
-    # Apply filters
-    target_type = filters.get('type', 'all')
-    department_filter = filters.get('department')
-    search_query = filters.get('search', '')
-    
-    if target_type == 'supervisors':
-        regular_targets = regular_targets.none()
-    elif target_type == 'regular':
-        supervisor_targets = supervisor_targets.none()
-    
-    if department_filter:
-        supervisor_targets = supervisor_targets.filter(
-            supervisor__department__name=department_filter
-        )
-        regular_targets = regular_targets.filter(
-            staff__department__name=department_filter
-        )
-    
-    if search_query:
-        supervisor_targets = supervisor_targets.filter(
-            Q(description__icontains=search_query) |
-            Q(supervisor__first_name__icontains=search_query) |
-            Q(supervisor__last_name__icontains=search_query)
-        )
-        regular_targets = regular_targets.filter(
-            Q(description__icontains=search_query) |
-            Q(staff__first_name__icontains=search_query) |
-            Q(staff__last_name__icontains=search_query)
-        )
-    
-    # Combine into simple format
-    targets_data = []
-    
-    for target in supervisor_targets:
-        targets_data.append({
-            'id': target.id,
-            'target_number': target.target_number,
-            'description': target.description[:80] + '...' if len(target.description) > 80 else target.description,
-            'staff_name': target.supervisor.get_full_name(),
-            'staff_role': 'Supervisor',
-            'department': target.supervisor.department.name if target.supervisor.department else 'N/A',
-            # Use created_at instead of submitted_at
-            'created_date': target.created_at if hasattr(target, 'created_at') else target.created_on,
-            'target_type': 'supervisor',
-        })
-    
-    for target in regular_targets:
-        targets_data.append({
-            'id': target.id,
-            'target_number': target.target_number,
-            'description': target.description[:80] + '...' if len(target.description) > 80 else target.description,
-            'staff_name': target.staff.get_full_name(),
-            'staff_role': target.staff.get_role_display(),
-            'department': target.staff.department.name if target.staff.department else 'N/A',
-            # Use created_at instead of submitted_at
-            'created_date': target.created_at if hasattr(target, 'created_at') else target.created_on,
-            'target_type': 'regular',
-        })
-    
-    # Sort by creation date
-    targets_data.sort(key=lambda x: x['created_date'], reverse=True)
-    
-    return targets_data
-
-def _calculate_target_statistics(targets_data):
-    """Calculate simple statistics"""
-    total = len(targets_data)
-    supervisor_count = len([t for t in targets_data if t['target_type'] == 'supervisor'])
-    regular_count = len([t for t in targets_data if t['target_type'] == 'regular'])
-    
-    return {
-        'total_pending': total,
-        'supervisor_pending': supervisor_count,
-        'regular_pending': regular_count,
-    }
-
-
-def _process_bulk_action(user, target_ids, action, comments):
-    """Process bulk approve/reject"""
-    processed = 0
-    
-    for target_id in target_ids:
-        # Format: "supervisor_123" or "regular_456"
-        parts = target_id.split('_')
-        if len(parts) < 2:
-            continue
-        
-        target_type = parts[0]
-        target_pk = parts[1]
-        
-        try:
-            if target_type == 'supervisor':
-                target = SupervisorPerformanceTarget.objects.get(id=target_pk, status='pending')
-            else:  # 'regular'
-                target = PerformanceTarget.objects.get(id=target_pk, status='pending')
-            
-            if action == 'approve':
-                target.status = 'approved'
-                target.approved_by = user
-                target.approved_at = timezone.now()
-                target.approval_comments = comments
-            else:  # 'reject'
-                target.status = 'rejected'
-                target.rejected_by = user
-                target.rejected_at = timezone.now()
-                target.rejection_reason = comments
-            
-            target.save()
-            processed += 1
-            
-        except (SupervisorPerformanceTarget.DoesNotExist, PerformanceTarget.DoesNotExist):
-            continue
-    
-    return processed
-
-
-def _approve_single_target(request, target, target_model, staff, comments):
-    """Approve a single target"""
-    target.status = 'approved'
-    target.approved_by = request.user
-    target.approved_at = timezone.now()
-    target.approval_comments = comments
-    target.save()
-    
-    messages.success(request, f"Target #{target.target_number} approved for {staff.get_full_name()}!")
-    return redirect('vc:vc_targets_approval')
-
-
-def _reject_single_target(request, target, target_model, staff, comments):
-    """Reject a single target"""
-    target.status = 'rejected'
-    target.rejected_by = request.user
-    target.rejected_at = timezone.now()
-    target.rejection_reason = comments
-    target.save()
-    
-    messages.warning(request, f"Target #{target.target_number} rejected for {staff.get_full_name()}.")
-    return redirect('vc:vc_targets_approval')
-    return redirect("vc:vc_dashboard")
-
-
-
-
-
-
-
-

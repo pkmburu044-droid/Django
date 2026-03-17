@@ -38,8 +38,8 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <div class="text-muted small">Current Period Appraisals</div>
-                            <div class="h3 mb-0">{{ current_period_appraisals }}</div>
+                            <div class="text-muted small">Current Appraisals</div>
+                            <div class="h3 mb-0">{{ total_current_appraisals }}</div>
                         </div>
                         <i class="fas fa-clipboard-list fa-2x text-primary opacity-50"></i>
                     </div>
@@ -51,7 +51,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
-                            <div class="text-muted small">Avg Score</div>
+                            <div class="text-muted small">Overall Avg Score</div>
                             <div class="h3 mb-0">{{ overall_avg_score }}%</div>
                         </div>
                         <i class="fas fa-chart-line fa-2x text-info opacity-50"></i>
@@ -86,11 +86,11 @@
                     <i class="fas fa-building me-2"></i>
                     All Departments
                 </h5>
-                <span class="badge bg-light text-primary">{{ departments|length }} Departments</span>
+                <span class="badge bg-light text-primary">{{ department_data|length }} Departments</span>
             </div>
         </div>
         <div class="card-body">
-            {% if departments %}
+            {% if department_data %}
             <div class="table-responsive">
                 <table class="table table-hover table-striped" id="departmentsTable">
                     <thead class="table-light">
@@ -101,11 +101,13 @@
                             <th>Current Appraisals</th>
                             <th>Completion Rate</th>
                             <th>Avg Score</th>
+                            <th>Evaluated</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for dept in departments %}
+                        {% for dept_info in department_data %}
+                        {% with dept=dept_info.department %}
                         <tr>
                             <td>
                                 <strong>{{ dept.name }}</strong>
@@ -119,55 +121,64 @@
                                     {% elif dept.staff_type == 'non_teaching' %}bg-secondary
                                     {% elif dept.staff_type == 'supervisor' %}bg-warning
                                     {% else %}bg-primary{% endif %}">
-                                    {{ dept.get_staff_type_display|default:"Mixed" }}
+                                    {{ dept.get_staff_type_display|default:"Any" }}
                                 </span>
                             </td>
                             <td>
-                                <span class="badge bg-primary">{{ dept.staff_count }}</span>
+                                <span class="badge bg-primary">{{ dept_info.calculated_staff_count }}</span>
                             </td>
                             <td>
-                                <span class="badge bg-info">{{ dept.current_period_appraisals }}</span>
-                                {% if dept.staff_count > 0 %}
+                                <span class="badge bg-info">{{ dept_info.current_appraisals }}</span>
+                                {% if dept_info.calculated_staff_count > 0 %}
                                 <br>
                                 <small class="text-muted">
-                                    {{ dept.completion_rate|floatformat:0 }}% complete
+                                    {{ dept_info.completion_rate|floatformat:0 }}% complete
                                 </small>
                                 {% endif %}
                             </td>
                             <td>
-                                {% if dept.staff_count > 0 %}
+                                {% if dept_info.calculated_staff_count > 0 %}
                                 <div class="progress" style="height: 8px;">
                                     <div class="progress-bar 
-                                        {% if dept.completion_rate >= 80 %}bg-success
-                                        {% elif dept.completion_rate >= 50 %}bg-warning
+                                        {% if dept_info.completion_rate >= 80 %}bg-success
+                                        {% elif dept_info.completion_rate >= 50 %}bg-warning
                                         {% else %}bg-danger{% endif %}" 
-                                        style="width: {{ dept.completion_rate }}%"
-                                        title="{{ dept.completion_rate|floatformat:0 }}% Complete">
+                                        style="width: {{ dept_info.completion_rate }}%"
+                                        title="{{ dept_info.completion_rate|floatformat:0 }}% Complete">
                                     </div>
                                 </div>
-                                <small class="text-muted">{{ dept.completion_rate|floatformat:0 }}%</small>
+                                <small class="text-muted">{{ dept_info.completion_rate|floatformat:0 }}%</small>
                                 {% else %}
                                 <span class="text-muted">-</span>
                                 {% endif %}
                             </td>
                             <td>
-                                {% for stat in dept_stats %}
-                                    {% if stat.profile__user__department__name == dept.name %}
-                                        <div class="d-flex align-items-center">
-                                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
-                                                <div class="progress-bar 
-                                                    {% if stat.avg_score >= 80 %}bg-success
-                                                    {% elif stat.avg_score >= 60 %}bg-warning
-                                                    {% else %}bg-danger{% endif %}" 
-                                                    style="width: {{ stat.avg_score }}%">
-                                                </div>
+                                {% if dept_info.total_evaluated > 0 %}
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                            <div class="progress-bar 
+                                                {% if dept_info.avg_score >= 80 %}bg-success
+                                                {% elif dept_info.avg_score >= 60 %}bg-warning
+                                                {% else %}bg-danger{% endif %}" 
+                                                style="width: {{ dept_info.avg_score }}%">
                                             </div>
-                                            <small class="fw-bold">{{ stat.avg_score|default:0|floatformat:1 }}%</small>
                                         </div>
-                                    {% endif %}
-                                {% empty %}
+                                        <small class="fw-bold">{{ dept_info.avg_score|floatformat:1 }}%</small>
+                                    </div>
+                                {% else %}
                                     <span class="text-muted">-</span>
-                                {% endfor %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if dept_info.total_evaluated > 0 %}
+                                    <span class="badge bg-success">{{ dept_info.total_evaluated }}</span>
+                                    <br>
+                                    <small class="text-muted">
+                                        of {{ dept_info.calculated_staff_count }} staff
+                                    </small>
+                                {% else %}
+                                    <span class="badge bg-secondary">0</span>
+                                {% endif %}
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
@@ -179,7 +190,7 @@
                                        class="btn btn-outline-info" title="View Analytics">
                                         <i class="fas fa-chart-bar"></i>
                                     </a>
-                                    {% if dept.current_period_appraisals > 0 %}
+                                    {% if dept_info.current_appraisals > 0 %}
                                     <a href="{% url 'hr:hr_generate_reports' %}?department={{ dept.id }}&report_type=department_analysis" 
                                        class="btn btn-outline-success" title="Generate Report">
                                         <i class="fas fa-file-pdf"></i>
@@ -188,6 +199,7 @@
                                 </div>
                             </td>
                         </tr>
+                        {% endwith %}
                         {% endfor %}
                     </tbody>
                 </table>
@@ -215,19 +227,26 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    {% if dept_stats %}
+                    {% if department_data %}
                     <div class="list-group list-group-flush">
-                        {% for stat in dept_stats|slice:":5" %}
+                        {% for dept_info in department_data|dictsortreversed:"avg_score"|slice:":5" %}
+                        {% if dept_info.total_evaluated > 0 %}
                         <div class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
-                                <strong>{{ stat.profile__user__department__name|default:"No Department" }}</strong>
+                                <strong>{{ dept_info.department.name }}</strong>
                                 <br>
-                                <small class="text-muted">{{ stat.count }} appraisals</small>
+                                <small class="text-muted">
+                                    {{ dept_info.total_evaluated }} evaluated staff
+                                </small>
                             </div>
-                            <span class="badge {% if stat.avg_score >= 80 %}bg-success{% elif stat.avg_score >= 60 %}bg-warning{% else %}bg-danger{% endif %} rounded-pill">
-                                {{ stat.avg_score|default:0|floatformat:1 }}%
+                            <span class="badge 
+                                {% if dept_info.avg_score >= 80 %}bg-success
+                                {% elif dept_info.avg_score >= 60 %}bg-warning
+                                {% else %}bg-danger{% endif %} rounded-pill">
+                                {{ dept_info.avg_score|floatformat:1 }}%
                             </span>
                         </div>
+                        {% endif %}
                         {% endfor %}
                     </div>
                     {% else %}
@@ -240,29 +259,29 @@
             <div class="card">
                 <div class="card-header bg-info text-white">
                     <h6 class="card-title mb-0">
-                        <i class="fas fa-chart-pie me-2"></i>Appraisal Progress
+                        <i class="fas fa-chart-pie me-2"></i>Overall Statistics
                     </h6>
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-6 border-end">
-                            <div class="h4 text-primary mb-1">{{ total_departments }}</div>
-                            <small class="text-muted">Total Departments</small>
+                            <div class="h4 text-primary mb-1">{{ total_staff }}</div>
+                            <small class="text-muted">Total Staff</small>
                         </div>
                         <div class="col-6">
-                            <div class="h4 text-success mb-1">{{ total_staff }}</div>
-                            <small class="text-muted">Total Staff</small>
+                            <div class="h4 text-success mb-1">{{ total_current_appraisals }}</div>
+                            <small class="text-muted">Current Appraisals</small>
                         </div>
                     </div>
                     <hr>
                     <div class="row text-center">
                         <div class="col-6 border-end">
-                            <div class="h4 text-warning mb-1">{{ current_period_appraisals }}</div>
-                            <small class="text-muted">Current Appraisals</small>
+                            <div class="h4 text-warning mb-1">{{ overall_completion_rate }}%</div>
+                            <small class="text-muted">Completion Rate</small>
                         </div>
                         <div class="col-6">
                             <div class="h4 text-info mb-1">{{ overall_avg_score }}%</div>
-                            <small class="text-muted">Average Score</small>
+                            <small class="text-muted">Avg Score</small>
                         </div>
                     </div>
                 </div>
@@ -284,7 +303,7 @@ $(document).ready(function() {
             search: "Search departments:",
             lengthMenu: "Show _MENU_ departments per page"
         },
-        order: [[3, 'desc']] // Sort by current period appraisals
+        order: [[5, 'desc']] // Sort by average score (column index 5)
     });
 
     // Tooltip initialization

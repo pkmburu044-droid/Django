@@ -41,17 +41,15 @@ class TargetApprovalService:
         """Validate that supervisor can access this staff member's targets"""
         staff_profile = staff_user.staffprofile
 
+        # UPDATED: Removed staff type checking
         is_authorized = (
             staff_profile.department
             and staff_profile.department == supervisor_profile.department
-            and staff_user.role == supervisor_profile.department.staff_type
+            # ✅ REMOVED: and staff_user.role == supervisor_profile.department.staff_type
         )
 
         if not is_authorized:
-            expected_role = (
-                supervisor_profile.department.get_staff_type_display()
-            )
-            actual_role = staff_user.role
+            # UPDATED: Simplified error message without staff type
             expected_dept = supervisor_profile.department.name
             actual_dept = (
                 staff_profile.department.name
@@ -60,19 +58,20 @@ class TargetApprovalService:
             )
 
             raise PermissionDenied(
-                f"Access denied. You are a {expected_role} supervisor in {expected_dept}. "
-                f"You can only view {supervisor_profile.department.staff_type} staff from your department. "
-                f"This staff member is {actual_role} in {actual_dept}."
+                f"Access denied. You are a supervisor in {expected_dept}. "
+                f"You can only view staff from your department. "
+                f"This staff member is in {actual_dept}."
             )
 
         return staff_profile
 
     @staticmethod
     def get_department_staff(supervisor_department, exclude_user=None):
-        """Get all staff from supervisor's department with matching staff type"""
+        """Get all staff from supervisor's department"""
+        # UPDATED: Removed staff type filtering
         queryset = StaffProfile.objects.filter(
             department=supervisor_department,
-            user__role=supervisor_department.staff_type,
+            # ✅ REMOVED: user__role=supervisor_department.staff_type,
         ).select_related("user")
 
         if exclude_user:
@@ -308,11 +307,11 @@ class TargetApprovalService:
         supervisor_department = supervisor_profile.department
 
         with transaction.atomic():
-            # Get targets that supervisor has permission to access
+            # UPDATED: Removed staff type filtering
             targets = PerformanceTarget.objects.filter(
                 id__in=target_ids,
                 staff__staffprofile__department=supervisor_department,
-                staff__role=supervisor_department.staff_type,
+                # ✅ REMOVED: staff__role=supervisor_department.staff_type,
                 status="pending",  # Only process pending targets for bulk operations
             ).select_related("staff")
 
@@ -438,9 +437,10 @@ class TargetApprovalService:
         )
 
         # Get targets by status
+        # UPDATED: Removed staff type filtering
         filters = {
             "staff__staffprofile__department": supervisor_department,
-            "staff__role": supervisor_department.staff_type,
+            # ✅ REMOVED: "staff__role": supervisor_department.staff_type,
         }
 
         if current_period:
@@ -575,5 +575,4 @@ class TargetApprovalService:
             # Regular draft submission
             target.status = "pending"
             target.save()
-
         return target

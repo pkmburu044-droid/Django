@@ -1,4 +1,4 @@
-{% extends "vcc/base.html" %}
+{% extends "vc/base.html" %}
 {% load static %}
 {% block title %}Approve Targets - {{ supervisor.get_full_name }}{% endblock %}
 
@@ -92,6 +92,23 @@
         </div>
     </div>
 
+    <!-- SIMPLE TEST FORM FIRST -->
+    <div class="card mb-4 border-success">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Test Simple Form</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="target_ids" value="49">
+                <button type="submit" name="action" value="approve" class="btn btn-success">
+                    <i class="bi bi-check-lg"></i> Test Approve Target #49
+                </button>
+                <small class="text-muted ms-2">If this works, the complex form below should work</small>
+            </form>
+        </div>
+    </div>
+
     <!-- Pending Targets - Bulk Approval Section -->
     {% if pending_targets %}
     <div class="card mb-4 border-warning">
@@ -101,8 +118,12 @@
             </h5>
         </div>
         <div class="card-body">
-            <form method="post">
+            <!-- Main form for bulk actions -->
+            <form method="post" id="mainForm">
                 {% csrf_token %}
+                <!-- Hidden field for action (will be set by JavaScript) -->
+                <input type="hidden" name="action" id="formAction" value="">
+                
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead class="table-warning">
@@ -141,41 +162,26 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <!-- Individual Approve -->
-                                        <button type="submit" name="action" value="approve" class="btn btn-success btn-sm"
-                                                onclick="setSingleTarget('{{ target.id }}')">
-                                            <i class="bi bi-check-lg me-1"></i>Approve
-                                        </button>
-                                        <!-- Individual Reject -->
-                                        <button type="button" class="btn btn-danger btn-sm" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#rejectModal{{ target.id }}">
-                                            <i class="bi bi-x-lg me-1"></i>Reject
-                                        </button>
-                                    </div>
-
-                                    <!-- Reject Modal for Individual Target -->
-                                    <div class="modal fade" id="rejectModal{{ target.id }}" tabindex="-1">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Reject Target #{{ target.target_number }}</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p>Please provide a reason for rejecting this target:</p>
-                                                    <textarea id="rejectReason{{ target.id }}" class="form-control" rows="3" 
-                                                              placeholder="Enter rejection reason..."></textarea>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="button" class="btn btn-danger" 
-                                                            onclick="rejectSingleTarget('{{ target.id }}')">
-                                                        Reject Target
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <!-- Individual Approve - SIMPLE SEPARATE FORM -->
+                                        <form method="post" style="display: inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="target_ids" value="{{ target.id }}">
+                                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm"
+                                                    onclick="return confirm('Approve target #{{ target.target_number }}?')">
+                                                <i class="bi bi-check-lg me-1"></i>Approve
+                                            </button>
+                                        </form>
+                                        
+                                        <!-- Individual Reject - SIMPLE SEPARATE FORM -->
+                                        <form method="post" style="display: inline;" id="rejectForm{{ target.id }}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="target_ids" value="{{ target.id }}">
+                                            <input type="hidden" name="comments" id="rejectComment{{ target.id }}" value="">
+                                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm"
+                                                    onclick="return handleRejectClick('{{ target.id }}', '{{ target.target_number }}')">
+                                                <i class="bi bi-x-lg me-1"></i>Reject
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -194,12 +200,16 @@
                     <div class="d-flex flex-column gap-2">
                         <strong>Bulk Actions:</strong>
                         <div class="d-flex gap-2">
-                            <button type="submit" name="action" value="approve" class="btn btn-success">
+                            <!-- Bulk Approve -->
+                            <button type="button" class="btn btn-success" onclick="handleBulkApprove()">
                                 <i class="bi bi-check-lg me-1"></i>Approve Selected
                             </button>
-                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#bulkRejectModal">
+                            
+                            <!-- Bulk Reject -->
+                            <button type="button" class="btn btn-danger" onclick="handleBulkReject()">
                                 <i class="bi bi-x-lg me-1"></i>Reject Selected
                             </button>
+                            
                             <button type="button" id="clear-selection" class="btn btn-outline-secondary">
                                 <i class="bi bi-x-circle me-1"></i>Clear
                             </button>
@@ -207,29 +217,6 @@
                     </div>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Bulk Reject Modal -->
-    <div class="modal fade" id="bulkRejectModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Reject Selected Targets</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Please provide a reason for rejecting the selected targets:</p>
-                    <textarea id="bulkRejectReason" class="form-control" rows="3" 
-                              placeholder="Enter rejection reason..."></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" onclick="rejectBulkTargets()">
-                        Reject Selected Targets
-                    </button>
-                </div>
-            </div>
         </div>
     </div>
     {% endif %}
@@ -340,7 +327,7 @@
 
 </div>
 
-<!-- JavaScript for Bulk Selection -->
+<!-- SIMPLE JavaScript - NO FORM MANIPULATION -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Select all checkbox
@@ -377,109 +364,68 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Function to set single target for individual approve buttons
-function setSingleTarget(targetId) {
-    // Uncheck all checkboxes first
-    document.querySelectorAll('.target-checkbox').forEach(checkbox => {
-        checkbox.checked = false;
-    });
+// SIMPLE function for individual reject
+function handleRejectClick(targetId, targetNumber) {
+    const reason = prompt('Please provide a reason for rejecting target #' + targetNumber + ':');
+    if (reason === null) return false; // User cancelled
     
-    // Check the specific target
-    const targetCheckbox = document.querySelector(`input[name="target_ids"][value="${targetId}"]`);
-    if (targetCheckbox) {
-        targetCheckbox.checked = true;
-    }
-    
-    // Submit the form
-    document.querySelector('form').submit();
-}
-
-// Function to reject single target
-function rejectSingleTarget(targetId) {
-    // Set the target ID
-    setSingleTarget(targetId);
-    
-    // Get rejection reason
-    const reason = document.getElementById('rejectReason' + targetId).value;
     if (!reason.trim()) {
-        alert('Please provide a rejection reason.');
-        return;
+        alert('Rejection reason is required.');
+        return false;
     }
     
-    // Add rejection reason to form
-    const commentsField = document.getElementById('bulkComments');
-    if (commentsField) {
-        commentsField.value = reason;
-    }
+    // Set the comment in the hidden field
+    document.getElementById('rejectComment' + targetId).value = reason;
     
-    // Close modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('rejectModal' + targetId));
-    if (modal) modal.hide();
-    
-    // Submit form with reject action
-    const form = document.querySelector('form');
-    const actionInput = document.createElement('input');
-    actionInput.type = 'hidden';
-    actionInput.name = 'action';
-    actionInput.value = 'reject';
-    form.appendChild(actionInput);
-    form.submit();
+    return confirm('Are you sure you want to reject target #' + targetNumber + '?');
 }
 
-// Function to reject bulk targets
-function rejectBulkTargets() {
+// SIMPLE function for bulk approve
+function handleBulkApprove() {
+    const checkedBoxes = document.querySelectorAll('.target-checkbox:checked');
+    if (checkedBoxes.length === 0) {
+        alert('Please select at least one target to approve.');
+        return false;
+    }
+    
+    if (!confirm(`Are you sure you want to approve ${checkedBoxes.length} target(s)?`)) {
+        return false;
+    }
+    
+    // Set action and submit main form
+    document.getElementById('formAction').value = 'approve';
+    document.getElementById('mainForm').submit();
+    return true;
+}
+
+// SIMPLE function for bulk reject
+function handleBulkReject() {
     const checkedBoxes = document.querySelectorAll('.target-checkbox:checked');
     if (checkedBoxes.length === 0) {
         alert('Please select at least one target to reject.');
-        return;
+        return false;
     }
     
-    const reason = document.getElementById('bulkRejectReason').value;
+    const reason = prompt('Please provide a reason for rejecting the selected targets:');
+    if (reason === null) return false;
+    
     if (!reason.trim()) {
-        alert('Please provide a rejection reason.');
-        return;
+        alert('Rejection reason is required.');
+        return false;
     }
     
-    // Add rejection reason to form
-    const commentsField = document.getElementById('bulkComments');
-    if (commentsField) {
-        commentsField.value = reason;
+    // Set the comment
+    document.getElementById('bulkComments').value = reason;
+    
+    if (!confirm(`Are you sure you want to reject ${checkedBoxes.length} target(s)?`)) {
+        return false;
     }
     
-    // Close modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('bulkRejectModal'));
-    if (modal) modal.hide();
-    
-    // Submit form with reject action
-    const form = document.querySelector('form');
-    const actionInput = document.createElement('input');
-    actionInput.type = 'hidden';
-    actionInput.name = 'action';
-    actionInput.value = 'reject';
-    form.appendChild(actionInput);
-    form.submit();
+    // Set action and submit main form
+    document.getElementById('formAction').value = 'reject';
+    document.getElementById('mainForm').submit();
+    return true;
 }
-
-// Add confirmation for bulk actions
-document.addEventListener('DOMContentLoaded', function() {
-    const bulkButtons = document.querySelectorAll('button[name="action"]');
-    bulkButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            if (this.value === 'approve') {
-                const checkedBoxes = document.querySelectorAll('.target-checkbox:checked');
-                if (checkedBoxes.length === 0 && !this.hasAttribute('onclick')) {
-                    e.preventDefault();
-                    alert('Please select at least one target to approve.');
-                    return;
-                }
-                
-                if (!confirm(`Are you sure you want to approve ${checkedBoxes.length} target(s)?`)) {
-                    e.preventDefault();
-                }
-            }
-        });
-    });
-});
 </script>
 
 <style>
@@ -515,6 +461,12 @@ document.addEventListener('DOMContentLoaded', function() {
 .btn-group-sm .btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.875rem;
+}
+
+/* For inline forms */
+form[style*="inline"] {
+    display: inline !important;
+    margin: 0 2px;
 }
 </style>
 {% endblock %}

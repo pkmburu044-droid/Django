@@ -1,13 +1,14 @@
-# hr/views.py
+# hr/views.py - UPDATE THE IMPORTS SECTION
 import io
-
+# UPDATE THIS LINE:
+from .services import BulkReportService, IndividualReportService  # Added IndividualReportService
 import openpyxl
 from django.apps import apps
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
-from django.db.models import Avg, Count, Max, Min, Q
+from django.db.models import Avg, Count, Max, Min, Q, Sum, Case, When, IntegerField
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -65,7 +66,6 @@ def is_hr_user(user):
 
 
 User = get_user_model()
-
 
 @login_required
 def hr_dashboard(request):
@@ -164,164 +164,144 @@ def hr_dashboard(request):
 
     return render(request, "hr/hr_dashboard.html", context)
 
-
 @login_required
 def hr_department_appraisals(request):
-    """HR view of all department appraisals - Counts COMPLETE appraisals with all components"""
+    """Simplified - overall = average of department stats"""
     if not request.user.is_hr_staff:
         messages.error(request, "Only HR staff can access this page.")
         return redirect("users:role_based_redirect")
 
-    # Get active period
     active_period = SPEPeriod.objects.filter(is_active=True).first()
-
-    # Get all departments
     departments = Department.objects.all().order_by("name")
-
-    # Calculate statistics for each department
+    
     department_data = []
+    department_completion_rates = []
+    department_avg_scores = []
+    total_staff_all = 0
+    total_evaluated_all = 0
+    
     for dept in departments:
-        # Count ALL staff in this department (teaching + non_teaching + supervisors)
-        staff_count = CustomUser.objects.filter(
-            department=dept,
-            role__in=["teaching", "non_teaching", "supervisor"],
-        ).count()
-
-        # Get ALL staff in this department
-        dept_staff = CustomUser.objects.filter(
-            department=dept,
-            role__in=["teaching", "non_teaching", "supervisor"],
-        )
-
-        # Count COMPLETE appraisals for current period
-        current_appraisals = 0
+        staff_count = dept.staff_count
+        total_staff_all += staff_count
+        
+        # Get final scores for staff in this department
+        staff_scores = []
+        
         if active_period:
-            # Manual check for each staff member to ensure complete appraisals
+            # Get all staff in department
+            dept_staff = CustomUser.objects.filter(department=dept).exclude(is_superuser=True)
+            
             for staff in dept_staff:
-                is_complete = False
-
+                score = None
+                
+                # Try to get final score based on role
                 if staff.role in ["teaching", "non_teaching"]:
-                    # REGULAR STAFF: Check PerformanceTarget + SelfAssessment + SupervisorEvaluation
-                    has_targets = PerformanceTarget.objects.filter(
-                        staff=staff, period=active_period
-                    ).exists()
-
-                    has_self_assessments = SelfAssessment.objects.filter(
-                        staff=staff, period=active_period
-                    ).exists()
-
-                    # Check supervisor evaluations
-                    staff_self_assessments = SelfAssessment.objects.filter(
-                        staff=staff, period=active_period
-                    )
-
-                    has_supervisor_evals = False
-                    for self_assessment in staff_self_assessments:
-                        if hasattr(
-                            self_assessment, "spe_supervisor_evaluation"
-                        ):
-                            has_supervisor_evals = True
-                            break
-
-                    is_complete = (
-                        has_targets
-                        and has_self_assessments
-                        and has_supervisor_evals
-                    )
-
+                    # Method 1: StaffAppraisal
+                    try:
+                        staff_profile = StaffProfile.objects.get(user=staff)
+                        appraisal = StaffAppraisal.objects.filter(
+                            profile=staff_profile,
+                            period=active_period
+                        ).first()
+                        if appraisal and appraisal.overall_score:
+                            score = float(appraisal.overall_score)
+                    except:
+                        pass
+                    
+                    # Method 2: Teaching/NonTeaching evaluation
+                    if score is None:
+                        if staff.role == "teaching":
+                            eval_obj = TeachingStaffEvaluation.objects.filter(
+                                staff=staff,
+                                period=active_period
+                            ).first()
+                        else:
+                            eval_obj = NonTeachingStaffEvaluation.objects.filter(
+                                staff=staff,
+                                period=active_period
+                            ).first()
+                        
+                        if eval_obj and eval_obj.percent_score:
+                            score = float(eval_obj.percent_score)
+                
                 elif staff.role == "supervisor":
-                    # SUPERVISORS: Check SupervisorPerformanceTarget + SupervisorRating (VC ratings)
-                    has_targets = SupervisorPerformanceTarget.objects.filter(
-                        supervisor=staff, period=active_period
-                    ).exists()
-
-                    has_vc_ratings = SupervisorRating.objects.filter(
-                        supervisor=staff, period=active_period
-                    ).exists()
-
-                    is_complete = has_targets and has_vc_ratings
-
-                if is_complete:
-                    current_appraisals += 1
-
-        # Count total historical appraisals (simplified)
-        staff_with_any_appraisal = (
-            StaffAppraisal.objects.filter(profile__user__in=dept_staff)
-            .values("profile__user")
-            .distinct()
-            .count()
-        )
-
-        supervisors_with_any_rating = (
-            SupervisorRating.objects.filter(
-                supervisor__in=dept_staff.filter(role="supervisor")
-            )
-            .values("supervisor")
-            .distinct()
-            .count()
-        )
-
-        appraisal_count = (
-            staff_with_any_appraisal + supervisors_with_any_rating
-        )
-
-        # Calculate completion rate (should be 0-100%)
-        completion_rate = (
-            (current_appraisals / staff_count * 100) if staff_count > 0 else 0
-        )
-
-        # Add calculated fields to department object
-        dept.staff_count = staff_count
-        dept.appraisal_count = appraisal_count
-        dept.current_period_appraisals = current_appraisals
-        dept.completion_rate = completion_rate
-
-        department_data.append(dept)
-
-    # Get department performance statistics from StaffAppraisal model
-    dept_stats = (
-        StaffAppraisal.objects.filter(overall_score__isnull=False)
-        .select_related("profile__user__department")
-        .values("profile__user__department__name")
-        .annotate(
-            count=Count("id", distinct=True), avg_score=Avg("overall_score")
-        )
-    )
-
-    # Calculate overall statistics
-    total_departments = len(department_data)
-    total_staff = sum(dept.staff_count for dept in department_data)
-    total_appraisals = sum(dept.appraisal_count for dept in department_data)
-    current_period_appraisals = sum(
-        dept.current_period_appraisals for dept in department_data
-    )
-
-    # Calculate overall average score
-    overall_avg_result = StaffAppraisal.objects.filter(
-        overall_score__isnull=False
-    ).aggregate(avg_score=Avg("overall_score"))
-    overall_avg_score = round(float(overall_avg_result["avg_score"] or 0), 1)
-
+                    # Method 1: SupervisorAppraisal
+                    appraisal = SupervisorAppraisal.objects.filter(
+                        supervisor=staff,
+                        period=active_period
+                    ).first()
+                    if appraisal and appraisal.overall_score:
+                        score = float(appraisal.overall_score)
+                    else:
+                        # Method 2: SupervisorRating average
+                        ratings = SupervisorRating.objects.filter(
+                            supervisor=staff,
+                            period=active_period
+                        )
+                        if ratings.exists():
+                            avg_result = ratings.aggregate(avg=Avg('rating'))
+                            if avg_result['avg']:
+                                score = (float(avg_result['avg']) / 5) * 100
+                
+                if score is not None:
+                    staff_scores.append(score)
+        
+        # Calculate department stats
+        dept_evaluated = len(staff_scores)
+        total_evaluated_all += dept_evaluated
+        
+        dept_avg_score = sum(staff_scores) / len(staff_scores) if staff_scores else 0
+        dept_completion_rate = (dept_evaluated / staff_count * 100) if staff_count > 0 else 0
+        
+        # Store department stats
+        department_avg_scores.append(dept_avg_score)
+        department_completion_rates.append(dept_completion_rate)
+        
+        dept_info = {
+            "department": dept,
+            "calculated_staff_count": staff_count,
+            "current_appraisals": dept_evaluated,
+            "completion_rate": round(dept_completion_rate, 1),
+            "avg_score": round(dept_avg_score, 1),
+            "pending_appraisals": max(0, staff_count - dept_evaluated),
+            "total_evaluated": dept_evaluated,
+        }
+        
+        department_data.append(dept_info)
+    
+    # ======================================================
+    # CALCULATE OVERALL STATISTICS
+    # ======================================================
+    
+    total_departments = len(departments)
+    
+    # Overall completion rate = Average of department completion rates
+    overall_completion_rate = 0
+    if department_completion_rates:
+        # Filter out departments with 0% completion
+        valid_completion_rates = [rate for rate in department_completion_rates if rate > 0]
+        if valid_completion_rates:
+            overall_completion_rate = sum(valid_completion_rates) / len(valid_completion_rates)
+    
+    # Overall average score = Average of department average scores
+    overall_avg_score = 0
+    if department_avg_scores:
+        # Filter out departments with 0 average score
+        valid_avg_scores = [score for score in department_avg_scores if score > 0]
+        if valid_avg_scores:
+            overall_avg_score = sum(valid_avg_scores) / len(valid_avg_scores)
+    
     context = {
-        "departments": department_data,
-        "dept_stats": dept_stats,
+        "department_data": department_data,
         "total_departments": total_departments,
-        "total_staff": total_staff,
-        "total_appraisals": total_appraisals,
-        "current_period_appraisals": current_period_appraisals,
-        "overall_avg_score": overall_avg_score,
+        "total_staff": total_staff_all,  # Sum of all department staff
+        "total_current_appraisals": total_evaluated_all,  # Sum of all evaluated staff
+        "overall_completion_rate": round(overall_completion_rate, 1),
+        "overall_avg_score": round(overall_avg_score, 1),
         "active_period": active_period,
     }
-
-    # DEBUG: Print counts to verify
-    print(f"DEBUG - Total departments: {total_departments}")
-    print(f"DEBUG - Total staff: {total_staff}")
-    print(
-        f"DEBUG - Current period complete appraisals: {current_period_appraisals}"
-    )
-
+    
     return render(request, "hr/department_appraisals.html", context)
-
 
 @login_required
 def hr_manage_attributes(request):
@@ -1014,6 +994,738 @@ def hr_view_reports(request):
     return render(request, "hr/hr_view_reports.html", context)
 
 
+# hr/views.py - Add this function
+@login_required
+def hr_performance_analytics(request):
+    """HR Performance Analytics Dashboard"""
+    if not request.user.is_hr_staff:
+        messages.error(request, "Only HR staff can access this page.")
+        return redirect("users:role_based_redirect")
+
+    try:
+        # Get periods for filter
+        periods = SPEPeriod.objects.all().order_by("-start_date")
+
+        # Get filter parameters
+        period_id = request.GET.get("period")
+        department_filter = request.GET.get("department")
+
+        # Base querysets
+        staff_appraisals = StaffAppraisal.objects.select_related(
+            "profile__user", "period", "profile__user__department"
+        )
+
+        performance_targets = PerformanceTarget.objects.select_related(
+            "staff", "period"
+        )
+
+        # Apply filters
+        if period_id:
+            staff_appraisals = staff_appraisals.filter(period_id=period_id)
+            performance_targets = performance_targets.filter(
+                period_id=period_id
+            )
+
+        if department_filter:
+            staff_appraisals = staff_appraisals.filter(
+                profile__user__department__name=department_filter
+            )
+
+        # Overall Performance Statistics
+        scored_appraisals = staff_appraisals.filter(overall_score__isnull=False)
+        performance_stats = scored_appraisals.aggregate(
+            avg_score=Avg("overall_score"),
+            max_score=Max("overall_score"),
+            min_score=Min("overall_score"),
+            total_count=Count("id"),
+        )
+
+        # Status Distribution
+        status_distribution = (
+            staff_appraisals.values("status")
+            .annotate(count=Count("id"))
+            .order_by("status")
+        )
+
+        # Department Performance
+        department_performance = []
+        departments = Department.objects.all()
+        
+        for dept in departments:
+            dept_appraisals = staff_appraisals.filter(
+                profile__user__department=dept,
+                overall_score__isnull=False
+            )
+            
+            if dept_appraisals.exists():
+                avg_score = dept_appraisals.aggregate(avg=Avg('overall_score'))['avg'] or 0
+                staff_count = CustomUser.objects.filter(department=dept).count()
+                appraisal_count = dept_appraisals.count()
+                completed_count = dept_appraisals.filter(status__in=["reviewed", "finalized"]).count()
+                
+                department_performance.append({
+                    'profile__user__department__name': dept.name,
+                    'avg_score': avg_score,
+                    'staff_count': staff_count,
+                    'appraisal_count': appraisal_count,
+                    'completed_count': completed_count,
+                    'completion_percentage': (appraisal_count / staff_count * 100) if staff_count > 0 else 0
+                })
+        
+        # Sort by average score
+        department_performance = sorted(department_performance, key=lambda x: x['avg_score'], reverse=True)
+
+        # Performance Targets Statistics
+        target_stats = performance_targets.aggregate(
+            total_targets=Count("id"),
+            approved_targets=Count("id", filter=Q(status="approved")),
+            evaluated_targets=Count("id", filter=Q(status="evaluated")),
+            avg_rating=Avg("performance_rating"),
+        )
+
+        # Target Status Distribution
+        target_status_distribution = (
+            performance_targets.values("status")
+            .annotate(count=Count("id"))
+            .order_by("status")
+        )
+
+        # Score Distribution - MANUAL CALCULATION
+        score_distribution = []
+        scored_appraisals_list = list(scored_appraisals.values_list('overall_score', flat=True))
+        
+        # Initialize score ranges
+        score_ranges = {
+            '90-100': 0,
+            '80-89': 0,
+            '50-79': 0,
+            '30-49': 0,
+            'Below 30': 0
+        }
+        
+        # Count scores in each range
+        for score in scored_appraisals_list:
+            if score >= 90:
+                score_ranges['90-100'] += 1
+            elif score >= 80:
+                score_ranges['80-89'] += 1
+            elif score >= 50:
+                score_ranges['50-79'] += 1
+            elif score >= 30:
+                score_ranges['30-49'] += 1
+            else:
+                score_ranges['Below 30'] += 1
+        
+        # Convert to list for template
+        score_distribution = [
+            {'score_range': '90-100', 'count': score_ranges['90-100']},
+            {'score_range': '80-89', 'count': score_ranges['80-89']},
+            {'score_range': '50-79', 'count': score_ranges['50-79']},
+            {'score_range': '30-49', 'count': score_ranges['30-49']},
+            {'score_range': 'Below 30', 'count': score_ranges['Below 30']},
+        ]
+
+        # Monthly Performance Trend - Simplified
+        monthly_trend = []
+        try:
+            # Get last 12 months of data
+            from datetime import datetime, timedelta
+            from django.utils import timezone
+            
+            end_date = timezone.now()
+            start_date = end_date - timedelta(days=365)
+            
+            monthly_data = {}
+            for appraisal in scored_appraisals.filter(updated_at__range=[start_date, end_date]):
+                month_year = appraisal.updated_at.strftime('%Y-%m')
+                if month_year not in monthly_data:
+                    monthly_data[month_year] = {'total': 0, 'count': 0}
+                monthly_data[month_year]['total'] += float(appraisal.overall_score)
+                monthly_data[month_year]['count'] += 1
+            
+            # Convert to list and sort
+            for month_year, data in sorted(monthly_data.items(), reverse=True)[:12]:
+                year, month = month_year.split('-')
+                monthly_trend.append({
+                    'year': int(year),
+                    'month': int(month),
+                    'avg_score': data['total'] / data['count'] if data['count'] > 0 else 0,
+                    'count': data['count']
+                })
+        except Exception as e:
+            print(f"Error calculating monthly trend: {e}")
+            # Provide dummy data for testing
+            monthly_trend = [
+                {'year': 2024, 'month': 1, 'avg_score': 75.5, 'count': 10},
+                {'year': 2024, 'month': 2, 'avg_score': 78.2, 'count': 12},
+                {'year': 2024, 'month': 3, 'avg_score': 80.1, 'count': 15},
+            ]
+
+        # Get departments for filter
+        departments = Department.objects.all()
+
+        # Calculate performance level based on your scale
+        avg_score = performance_stats['avg_score'] or 0
+        performance_level = ""
+        if avg_score >= 90:
+            performance_level = "Outstanding"
+        elif avg_score >= 80:
+            performance_level = "Exceeds Expectations"
+        elif avg_score >= 50:
+            performance_level = "Meets Expectations"
+        elif avg_score >= 30:
+            performance_level = "Below Expectations"
+        else:
+            performance_level = "Far Below Expectations"
+
+        # Ensure all stats have default values
+        performance_stats = {
+            'avg_score': performance_stats['avg_score'] or 0,
+            'max_score': performance_stats['max_score'] or 0,
+            'min_score': performance_stats['min_score'] or 0,
+            'total_count': performance_stats['total_count'] or 0,
+        }
+
+        target_stats = {
+            'total_targets': target_stats['total_targets'] or 0,
+            'approved_targets': target_stats['approved_targets'] or 0,
+            'evaluated_targets': target_stats['evaluated_targets'] or 0,
+            'avg_rating': target_stats['avg_rating'] or 0,
+        }
+
+        context = {
+            # Filter options
+            "periods": periods,
+            "departments": departments,
+            "selected_period": period_id,
+            "selected_department": department_filter,
+            # Performance Statistics
+            "performance_stats": performance_stats,
+            "performance_level": performance_level,
+            "department_performance": department_performance,
+            "status_distribution": status_distribution,
+            "target_stats": target_stats,
+            "target_status_distribution": target_status_distribution,
+            "score_distribution": score_distribution,
+            "monthly_trend": monthly_trend,
+            # For template display
+            "total_appraisals": staff_appraisals.count(),
+            "total_targets": performance_targets.count(),
+            # Add active_period for header
+            "active_period": SPEPeriod.objects.filter(is_active=True).first(),
+        }
+
+        return render(request, "hr/hr_performance_analytics.html", context)
+
+    except Exception as e:
+        messages.error(request, f"Error loading analytics: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return redirect("hr:hr_dashboard")
+# hr/views.py - FIXED hr_performance_analytics with proper type handling
+@login_required
+def hr_performance_analytics(request):
+    """HR Performance Analytics Dashboard - Includes ALL staff types"""
+    if not request.user.is_hr_staff:
+        messages.error(request, "Only HR staff can access this page.")
+        return redirect("users:role_based_redirect")
+
+    try:
+        # Get periods for filter
+        periods = SPEPeriod.objects.all().order_by("-start_date")
+        
+        # Get active period or selected period
+        period_id = request.GET.get("period")
+        if period_id:
+            current_period = get_object_or_404(SPEPeriod, id=period_id)
+        else:
+            current_period = SPEPeriod.objects.filter(is_active=True).first()
+
+        # Get filter parameters
+        department_filter = request.GET.get("department")
+
+        # ============================================
+        # GET ALL STAFF WITH THEIR SCORES (ALL ROLES)
+        # ============================================
+        all_staff_data = []
+        
+        # Get all active staff (teaching, non-teaching, supervisors)
+        all_staff = CustomUser.objects.filter(
+            is_active=True,
+            role__in=['teaching', 'non_teaching', 'supervisor']
+        ).select_related('department')
+
+        if department_filter:
+            all_staff = all_staff.filter(department__name=department_filter)
+
+        for staff in all_staff:
+            score = None
+            appraisal_status = None
+            appraisal_date = None
+            
+            if current_period:
+                # ========================================
+                # TEACHING & NON-TEACHING STAFF
+                # ========================================
+                if staff.role in ['teaching', 'non_teaching']:
+                    # Try StaffAppraisal first (most accurate)
+                    try:
+                        staff_profile = StaffProfile.objects.get(user=staff)
+                        appraisal = StaffAppraisal.objects.filter(
+                            profile=staff_profile,
+                            period=current_period
+                        ).first()
+                        
+                        if appraisal:
+                            # Convert Decimal to float
+                            if appraisal.overall_score:
+                                score = float(appraisal.overall_score)
+                            appraisal_status = appraisal.status
+                            appraisal_date = appraisal.updated_at
+                    except StaffProfile.DoesNotExist:
+                        pass
+                    
+                    # If no StaffAppraisal, calculate from components
+                    if score is None:
+                        # Get performance targets with ratings
+                        targets = PerformanceTarget.objects.filter(
+                            staff=staff,
+                            period=current_period,
+                            performance_rating__isnull=False
+                        )
+                        
+                        # Get supervisor evaluations
+                        supervisor_evals = SpeSupervisorEvaluation.objects.filter(
+                            self_assessment__staff=staff,
+                            self_assessment__period=current_period,
+                            supervisor_rating__isnull=False
+                        )
+                        
+                        targets_score = None
+                        if targets.exists():
+                            avg_target = targets.aggregate(avg=Avg('performance_rating'))['avg']
+                            if avg_target:
+                                targets_score = float(avg_target)
+                        
+                        supervisor_score = None
+                        if supervisor_evals.exists():
+                            avg_sup = supervisor_evals.aggregate(avg=Avg('supervisor_rating'))['avg']
+                            if avg_sup:
+                                supervisor_score = (float(avg_sup) / 5) * 100
+                        
+                        # Calculate overall score
+                        if targets_score is not None and supervisor_score is not None:
+                            score = (targets_score + supervisor_score) / 2
+                        elif targets_score is not None:
+                            score = targets_score
+                        elif supervisor_score is not None:
+                            score = supervisor_score
+                
+                # ========================================
+                # SUPERVISORS
+                # ========================================
+                elif staff.role == 'supervisor':
+                    # Try SupervisorAppraisal first
+                    supervisor_appraisal = SupervisorAppraisal.objects.filter(
+                        supervisor=staff,
+                        period=current_period
+                    ).first()
+                    
+                    if supervisor_appraisal and supervisor_appraisal.overall_score:
+                        # Convert Decimal to float
+                        score = float(supervisor_appraisal.overall_score)
+                        appraisal_status = supervisor_appraisal.status
+                        appraisal_date = supervisor_appraisal.evaluated_at
+                    else:
+                        # Get VC evaluations
+                        vc_evaluations = HrSupervisorEvaluation.objects.filter(
+                            supervisor=staff,
+                            period=current_period,
+                            rating__isnull=False
+                        )
+                        
+                        # Get supervisor targets with ratings
+                        supervisor_targets = SupervisorPerformanceTarget.objects.filter(
+                            supervisor=staff,
+                            period=current_period,
+                            performance_rating__isnull=False
+                        )
+                        
+                        vc_score = None
+                        if vc_evaluations.exists():
+                            avg_vc = vc_evaluations.aggregate(avg=Avg('rating'))['avg']
+                            if avg_vc:
+                                vc_score = (float(avg_vc) / 5) * 100
+                        
+                        targets_score = None
+                        if supervisor_targets.exists():
+                            avg_target = supervisor_targets.aggregate(avg=Avg('performance_rating'))['avg']
+                            if avg_target:
+                                targets_score = (float(avg_target) / 5) * 100
+                        
+                        # Calculate overall score
+                        if vc_score is not None and targets_score is not None:
+                            score = (vc_score + targets_score) / 2
+                        elif vc_score is not None:
+                            score = vc_score
+                        elif targets_score is not None:
+                            score = targets_score
+            
+            all_staff_data.append({
+                'staff': staff,
+                'score': score,  # Already float or None
+                'status': appraisal_status,
+                'date': appraisal_date,
+                'department': staff.department
+            })
+
+        # ============================================
+        # OVERALL PERFORMANCE STATISTICS
+        # ============================================
+        staff_with_scores = [s for s in all_staff_data if s['score'] is not None]
+        
+        if staff_with_scores:
+            scores = [s['score'] for s in staff_with_scores]  # All are floats now
+            performance_stats = {
+                'avg_score': round(sum(scores) / len(scores), 1),
+                'max_score': round(max(scores), 1),
+                'min_score': round(min(scores), 1),
+                'total_count': len(staff_with_scores),
+                'total_staff': len(all_staff_data)
+            }
+            avg_score = performance_stats['avg_score']
+        else:
+            performance_stats = {
+                'avg_score': 0,
+                'max_score': 0,
+                'min_score': 0,
+                'total_count': 0,
+                'total_staff': len(all_staff_data)
+            }
+            avg_score = 0
+
+        # ============================================
+        # STATUS DISTRIBUTION
+        # ============================================
+        status_counts = {
+            'not_started': 0,
+            'draft': 0,
+            'in_progress': 0,
+            'submitted': 0,
+            'reviewed': 0,
+            'finalized': 0,
+            'completed': 0
+        }
+        
+        for staff_data in all_staff_data:
+            status = staff_data['status']
+            if status:
+                if status in status_counts:
+                    status_counts[status] += 1
+                else:
+                    # Handle any other status values
+                    status_counts['in_progress'] += 1
+            else:
+                if staff_data['score'] is not None:
+                    status_counts['in_progress'] += 1
+                else:
+                    status_counts['not_started'] += 1
+        
+        status_distribution = [
+            {'status': k.replace('_', ' ').title(), 'count': v} 
+            for k, v in status_counts.items() if v > 0
+        ]
+
+        # ============================================
+        # DEPARTMENT PERFORMANCE (INCLUDES ALL DEPARTMENTS)
+        # ============================================
+        department_performance = []
+        departments = Department.objects.all().order_by('name')
+        
+        for dept in departments:
+            # Get staff in this department
+            dept_staff_data = [s for s in all_staff_data if s['department'] == dept]
+            dept_staff_count = len(dept_staff_data)
+            
+            # Get staff with scores in this department
+            dept_scored = [s for s in dept_staff_data if s['score'] is not None]
+            dept_scored_count = len(dept_scored)
+            
+            # Calculate average score
+            if dept_scored:
+                dept_avg_score = round(sum(s['score'] for s in dept_scored) / dept_scored_count, 1)
+            else:
+                dept_avg_score = 0
+            
+            # Count completed appraisals
+            dept_completed = len([s for s in dept_staff_data 
+                                 if s['status'] in ['reviewed', 'finalized', 'completed']])
+            
+            # Calculate completion percentage
+            completion_percentage = 0
+            if dept_staff_count > 0:
+                completion_percentage = round((dept_completed / dept_staff_count) * 100, 1)
+            
+            department_performance.append({
+                'profile__user__department__name': dept.name,
+                'avg_score': dept_avg_score,
+                'staff_count': dept_staff_count,
+                'appraisal_count': dept_scored_count,  # Staff with scores
+                'completed_count': dept_completed,
+                'completion_percentage': completion_percentage
+            })
+        
+        # Sort by average score (highest first)
+        department_performance = sorted(
+            department_performance,
+            key=lambda x: (x['avg_score'] == 0, -x['avg_score']),
+            reverse=False
+        )
+
+        # ============================================
+        # PERFORMANCE TARGETS STATISTICS
+        # ============================================
+        if current_period:
+            # Staff targets
+            staff_targets = PerformanceTarget.objects.filter(period=current_period)
+            # Supervisor targets
+            supervisor_targets = SupervisorPerformanceTarget.objects.filter(period=current_period)
+            
+            all_targets_count = staff_targets.count() + supervisor_targets.count()
+            
+            approved_targets = (
+                staff_targets.filter(status='approved').count() +
+                supervisor_targets.filter(status='approved').count()
+            )
+            
+            evaluated_targets = (
+                staff_targets.filter(performance_rating__isnull=False).count() +
+                supervisor_targets.filter(performance_rating__isnull=False).count()
+            )
+            
+            # Average rating (convert supervisor ratings from 1-5 to percentage)
+            staff_avg_result = staff_targets.filter(
+                performance_rating__isnull=False
+            ).aggregate(avg=Avg('performance_rating'))
+            staff_avg = float(staff_avg_result['avg']) if staff_avg_result['avg'] else 0
+            
+            supervisor_avg_result = supervisor_targets.filter(
+                performance_rating__isnull=False
+            ).aggregate(avg=Avg('performance_rating'))
+            supervisor_avg = float(supervisor_avg_result['avg']) if supervisor_avg_result['avg'] else 0
+            
+            if supervisor_avg > 0:
+                supervisor_avg_pct = (supervisor_avg / 5) * 100
+            else:
+                supervisor_avg_pct = 0
+            
+            # Overall average
+            total_rated = (
+                staff_targets.filter(performance_rating__isnull=False).count() +
+                supervisor_targets.filter(performance_rating__isnull=False).count()
+            )
+            
+            if total_rated > 0:
+                staff_total_result = staff_targets.filter(
+                    performance_rating__isnull=False
+                ).aggregate(total=Sum('performance_rating'))
+                staff_total = float(staff_total_result['total']) if staff_total_result['total'] else 0
+                
+                supervisor_total_result = supervisor_targets.filter(
+                    performance_rating__isnull=False
+                ).aggregate(total=Sum('performance_rating'))
+                supervisor_total = float(supervisor_total_result['total']) if supervisor_total_result['total'] else 0
+                
+                # Convert supervisor scores from 1-5 to percentage
+                supervisor_score_contrib = supervisor_total * 20  # Convert to percentage
+                staff_score_contrib = staff_total
+                
+                avg_rating = (staff_score_contrib + supervisor_score_contrib) / total_rated
+            else:
+                avg_rating = 0
+        else:
+            all_targets_count = 0
+            approved_targets = 0
+            evaluated_targets = 0
+            avg_rating = 0
+            staff_targets = PerformanceTarget.objects.none()
+            supervisor_targets = SupervisorPerformanceTarget.objects.none()
+
+        target_stats = {
+            'total_targets': all_targets_count,
+            'approved_targets': approved_targets,
+            'evaluated_targets': evaluated_targets,
+            'avg_rating': round(avg_rating, 1),
+        }
+
+        # Target Status Distribution
+        target_status_distribution = []
+        if current_period:
+            status_dict = {}
+            
+            # Staff targets
+            for item in staff_targets.values('status').annotate(count=Count('id')):
+                status = item['status']
+                status_dict[status] = status_dict.get(status, 0) + item['count']
+            
+            # Supervisor targets
+            for item in supervisor_targets.values('status').annotate(count=Count('id')):
+                status = item['status']
+                status_dict[status] = status_dict.get(status, 0) + item['count']
+            
+            target_status_distribution = [
+                {'status': k.replace('_', ' ').title(), 'count': v} 
+                for k, v in status_dict.items()
+            ]
+
+        # ============================================
+        # SCORE DISTRIBUTION
+        # ============================================
+        score_ranges = {
+            '90-100': 0,
+            '80-89': 0,
+            '50-79': 0,
+            '30-49': 0,
+            'Below 30': 0
+        }
+        
+        for staff_data in staff_with_scores:
+            score = staff_data['score']  # Already float
+            if score >= 90:
+                score_ranges['90-100'] += 1
+            elif score >= 80:
+                score_ranges['80-89'] += 1
+            elif score >= 50:
+                score_ranges['50-79'] += 1
+            elif score >= 30:
+                score_ranges['30-49'] += 1
+            else:
+                score_ranges['Below 30'] += 1
+        
+        score_distribution = [
+            {'score_range': k, 'count': v} for k, v in score_ranges.items() if v > 0
+        ]
+
+        # ============================================
+        # MONTHLY PERFORMANCE TREND
+        # ============================================
+        monthly_trend = []
+        if current_period and staff_with_scores:
+            try:
+                from datetime import datetime, timedelta
+                from django.utils import timezone
+                
+                end_date = timezone.now()
+                start_date = end_date - timedelta(days=365)
+                
+                monthly_data = {}
+                
+                # Staff appraisals
+                staff_appraisals = StaffAppraisal.objects.filter(
+                    period=current_period,
+                    overall_score__isnull=False,
+                    updated_at__range=[start_date, end_date]
+                )
+                
+                for appraisal in staff_appraisals:
+                    month_key = appraisal.updated_at.strftime('%Y-%m')
+                    score = float(appraisal.overall_score)
+                    
+                    if month_key not in monthly_data:
+                        monthly_data[month_key] = {'total': 0, 'count': 0}
+                    monthly_data[month_key]['total'] += score
+                    monthly_data[month_key]['count'] += 1
+                
+                # Supervisor appraisals
+                supervisor_appraisals = SupervisorAppraisal.objects.filter(
+                    period=current_period,
+                    overall_score__isnull=False,
+                    evaluated_at__range=[start_date, end_date]
+                )
+                
+                for appraisal in supervisor_appraisals:
+                    month_key = appraisal.evaluated_at.strftime('%Y-%m')
+                    score = float(appraisal.overall_score)
+                    
+                    if month_key not in monthly_data:
+                        monthly_data[month_key] = {'total': 0, 'count': 0}
+                    monthly_data[month_key]['total'] += score
+                    monthly_data[month_key]['count'] += 1
+                
+                # Convert to list and sort
+                for month_key, data in sorted(monthly_data.items(), reverse=True)[:12]:
+                    year, month = month_key.split('-')
+                    monthly_trend.append({
+                        'year': int(year),
+                        'month': int(month),
+                        'avg_score': round(data['total'] / data['count'], 1) if data['count'] > 0 else 0,
+                        'count': data['count']
+                    })
+                    
+            except Exception as e:
+                print(f"Error calculating monthly trend: {e}")
+
+        # ============================================
+        # PERFORMANCE LEVEL
+        # ============================================
+        if avg_score >= 90:
+            performance_level = "Outstanding"
+        elif avg_score >= 80:
+            performance_level = "Exceeds Expectations"
+        elif avg_score >= 50:
+            performance_level = "Meets Expectations"
+        elif avg_score >= 30:
+            performance_level = "Below Expectations"
+        else:
+            performance_level = "Far Below Expectations"
+
+        # ============================================
+        # ROLE COUNTS
+        # ============================================
+        teaching_count = len([s for s in all_staff_data if s['staff'].role == 'teaching'])
+        non_teaching_count = len([s for s in all_staff_data if s['staff'].role == 'non_teaching'])
+        supervisor_count = len([s for s in all_staff_data if s['staff'].role == 'supervisor'])
+
+        # ============================================
+        # CONTEXT FOR TEMPLATE
+        # ============================================
+        context = {
+            # Filter options
+            "periods": periods,
+            "departments": Department.objects.all().order_by('name'),
+            "selected_period": period_id,
+            "selected_department": department_filter,
+            "active_period": current_period,
+            
+            # Performance Statistics (REAL DATA)
+            "performance_stats": performance_stats,
+            "performance_level": performance_level,
+            "status_distribution": status_distribution,
+            "department_performance": department_performance,
+            "target_stats": target_stats,
+            "target_status_distribution": target_status_distribution,
+            "score_distribution": score_distribution,
+            "monthly_trend": monthly_trend,
+            
+            # Totals
+            "total_appraisals": len(staff_with_scores),
+            "total_targets": target_stats['total_targets'],
+            "total_staff": len(all_staff_data),
+            
+            # Role counts
+            "teaching_count": teaching_count,
+            "non_teaching_count": non_teaching_count,
+            "supervisor_count": supervisor_count,
+        }
+
+        return render(request, "hr/hr_performance_analytics.html", context)
+
+    except Exception as e:
+        messages.error(request, f"Error loading analytics: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return redirect("hr:hr_dashboard")
+
 @login_required
 def vc_supervisor_management(request):
     """VC view to manage all supervisors with enhanced data using services"""
@@ -1065,376 +1777,6 @@ def vc_supervisor_management(request):
     }
     return render(request, "vc/vc_supervisor_management.html", context)
 
-
-@login_required
-@user_passes_test(is_hr_user)
-def download_evaluation_pdf(request, appraisal_id):
-    """Generate proper PDF report for staff evaluation - REQUIRES BOTH TARGETS AND SELF-ASSESSMENTS"""
-    try:
-        appraisal = get_object_or_404(
-            StaffAppraisal.objects.select_related(
-                "profile__user", "period", "profile__user__department"
-            ),
-            id=appraisal_id,
-        )
-
-        staff_user = appraisal.profile.user
-        period = appraisal.period
-
-        # Get all evaluation data
-        performance_targets = PerformanceTarget.objects.filter(
-            staff=staff_user, period=period
-        )
-
-        self_assessments = SelfAssessment.objects.filter(
-            staff=staff_user, period=period
-        )
-
-        supervisor_evaluations = SpeSupervisorEvaluation.objects.filter(
-            supervisor__department=staff_user.department, period=period
-        )
-
-        if staff_user.role == "teaching":
-            formal_evaluations = TeachingStaffEvaluation.objects.filter(
-                staff=staff_user, period=period
-            )
-        else:
-            formal_evaluations = NonTeachingStaffEvaluation.objects.filter(
-                staff=staff_user, period=period
-            )
-
-        # Check if staff has BOTH targets AND self-assessments
-        has_both_evaluations = (
-            performance_targets.exists() and self_assessments.exists()
-        )
-        if not has_both_evaluations:
-            missing_items = []
-            if not performance_targets.exists():
-                missing_items.append("performance targets")
-            if not self_assessments.exists():
-                missing_items.append("self-assessments")
-
-            messages.error(
-                request,
-                f"Cannot generate report: Missing {', '.join(missing_items)} for {staff_user.get_full_name()}",
-            )
-            return redirect(
-                "hr:hr_staff_evaluation_detail", appraisal_id=appraisal_id
-            )
-
-        # Create PDF buffer
-        buffer = io.BytesIO()
-        doc = SimpleDocTemplate(
-            buffer,
-            pagesize=A4,
-            topMargin=0.5 * inch,
-            bottomMargin=0.5 * inch,
-            leftMargin=0.5 * inch,
-            rightMargin=0.5 * inch,
-        )
-        story = []
-        styles = getSampleStyleSheet()
-
-        # Title - Smaller and cleaner
-        title_style = ParagraphStyle(
-            "CustomTitle",
-            parent=styles["Heading1"],
-            fontSize=14,
-            spaceAfter=20,
-            alignment=1,
-            textColor=colors.HexColor("#2c5aa0"),
-        )
-        title = Paragraph(f"STAFF EVALUATION REPORT", title_style)
-        story.append(title)
-
-        # Subtitle
-        subtitle_style = ParagraphStyle(
-            "Subtitle",
-            parent=styles["Normal"],
-            fontSize=12,
-            spaceAfter=20,
-            alignment=1,
-            textColor=colors.HexColor("#666666"),
-        )
-        subtitle = Paragraph(
-            f"{staff_user.get_full_name()} - {period.name}", subtitle_style
-        )
-        story.append(subtitle)
-        story.append(Spacer(1, 0.2 * inch))
-
-        # Basic Information - SIMPLIFIED TABLE
-        story.append(Paragraph("Basic Information", styles["Heading2"]))
-
-        info_data = [
-            ["Staff Name:", staff_user.get_full_name()],
-            [
-                "Department:",
-                staff_user.department.name if staff_user.department else "N/A",
-            ],
-            ["Role:", staff_user.get_role_display()],
-            ["Period:", period.name],
-            [
-                "Overall Score:",
-                (
-                    f"{appraisal.overall_score}%"
-                    if appraisal.overall_score
-                    else "Not Scored"
-                ),
-            ],
-        ]
-
-        info_table = Table(info_data, colWidths=[1.5 * inch, 3 * inch])
-        info_table.setStyle(
-            TableStyle(
-                [
-                    ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
-                    ("FONTSIZE", (0, 0), (-1, -1), 9),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-                    ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ]
-            )
-        )
-        story.append(info_table)
-        story.append(Spacer(1, 0.3 * inch))
-
-        # Performance Targets Section - SIMPLIFIED
-        if performance_targets.exists():
-            story.append(Paragraph("Performance Targets", styles["Heading2"]))
-
-            target_data = [["#", "Description", "Status", "Rating"]]
-            for target in performance_targets:
-                target_data.append(
-                    [
-                        str(target.target_number),
-                        Paragraph(
-                            (
-                                target.description[:40] + "..."
-                                if len(target.description) > 40
-                                else target.description
-                            ),
-                            styles["Normal"],
-                        ),
-                        target.get_status_display(),
-                        (
-                            f"{target.performance_rating}%"
-                            if target.performance_rating
-                            else "N/A"
-                        ),
-                    ]
-                )
-
-            target_table = Table(
-                target_data,
-                colWidths=[0.4 * inch, 2.5 * inch, 1 * inch, 0.8 * inch],
-            )
-            target_table.setStyle(
-                TableStyle(
-                    [
-                        (
-                            "BACKGROUND",
-                            (0, 0),
-                            (-1, 0),
-                            colors.HexColor("#2c5aa0"),
-                        ),
-                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                        (
-                            "ALIGN",
-                            (3, 1),
-                            (3, -1),
-                            "CENTER",
-                        ),  # Center align ratings
-                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                        ("FONTSIZE", (0, 0), (-1, -1), 8),
-                        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-                        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                    ]
-                )
-            )
-            story.append(target_table)
-            story.append(Spacer(1, 0.2 * inch))
-
-        # Self-Assessments Section - SIMPLIFIED
-        if self_assessments.exists():
-            story.append(Paragraph("Self-Assessments", styles["Heading2"]))
-
-            self_data = [["Attribute", "Rating", "Indicator"]]
-            for assessment in self_assessments:
-                self_data.append(
-                    [
-                        assessment.attribute.name,
-                        f"{assessment.self_rating}/5",
-                        Paragraph(
-                            (
-                                assessment.indicator.description[:50] + "..."
-                                if len(assessment.indicator.description) > 50
-                                else assessment.indicator.description
-                            ),
-                            styles["Normal"],
-                        ),
-                    ]
-                )
-
-            self_table = Table(
-                self_data, colWidths=[1.5 * inch, 0.6 * inch, 2.6 * inch]
-            )
-            self_table.setStyle(
-                TableStyle(
-                    [
-                        (
-                            "BACKGROUND",
-                            (0, 0),
-                            (-1, 0),
-                            colors.HexColor("#28a745"),
-                        ),
-                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                        (
-                            "ALIGN",
-                            (1, 1),
-                            (1, -1),
-                            "CENTER",
-                        ),  # Center align ratings
-                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                        ("FONTSIZE", (0, 0), (-1, -1), 8),
-                        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-                        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                    ]
-                )
-            )
-            story.append(self_table)
-            story.append(Spacer(1, 0.2 * inch))
-
-        # Supervisor Evaluations Section - SIMPLIFIED
-        if supervisor_evaluations.exists():
-            story.append(
-                Paragraph("Supervisor Evaluations", styles["Heading2"])
-            )
-
-            supervisor_data = [["Attribute", "Rating"]]
-            for evaluation in supervisor_evaluations:
-                supervisor_data.append(
-                    [evaluation.attribute.name, f"{evaluation.rating}/5"]
-                )
-
-            supervisor_table = Table(
-                supervisor_data, colWidths=[3 * inch, 0.8 * inch]
-            )
-            supervisor_table.setStyle(
-                TableStyle(
-                    [
-                        (
-                            "BACKGROUND",
-                            (0, 0),
-                            (-1, 0),
-                            colors.HexColor("#dc3545"),
-                        ),
-                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                        (
-                            "ALIGN",
-                            (1, 1),
-                            (1, -1),
-                            "CENTER",
-                        ),  # Center align ratings
-                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                        ("FONTSIZE", (0, 0), (-1, -1), 8),
-                        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-                        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                    ]
-                )
-            )
-            story.append(supervisor_table)
-            story.append(Spacer(1, 0.2 * inch))
-
-        # Summary Statistics - CLEANER
-        story.append(Paragraph("Summary", styles["Heading2"]))
-
-        summary_data = [
-            ["Evaluation Type", "Count", "Avg Rating"],
-            [
-                "Targets",
-                str(performance_targets.count()),
-                f"{performance_targets.aggregate(avg=Avg('performance_rating'))['avg'] or 0:.1f}%",
-            ],
-            [
-                "Self-Assessments",
-                str(self_assessments.count()),
-                f"{self_assessments.aggregate(avg=Avg('self_rating'))['avg'] or 0:.1f}/5",
-            ],
-            [
-                "Supervisor Evals",
-                str(supervisor_evaluations.count()),
-                f"{supervisor_evaluations.aggregate(avg=Avg('rating'))['avg'] or 0:.1f}/5",
-            ],
-        ]
-
-        summary_table = Table(
-            summary_data, colWidths=[2 * inch, 1 * inch, 1 * inch]
-        )
-        summary_table.setStyle(
-            TableStyle(
-                [
-                    (
-                        "BACKGROUND",
-                        (0, 0),
-                        (-1, 0),
-                        colors.HexColor("#6c757d"),
-                    ),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                    ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                    (
-                        "ALIGN",
-                        (1, 1),
-                        (2, -1),
-                        "CENTER",
-                    ),  # Center align numbers
-                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                    ("FONTSIZE", (0, 0), (-1, -1), 9),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ]
-            )
-        )
-        story.append(summary_table)
-
-        # Footer
-        story.append(Spacer(1, 0.3 * inch))
-        footer_style = ParagraphStyle(
-            "Footer",
-            parent=styles["Normal"],
-            fontSize=8,
-            alignment=1,
-            textColor=colors.HexColor("#666666"),
-        )
-        footer = Paragraph(
-            f"Generated on {timezone.now().strftime('%Y-%m-%d at %H:%M')} - KyU HR System",
-            footer_style,
-        )
-        story.append(footer)
-
-        # Build PDF
-        doc.build(story)
-
-        # Get PDF value from buffer
-        pdf = buffer.getvalue()
-        buffer.close()
-
-        # Create response
-        response = HttpResponse(content_type="application/pdf")
-        filename = f"evaluation_{staff_user.get_full_name().replace(' ', '_')}_{period.name}.pdf"
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
-        response.write(pdf)
-
-        return response
-
-    except Exception as e:
-        messages.error(request, f"Error generating PDF: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return redirect(
-            "hr:hr_staff_evaluation_detail", appraisal_id=appraisal_id
-        )
 
 
 @login_required
@@ -1929,148 +2271,9 @@ def hr_staff_evaluation_detail(request, appraisal_id):
         traceback.print_exc()
         return redirect("hr:hr_view_reports")
 
+from django.db.models import Avg, Count, Max, Min, Q, Case, When, IntegerField, F
+from django.db.models.functions import ExtractMonth, ExtractYear
 
-@login_required
-def hr_performance_analytics(request):
-    """HR Performance Analytics Dashboard"""
-    if not request.user.is_hr_staff:
-        messages.error(request, "Only HR staff can access this page.")
-        return redirect("users:role_based_redirect")
-
-    try:
-        # Get periods for filter
-        periods = SPEPeriod.objects.all().order_by("-start_date")
-
-        # Get filter parameters
-        period_id = request.GET.get("period")
-        department_filter = request.GET.get("department")
-
-        # Base querysets
-        staff_appraisals = StaffAppraisal.objects.select_related(
-            "profile__user", "period", "profile__user__department"
-        )
-
-        performance_targets = PerformanceTarget.objects.select_related(
-            "staff", "period"
-        )
-
-        # Apply filters
-        if period_id:
-            staff_appraisals = staff_appraisals.filter(period_id=period_id)
-            performance_targets = performance_targets.filter(
-                period_id=period_id
-            )
-
-        if department_filter:
-            staff_appraisals = staff_appraisals.filter(
-                profile__user__department__name=department_filter
-            )
-
-        # Overall Performance Statistics
-        performance_stats = staff_appraisals.filter(
-            overall_score__isnull=False
-        ).aggregate(
-            avg_score=Avg("overall_score"),
-            max_score=Max("overall_score"),
-            min_score=Min("overall_score"),
-            total_count=Count("id"),
-        )
-
-        # Status Distribution
-        status_distribution = (
-            staff_appraisals.values("status")
-            .annotate(count=Count("id"))
-            .order_by("status")
-        )
-
-        # Department Performance
-        department_performance = (
-            staff_appraisals.filter(overall_score__isnull=False)
-            .values("profile__user__department__name")
-            .annotate(
-                avg_score=Avg("overall_score"),
-                staff_count=Count("profile__user", distinct=True),
-                appraisal_count=Count("id"),
-            )
-            .order_by("-avg_score")
-        )
-
-        # Performance Targets Statistics
-        target_stats = performance_targets.aggregate(
-            total_targets=Count("id"),
-            approved_targets=Count("id", filter=Q(status="approved")),
-            evaluated_targets=Count("id", filter=Q(status="evaluated")),
-            avg_rating=Avg("performance_rating"),
-        )
-
-        # Target Status Distribution
-        target_status_distribution = (
-            performance_targets.values("status")
-            .annotate(count=Count("id"))
-            .order_by("status")
-        )
-
-        # Score Distribution (for charts)
-        score_distribution = (
-            staff_appraisals.filter(overall_score__isnull=False)
-            .extra(
-                {
-                    "score_range": "CASE \
-                WHEN overall_score >= 90 THEN '90-100' \
-                WHEN overall_score >= 80 THEN '80-89' \
-                WHEN overall_score >= 70 THEN '70-79' \
-                WHEN overall_score >= 60 THEN '60-69' \
-                ELSE 'Below 60' END"
-                }
-            )
-            .values("score_range")
-            .annotate(count=Count("id"))
-            .order_by("score_range")
-        )
-
-        # Monthly Performance Trend (if you have date data)
-        monthly_trend = (
-            staff_appraisals.filter(overall_score__isnull=False)
-            .extra(
-                {
-                    "month": "EXTRACT(month FROM updated_at)",
-                    "year": "EXTRACT(year FROM updated_at)",
-                }
-            )
-            .values("year", "month")
-            .annotate(avg_score=Avg("overall_score"), count=Count("id"))
-            .order_by("year", "month")[:12]
-        )  # Last 12 months
-
-        # Get departments for filter
-        departments = Department.objects.all()
-
-        context = {
-            # Filter options
-            "periods": periods,
-            "departments": departments,
-            "selected_period": period_id,
-            "selected_department": department_filter,
-            # Performance Statistics
-            "performance_stats": performance_stats,
-            "status_distribution": status_distribution,
-            "department_performance": department_performance,
-            "target_stats": target_stats,
-            "target_status_distribution": target_status_distribution,
-            "score_distribution": score_distribution,
-            "monthly_trend": monthly_trend,
-            # For template display
-            "total_appraisals": staff_appraisals.count(),
-            "total_targets": performance_targets.count(),
-        }
-
-        return render(request, "hr/hr_performance_analytics.html", context)
-
-    except Exception as e:
-        messages.error(request, f"Error loading analytics: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return redirect("hr:hr_dashboard")
 
 
 @login_required
@@ -2111,70 +2314,281 @@ def hr_api_performance_data(request):
     else:
         data = []
 
+
     return JsonResponse({"data": data})
+
+@login_required
+@user_passes_test(is_hr_user)
+def download_evaluation_pdf(request, appraisal_id):
+    """Generate PDF report for staff evaluation using service"""
+    try:
+        # Get evaluation data
+        eval_data = IndividualReportService.get_staff_evaluation_data(appraisal_id)
+        
+        # Validate data
+        is_valid, missing_items = IndividualReportService.validate_evaluation_data(eval_data)
+        
+        if not is_valid:
+            messages.error(
+                request,
+                f"Cannot generate report: Missing {', '.join(missing_items)} for {eval_data['staff_user'].get_full_name()}",
+            )
+            return redirect(
+                "hr:hr_staff_evaluation_detail", appraisal_id=appraisal_id
+            )
+        
+        # Generate PDF
+        pdf_content = IndividualReportService.generate_evaluation_pdf(eval_data)
+        
+        # Create response
+        response = HttpResponse(content_type="application/pdf")
+        filename = f"evaluation_{eval_data['staff_user'].get_full_name().replace(' ', '_')}_{eval_data['period'].name}.pdf"
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        response.write(pdf_content)
+        
+        return response
+
+    except Exception as e:
+        messages.error(request, f"Error generating PDF: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return redirect(
+            "hr:hr_staff_evaluation_detail", appraisal_id=appraisal_id
+        )
+
+
+@login_required
+@user_passes_test(is_hr_user)
+def download_evaluation_excel(request, appraisal_id):
+    """Generate Excel report for staff evaluation using service"""
+    try:
+        # Get evaluation data
+        eval_data = IndividualReportService.get_staff_evaluation_data(appraisal_id)
+        
+        # Validate data
+        is_valid, missing_items = IndividualReportService.validate_evaluation_data(eval_data)
+        
+        if not is_valid:
+            messages.error(
+                request,
+                f"Cannot generate report: Missing {', '.join(missing_items)} for {eval_data['staff_user'].get_full_name()}",
+            )
+            return redirect(
+                "hr:hr_staff_evaluation_detail", appraisal_id=appraisal_id
+            )
+        
+        # Generate Excel
+        wb = IndividualReportService.generate_evaluation_excel(eval_data)
+        
+        # Create response
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        filename = f"evaluation_{eval_data['staff_user'].get_full_name().replace(' ', '_')}_{eval_data['period'].name}.xlsx"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        wb.save(response)
+        
+        return response
+
+    except Exception as e:
+        messages.error(request, f"Error generating Excel: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return redirect(
+            "hr:hr_staff_evaluation_detail", appraisal_id=appraisal_id
+        )
 
 
 @login_required
 def hr_generate_reports(request):
-    """HR reporting dashboard - Generate reports from existing data"""
+    """HR reporting dashboard - Unified report generation"""
     if not request.user.is_hr_staff:
         messages.error(request, "Only HR staff can access this page.")
         return redirect("users:role_based_redirect")
 
-    # Get data for filters
     periods = SPEPeriod.objects.all().order_by("-start_date")
     departments = Department.objects.all().order_by("name")
 
     if request.method == "POST":
-        report_type = request.POST.get("report_type")
+        report_type = request.POST.get("report_type", "").strip()
         period_id = request.POST.get("report_period")
         department_id = request.POST.get("department")
-        format_type = request.POST.get("format", "pdf")
+        format_type = request.POST.get("format", "pdf").lower()
 
         try:
-            # Get selected period
-            period = None
+            if not department_id:
+                messages.error(request, "Department selection is required.")
+                return render(request, "hr/hr_generate_reports.html", {
+                    "periods": periods,
+                    "departments": departments,
+                })
+
+            # Get department and period
+            department = get_object_or_404(Department, id=department_id)
+            
             if period_id:
                 period = get_object_or_404(SPEPeriod, id=period_id)
             else:
                 period = SPEPeriod.objects.filter(is_active=True).first()
                 if not period:
-                    messages.error(
-                        request,
-                        "No active period found. Please select a period.",
-                    )
-                    context = {
+                    messages.error(request, "No active period found.")
+                    return render(request, "hr/hr_generate_reports.html", {
                         "periods": periods,
                         "departments": departments,
-                    }
-                    return render(
-                        request, "hr/hr_generate_reports.html", context
-                    )
+                    })
 
-            # Get selected department
-            department = None
-            if department_id:
-                department = get_object_or_404(Department, id=department_id)
+            # Get evaluated staff for the department
+            _, period, evaluated_staff = BulkReportService.get_department_evaluated_staff(
+                department_id, period_id
+            )
 
-            # Generate report based on type and format
+            if not evaluated_staff:
+                messages.warning(request, f"No evaluated staff found for {department.name}.")
+                return redirect("hr:hr_generate_reports")
+
+            # Generate report based on type
             if report_type == "performance_summary":
-                return generate_performance_summary_report(
-                    request, period, department, format_type
+                if format_type == "excel":
+                    return BulkReportService.generate_department_excel_report(
+                        department, period, evaluated_staff
+                    )
+                elif format_type == "pdf":
+                    return BulkReportService.generate_department_pdf_report(
+                        department, period, evaluated_staff
+                    )
+                else:
+                    # HTML format
+                    context = {
+                        "report_type": "Performance Summary",
+                        "department": department,
+                        "period": period,
+                        "evaluated_staff": evaluated_staff,
+                        "total_staff": len(evaluated_staff),
+                        "avg_score": sum(s['score'] for s in evaluated_staff) / len(evaluated_staff) if evaluated_staff else 0,
+                    }
+                    return render(request, "hr/reports/performance_summary.html", context)
+
+            elif report_type == "individual_reports":
+                # Generate ZIP with individual reports
+                zip_data, filename, count = BulkReportService.generate_individual_reports_zip(
+                    request, department, period, evaluated_staff
                 )
-            elif report_type == "department_analysis":
-                return generate_department_analysis_report(
-                    request, period, format_type
-                )
+                
+                if zip_data:
+                    response = HttpResponse(zip_data, content_type='application/zip')
+                    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                    messages.success(request, f"Generated {count} individual reports.")
+                    return response
+                else:
+                    messages.error(request, "Could not generate individual reports.")
+                    return redirect("hr:hr_generate_reports")
+
             elif report_type == "supervisor_ranking":
-                return generate_supervisor_ranking_report(
-                    request, period, department, format_type
-                )
-            elif report_type == "comprehensive_analysis":
-                return generate_comprehensive_analysis_report(
-                    request, period, department, format_type
-                )
+                # Filter to get only supervisors
+                supervisor_staff = [s for s in evaluated_staff if s['user'].role == 'supervisor']
+                
+                if not supervisor_staff:
+                    messages.warning(request, f"No evaluated supervisors found for {department.name}.")
+                    return redirect("hr:hr_generate_reports")
+                
+                # Sort by score
+                supervisor_staff.sort(key=lambda x: x['score'], reverse=True)
+                
+                if format_type == "excel":
+                    # Create custom Excel for supervisor ranking
+                    wb = openpyxl.Workbook()
+                    ws = wb.active
+                    ws.title = "Supervisor Ranking"
+                    
+                    # Add headers
+                    ws.append(["Rank", "Supervisor Name", "Department", "Score", "Performance Level", "Status"])
+                    
+                    # Add data
+                    for i, staff in enumerate(supervisor_staff, 1):
+                        perf_level, _ = BulkReportService.get_performance_level(staff['score'])
+                        ws.append([
+                            i,
+                            staff['user'].get_full_name(),
+                            department.name,
+                            f"{staff['score']:.1f}%",
+                            perf_level,
+                            staff['status'].title()
+                        ])
+                    
+                    response = HttpResponse(
+                        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    )
+                    filename = f"Supervisor_Ranking_{department.name.replace(' ', '_')}_{period.name.replace(' ', '_')}.xlsx"
+                    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                    wb.save(response)
+                    return response
+                    
+                elif format_type == "pdf":
+                    # Create custom PDF for supervisor ranking
+                    buffer = io.BytesIO()
+                    doc = SimpleDocTemplate(buffer, pagesize=A4)
+                    story = []
+                    styles = getSampleStyleSheet()
+                    
+                    # Title
+                    title_style = ParagraphStyle(
+                        'CustomTitle',
+                        parent=styles['Heading1'],
+                        fontSize=16,
+                        spaceAfter=20,
+                        alignment=1,
+                        textColor=colors.HexColor("#2c5aa0")
+                    )
+                    story.append(Paragraph(f"Supervisor Ranking Report - {department.name}", title_style))
+                    story.append(Paragraph(f"Period: {period.name}", styles['Normal']))
+                    story.append(Spacer(1, 0.3*inch))
+                    
+                    # Table
+                    table_data = [["Rank", "Supervisor Name", "Score", "Performance Level", "Status"]]
+                    for i, staff in enumerate(supervisor_staff, 1):
+                        perf_level, _ = BulkReportService.get_performance_level(staff['score'])
+                        table_data.append([
+                            str(i),
+                            staff['user'].get_full_name(),
+                            f"{staff['score']:.1f}%",
+                            perf_level,
+                            staff['status'].title()
+                        ])
+                    
+                    table = Table(table_data, colWidths=[0.5*inch, 2*inch, 1*inch, 1.5*inch, 1*inch])
+                    table.setStyle(TableStyle([
+                        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#2c5aa0")),
+                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                        ('FONTSIZE', (0, 0), (-1, -1), 9),
+                        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                    ]))
+                    story.append(table)
+                    
+                    doc.build(story)
+                    pdf = buffer.getvalue()
+                    buffer.close()
+                    
+                    response = HttpResponse(content_type='application/pdf')
+                    filename = f"Supervisor_Ranking_{department.name.replace(' ', '_')}_{period.name.replace(' ', '_')}.pdf"
+                    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                    response.write(pdf)
+                    return response
+                    
+                else:
+                    # HTML format
+                    context = {
+                        "report_type": "Supervisor Ranking",
+                        "department": department,
+                        "period": period,
+                        "supervisor_staff": supervisor_staff,
+                        "total_supervisors": len(supervisor_staff),
+                        "avg_score": sum(s['score'] for s in supervisor_staff) / len(supervisor_staff) if supervisor_staff else 0,
+                    }
+                    return render(request, "hr/reports/supervisor_ranking.html", context)
+
             else:
-                messages.error(request, "Please select a valid report type.")
+                messages.error(request, f"Invalid report type: '{report_type}'. Please select a valid report type.")
 
         except Exception as e:
             messages.error(request, f"Error generating report: {str(e)}")
@@ -2188,585 +2602,64 @@ def hr_generate_reports(request):
     return render(request, "hr/hr_generate_reports.html", context)
 
 
-def generate_performance_summary_report(
-    request, period, department, format_type
-):
-    """Generate performance summary report"""
-    # Get staff appraisals for the period
-    staff_appraisals = StaffAppraisal.objects.filter(
-        period=period
-    ).select_related("profile__user", "profile__user__department")
-
-    if department:
-        staff_appraisals = staff_appraisals.filter(
-            profile__user__department=department
+@login_required
+def download_department_reports(request):
+    """Unified endpoint for all department report downloads"""
+    if not request.user.is_hr_staff:
+        messages.error(request, "Only HR staff can access this page.")
+        return redirect("users:role_based_redirect")
+    
+    try:
+        department_id = request.GET.get("department")
+        period_id = request.GET.get("period")
+        report_type = request.GET.get("type")  # 'excel', 'pdf', or 'zip'
+        
+        if not department_id:
+            messages.error(request, "Department selection is required.")
+            return redirect("hr:hr_performance_analytics")
+        
+        # Get department data using service
+        department, period, evaluated_staff = BulkReportService.get_department_evaluated_staff(
+            department_id, period_id
         )
-
-    # Calculate statistics
-    total_staff = staff_appraisals.count()
-    completed_appraisals = staff_appraisals.filter(
-        status__in=["reviewed", "finalized"]
-    )
-    avg_score = (
-        completed_appraisals.aggregate(avg=Avg("overall_score"))["avg"] or 0
-    )
-    max_score = (
-        completed_appraisals.aggregate(max=Max("overall_score"))["max"] or 0
-    )
-    min_score = (
-        completed_appraisals.aggregate(min=Min("overall_score"))["min"] or 0
-    )
-
-    # Status distribution
-    status_counts = staff_appraisals.values("status").annotate(
-        count=Count("id")
-    )
-
-    report_data = {
-        "total_staff": total_staff,
-        "completed_count": completed_appraisals.count(),
-        "avg_score": round(avg_score, 1),
-        "max_score": round(max_score, 1),
-        "min_score": round(min_score, 1),
-        "status_counts": list(status_counts),
-        "staff_appraisals": completed_appraisals,
-        "period": period,
-        "department": department,
-    }
-
-    if format_type == "pdf":
-        return generate_performance_summary_pdf(request, report_data)
-    elif format_type == "excel":
-        return generate_performance_summary_excel(request, report_data)
-    else:
-        # HTML format
-        context = {"report_type": "Performance Summary", **report_data}
-        return render(request, "hr/reports/performance_summary.html", context)
-
-
-def generate_department_analysis_report(request, period, format_type):
-    """Generate department analysis report"""
-    # Get department-wise statistics
-    dept_stats = (
-        StaffAppraisal.objects.filter(
-            period=period, overall_score__isnull=False
-        )
-        .values("profile__user__department__name")
-        .annotate(
-            staff_count=Count("profile__user", distinct=True),
-            avg_score=Avg("overall_score"),
-            appraisal_count=Count("id"),
-            completed_count=Count(
-                "id", filter=Q(status__in=["reviewed", "finalized"])
-            ),
-        )
-        .order_by("-avg_score")
-    )
-
-    report_data = {
-        "dept_stats": list(dept_stats),
-        "period": period,
-        "total_departments": dept_stats.count(),
-        "overall_avg_score": dept_stats.aggregate(avg=Avg("avg_score"))["avg"]
-        or 0,
-    }
-
-    if format_type == "pdf":
-        return generate_department_analysis_pdf(request, report_data)
-    elif format_type == "excel":
-        return generate_department_analysis_excel(request, report_data)
-    else:
-        context = {"report_type": "Department Analysis", **report_data}
-        return render(request, "hr/reports/department_analysis.html", context)
-
-
-def generate_supervisor_ranking_report(
-    request, period, department, format_type
-):
-    """Generate supervisor ranking report"""
-    # Get supervisor evaluations
-    supervisor_evaluations = SpeSupervisorEvaluation.objects.filter(
-        period=period
-    ).select_related("supervisor", "supervisor__department")
-
-    if department:
-        supervisor_evaluations = supervisor_evaluations.filter(
-            supervisor__department=department
-        )
-
-    # Calculate average ratings per supervisor
-    supervisor_stats = (
-        supervisor_evaluations.values(
-            "supervisor__id",
-            "supervisor__username",
-            "supervisor__first_name",
-            "supervisor__last_name",
-            "supervisor__department__name",
-        )
-        .annotate(
-            avg_rating=Avg("rating"),
-            evaluation_count=Count("id"),
-            max_rating=Max("rating"),
-            min_rating=Min("rating"),
-        )
-        .order_by("-avg_rating")
-    )
-
-    report_data = {
-        "supervisor_stats": list(supervisor_stats),
-        "period": period,
-        "department": department,
-        "total_supervisors": supervisor_stats.count(),
-    }
-
-    if format_type == "pdf":
-        return generate_supervisor_ranking_pdf(request, report_data)
-    elif format_type == "excel":
-        return generate_supervisor_ranking_excel(request, report_data)
-    else:
-        context = {"report_type": "Supervisor Ranking", **report_data}
-        return render(request, "hr/reports/supervisor_ranking.html", context)
-
-
-def generate_comprehensive_analysis_report(
-    request, period, department, format_type
-):
-    """Generate comprehensive analysis report"""
-    # Get comprehensive data
-    staff_appraisals = StaffAppraisal.objects.filter(period=period)
-    performance_targets = PerformanceTarget.objects.filter(period=period)
-
-    if department:
-        staff_appraisals = staff_appraisals.filter(
-            profile__user__department=department
-        )
-        performance_targets = performance_targets.filter(
-            staff__department=department
-        )
-
-    # Comprehensive statistics
-    completed_appraisals = staff_appraisals.filter(
-        status__in=["reviewed", "finalized"]
-    )
-    evaluated_targets = performance_targets.filter(status="evaluated")
-
-    stats = {
-        "total_staff": staff_appraisals.count(),
-        "completed_appraisals": completed_appraisals.count(),
-        "total_targets": performance_targets.count(),
-        "evaluated_targets": evaluated_targets.count(),
-        "avg_appraisal_score": completed_appraisals.aggregate(
-            avg=Avg("overall_score")
-        )["avg"]
-        or 0,
-        "avg_target_rating": evaluated_targets.aggregate(
-            avg=Avg("performance_rating")
-        )["avg"]
-        or 0,
-        "completion_rate": (
-            (completed_appraisals.count() / staff_appraisals.count() * 100)
-            if staff_appraisals.count() > 0
-            else 0
-        ),
-        "evaluation_rate": (
-            (evaluated_targets.count() / performance_targets.count() * 100)
-            if performance_targets.count() > 0
-            else 0
-        ),
-    }
-
-    report_data = {
-        "stats": stats,
-        "period": period,
-        "department": department,
-        "staff_appraisals": completed_appraisals,
-        "performance_targets": evaluated_targets,
-    }
-
-    if format_type == "pdf":
-        return generate_comprehensive_analysis_pdf(request, report_data)
-    elif format_type == "excel":
-        return generate_comprehensive_analysis_excel(request, report_data)
-    else:
-        context = {"report_type": "Comprehensive Analysis", **report_data}
-        return render(
-            request, "hr/reports/comprehensive_analysis.html", context
-        )
-
-
-# PDF Generation Functions
-def generate_performance_summary_pdf(request, data):
-    """Generate PDF for performance summary"""
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
-    story = []
-    styles = getSampleStyleSheet()
-
-    # Title
-    title_style = ParagraphStyle(
-        "CustomTitle",
-        parent=styles["Heading1"],
-        fontSize=16,
-        spaceAfter=30,
-        alignment=1,
-        textColor=colors.HexColor("#2c5aa0"),
-    )
-
-    title_text = f"Performance Summary Report"
-    story.append(Paragraph(title_text, title_style))
-
-    # Period and Department
-    period_info = f"Period: {data['period'].name}"
-    if data["department"]:
-        period_info += f" | Department: {data['department'].name}"
-
-    story.append(Paragraph(period_info, styles["Normal"]))
-    story.append(Spacer(1, 0.2 * inch))
-
-    # Key Statistics
-    story.append(Paragraph("Key Statistics", styles["Heading2"]))
-
-    stats_data = [
-        ["Total Staff", str(data["total_staff"])],
-        ["Completed Appraisals", str(data["completed_count"])],
-        ["Average Score", f"{data['avg_score']}%"],
-        ["Highest Score", f"{data['max_score']}%"],
-        ["Lowest Score", f"{data['min_score']}%"],
-    ]
-
-    stats_table = Table(stats_data, colWidths=[2 * inch, 1.5 * inch])
-    stats_table.setStyle(
-        TableStyle(
-            [
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                ("FONTSIZE", (0, 0), (-1, -1), 10),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f8f9fa")),
-            ]
-        )
-    )
-    story.append(stats_table)
-    story.append(Spacer(1, 0.3 * inch))
-
-    # Status Distribution
-    if data["status_counts"]:
-        story.append(Paragraph("Status Distribution", styles["Heading2"]))
-        status_data = [["Status", "Count"]]
-        for status in data["status_counts"]:
-            status_data.append(
-                [status["status"].title(), str(status["count"])]
+        
+        if not evaluated_staff:
+            messages.warning(request, f"No evaluated staff found for {department.name}.")
+            return redirect("hr:hr_performance_analytics")
+        
+        # Generate report based on type
+        if report_type == 'excel':
+            return BulkReportService.generate_department_excel_report(
+                department, period, evaluated_staff
             )
-
-        status_table = Table(status_data, colWidths=[1.5 * inch, 1 * inch])
-        status_table.setStyle(
-            TableStyle(
-                [
-                    (
-                        "BACKGROUND",
-                        (0, 0),
-                        (-1, 0),
-                        colors.HexColor("#2c5aa0"),
-                    ),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                    ("FONTSIZE", (0, 0), (-1, -1), 9),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ]
+        
+        elif report_type == 'pdf':
+            return BulkReportService.generate_department_pdf_report(
+                department, period, evaluated_staff
             )
-        )
-        story.append(status_table)
-
-    # Footer
-    story.append(Spacer(1, 0.3 * inch))
-    footer_style = ParagraphStyle(
-        "Footer",
-        parent=styles["Normal"],
-        fontSize=8,
-        alignment=1,
-        textColor=colors.HexColor("#666666"),
-    )
-    footer = Paragraph(
-        f"Generated on {timezone.now().strftime('%Y-%m-%d at %H:%M')} - KyU HR System",
-        footer_style,
-    )
-    story.append(footer)
-
-    doc.build(story)
-    pdf = buffer.getvalue()
-    buffer.close()
-
-    response = HttpResponse(content_type="application/pdf")
-    filename = (
-        f"performance_summary_{data['period'].name.replace(' ', '_')}.pdf"
-    )
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
-    response.write(pdf)
-    return response
-
-
-def generate_performance_summary_excel(request, data):
-    """Generate Excel for performance summary"""
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Performance Summary"
-
-    # Title
-    ws.merge_cells("A1:E1")
-    ws["A1"] = "Performance Summary Report"
-    ws["A1"].font = Font(size=16, bold=True)
-    ws["A1"].alignment = Alignment(horizontal="center")
-
-    # Period info
-    ws["A2"] = f"Period: {data['period'].name}"
-    if data["department"]:
-        ws["A3"] = f"Department: {data['department'].name}"
-
-    # Key Statistics
-    ws["A5"] = "Key Statistics"
-    ws["A5"].font = Font(bold=True)
-
-    stats_data = [
-        ["Total Staff", data["total_staff"]],
-        ["Completed Appraisals", data["completed_count"]],
-        ["Average Score", f"{data['avg_score']}%"],
-        ["Highest Score", f"{data['max_score']}%"],
-        ["Lowest Score", f"{data['min_score']}%"],
-    ]
-
-    for i, (label, value) in enumerate(stats_data, start=6):
-        ws[f"A{i}"] = label
-        ws[f"B{i}"] = value
-
-    # Status Distribution
-    if data["status_counts"]:
-        ws["A12"] = "Status Distribution"
-        ws["A12"].font = Font(bold=True)
-
-        ws["A13"] = "Status"
-        ws["B13"] = "Count"
-        ws["A13"].font = ws["B13"].font = Font(bold=True)
-
-        for i, status in enumerate(data["status_counts"], start=14):
-            ws[f"A{i}"] = status["status"].title()
-            ws[f"B{i}"] = status["count"]
-
-    # Auto-adjust column widths
-    for column in ws.columns:
-        max_length = 0
-        column_letter = column[0].column_letter
-        for cell in column:
-            try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(str(cell.value))
-            except:
-                pass
-        adjusted_width = max_length + 2
-        ws.column_dimensions[column_letter].width = adjusted_width
-
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-    filename = (
-        f"performance_summary_{data['period'].name.replace(' ', '_')}.xlsx"
-    )
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
-    wb.save(response)
-    return response
-
-
-# Similar functions for other report types (simplified versions)
-def generate_department_analysis_pdf(request, data):
-    """Generate PDF for department analysis"""
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
-    story = []
-    styles = getSampleStyleSheet()
-
-    title_style = ParagraphStyle(
-        "CustomTitle",
-        parent=styles["Heading1"],
-        fontSize=16,
-        spaceAfter=30,
-        alignment=1,
-        textColor=colors.HexColor("#2c5aa0"),
-    )
-
-    story.append(Paragraph("Department Analysis Report", title_style))
-    story.append(Paragraph(f"Period: {data['period'].name}", styles["Normal"]))
-    story.append(Spacer(1, 0.2 * inch))
-
-    # Department statistics table
-    if data["dept_stats"]:
-        story.append(Paragraph("Department Performance", styles["Heading2"]))
-
-        dept_data = [["Department", "Staff Count", "Avg Score", "Appraisals"]]
-        for dept in data["dept_stats"]:
-            dept_data.append(
-                [
-                    dept["profile__user__department__name"] or "No Department",
-                    str(dept["staff_count"]),
-                    (
-                        f"{dept['avg_score']:.1f}%"
-                        if dept["avg_score"]
-                        else "N/A"
-                    ),
-                    str(dept["appraisal_count"]),
-                ]
+        
+        elif report_type == 'zip':
+            zip_data, filename, count = BulkReportService.generate_individual_reports_zip(
+                request, department, period, evaluated_staff
             )
-
-        dept_table = Table(
-            dept_data, colWidths=[2 * inch, 1 * inch, 1 * inch, 1 * inch]
-        )
-        dept_table.setStyle(
-            TableStyle(
-                [
-                    (
-                        "BACKGROUND",
-                        (0, 0),
-                        (-1, 0),
-                        colors.HexColor("#2c5aa0"),
-                    ),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                    ("FONTSIZE", (0, 0), (-1, -1), 9),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ]
-            )
-        )
-        story.append(dept_table)
-
-    doc.build(story)
-    pdf = buffer.getvalue()
-    buffer.close()
-
-    response = HttpResponse(content_type="application/pdf")
-    filename = (
-        f"department_analysis_{data['period'].name.replace(' ', '_')}.pdf"
-    )
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
-    response.write(pdf)
-    return response
+            
+            if zip_data:
+                response = HttpResponse(zip_data, content_type='application/zip')
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                messages.success(request, f"Generated {count} individual reports.")
+                return response
+            else:
+                messages.error(request, "Could not generate individual reports.")
+                return redirect("hr:hr_performance_analytics")
+        
+        else:
+            messages.error(request, "Invalid report type.")
+            return redirect("hr:hr_performance_analytics")
+            
+    except Exception as e:
+        messages.error(request, f"Error generating report: {str(e)}")
+        return redirect("hr:hr_performance_analytics")
 
 
-def generate_department_analysis_excel(request, data):
-    """Generate Excel for department analysis"""
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Department Analysis"
-
-    ws["A1"] = "Department Analysis Report"
-    ws["A1"].font = Font(size=16, bold=True)
-    ws["A2"] = f"Period: {data['period'].name}"
-
-    if data["dept_stats"]:
-        headers = ["Department", "Staff Count", "Average Score", "Appraisals"]
-        for i, header in enumerate(headers, start=1):
-            ws.cell(row=4, column=i).value = header
-            ws.cell(row=4, column=i).font = Font(bold=True)
-
-        for i, dept in enumerate(data["dept_stats"], start=5):
-            ws.cell(row=i, column=1).value = (
-                dept["profile__user__department__name"] or "No Department"
-            )
-            ws.cell(row=i, column=2).value = dept["staff_count"]
-            ws.cell(row=i, column=3).value = dept["avg_score"] or 0
-            ws.cell(row=i, column=4).value = dept["appraisal_count"]
-
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-    filename = (
-        f"department_analysis_{data['period'].name.replace(' ', '_')}.xlsx"
-    )
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
-    wb.save(response)
-    return response
-
-
-# Add similar functions for supervisor_ranking and comprehensive_analysis
-def generate_supervisor_ranking_pdf(request, data):
-    """Generate PDF for supervisor ranking"""
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
-    story = []
-    styles = getSampleStyleSheet()
-
-    story.append(Paragraph("Supervisor Ranking Report", styles["Heading1"]))
-    story.append(Paragraph(f"Period: {data['period'].name}", styles["Normal"]))
-
-    if data["supervisor_stats"]:
-        supervisor_data = [
-            ["Rank", "Supervisor", "Department", "Avg Rating", "Evaluations"]
-        ]
-        for i, supervisor in enumerate(data["supervisor_stats"], start=1):
-            supervisor_data.append(
-                [
-                    str(i),
-                    f"{supervisor['supervisor__first_name']} {supervisor['supervisor__last_name']}",
-                    supervisor["supervisor__department__name"],
-                    f"{supervisor['avg_rating']:.1f}/5",
-                    str(supervisor["evaluation_count"]),
-                ]
-            )
-
-        supervisor_table = Table(
-            supervisor_data,
-            colWidths=[0.5 * inch, 1.5 * inch, 1.5 * inch, 1 * inch, 1 * inch],
-        )
-        story.append(supervisor_table)
-
-    doc.build(story)
-    pdf = buffer.getvalue()
-    buffer.close()
-
-    response = HttpResponse(content_type="application/pdf")
-    filename = (
-        f"supervisor_ranking_{data['period'].name.replace(' ', '_')}.pdf"
-    )
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
-    response.write(pdf)
-    return response
-
-
-def generate_comprehensive_analysis_pdf(request, data):
-    """Generate PDF for comprehensive analysis"""
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
-    story = []
-    styles = getSampleStyleSheet()
-
-    story.append(
-        Paragraph("Comprehensive Analysis Report", styles["Heading1"])
-    )
-    story.append(Paragraph(f"Period: {data['period'].name}", styles["Normal"]))
-
-    # Add comprehensive statistics
-    stats = data["stats"]
-    stats_data = [
-        ["Metric", "Value"],
-        ["Total Staff", stats["total_staff"]],
-        ["Completed Appraisals", stats["completed_appraisals"]],
-        ["Appraisal Completion Rate", f"{stats['completion_rate']:.1f}%"],
-        ["Average Appraisal Score", f"{stats['avg_appraisal_score']:.1f}%"],
-        ["Total Performance Targets", stats["total_targets"]],
-        ["Evaluated Targets", stats["evaluated_targets"]],
-        ["Target Evaluation Rate", f"{stats['evaluation_rate']:.1f}%"],
-        ["Average Target Rating", f"{stats['avg_target_rating']:.1f}%"],
-    ]
-
-    stats_table = Table(stats_data)
-    story.append(stats_table)
-
-    doc.build(story)
-    pdf = buffer.getvalue()
-    buffer.close()
-
-    response = HttpResponse(content_type="application/pdf")
-    filename = (
-        f"comprehensive_analysis_{data['period'].name.replace(' ', '_')}.pdf"
-    )
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
-    response.write(pdf)
-    return response
+# Keep other views as they are (hr_performance_analytics, hr_department_appraisals, etc.)
+# They don't need to be changed

@@ -577,20 +577,14 @@ def set_performance_targets(request):
         messages.error(request, f"An error occurred: {str(e)}")
         return role_based_redirect(request)
 
-
 @login_required
 def view_performance_targets(request):
     """View to display current performance targets with evaluation results for both staff and supervisors"""
     try:
-        print("=== DEBUG: Starting view_performance_targets ===")
-        print(f"DEBUG: User: {request.user.email}, Role: {request.user.role}")
-
         # Get current active period
         current_period = SPEPeriod.objects.filter(is_active=True).first()
-        print(f"DEBUG: Current period: {current_period}")
 
         if not current_period:
-            print("DEBUG: No active period found")
             messages.info(request, "No active evaluation period found.")
             return render(
                 request,
@@ -614,9 +608,6 @@ def view_performance_targets(request):
                 supervisor=request.user,  # Only this supervisor's targets
                 period=current_period,
             ).order_by("target_number")
-            print(
-                f"DEBUG: Using SupervisorPerformanceTarget model - Found {targets.count()} targets"
-            )
         else:
             # Use PerformanceTarget model for regular staff
             TargetModel = PerformanceTarget
@@ -624,19 +615,10 @@ def view_performance_targets(request):
                 staff=request.user,
                 period=current_period,  # Only this user's targets
             ).order_by("target_number")
-            print(
-                f"DEBUG: Using PerformanceTarget model - Found {targets.count()} targets"
-            )
-
-        # Debug each target
-        for target in targets:
-            print(
-                f"DEBUG: Target {target.target_number}: '{target.description[:30]}...' - Status: {target.status}"
-            )
 
         # Evaluation Results Data - HANDLE DIFFERENT FIELD NAMES
         evaluation_results = []
-        total_rating_score = 0  # Changed from total_score to be clear
+        total_rating_score = 0
         evaluated_count = 0
 
         for target in targets:
@@ -657,9 +639,7 @@ def view_performance_targets(request):
 
                 # Calculate score for evaluated targets
                 if target.performance_rating is not None:
-                    total_rating_score += (
-                        target.performance_rating
-                    )  # This is 1-5 scale
+                    total_rating_score += target.performance_rating
                     evaluated_count += 1
 
             else:
@@ -680,20 +660,14 @@ def view_performance_targets(request):
                     target_data["rating_scale"] = target.rating_scale
 
                 if hasattr(target, "performance_rating"):
-                    target_data["performance_rating"] = (
-                        target.performance_rating
-                    )
+                    target_data["performance_rating"] = target.performance_rating
                     # Calculate score for evaluated targets
                     if target.performance_rating is not None:
-                        total_rating_score += (
-                            target.performance_rating
-                        )  # This is 1-5 scale or percentage?
+                        total_rating_score += target.performance_rating
                         evaluated_count += 1
 
                 if hasattr(target, "supervisor_comments"):
-                    target_data["supervisor_comments"] = (
-                        target.supervisor_comments
-                    )
+                    target_data["supervisor_comments"] = target.supervisor_comments
 
                 if hasattr(target, "evaluated_at"):
                     target_data["evaluated_at"] = target.evaluated_at
@@ -703,25 +677,31 @@ def view_performance_targets(request):
 
             evaluation_results.append(target_data)
 
-        # ✅ FIXED: Calculate percentage scores correctly
+        # ✅ FIXED: Calculate percentage scores correctly - CHECK IF RATINGS ARE ALREADY PERCENTAGES
         if evaluated_count > 0:
-            # Calculate average rating (1-5 scale)
-            average_rating = total_rating_score / evaluated_count
-
-            # Convert to percentage: (rating / 5) * 100
-            average_score_percentage = (average_rating / 5) * 100
-
-            # Calculate total percentage score (for display)
-            total_percentage_score = (
-                total_rating_score / (evaluated_count * 5)
-            ) * 100
-
-            print(
-                f"DEBUG: Rating calculation - total_rating: {total_rating_score}, count: {evaluated_count}"
-            )
-            print(
-                f"DEBUG: Average rating: {average_rating}, Percentage: {average_score_percentage}%"
-            )
+            # Check if ratings are already percentages (look at first evaluated target)
+            sample_rating = None
+            for target in targets:
+                if target.performance_rating is not None:
+                    sample_rating = target.performance_rating
+                    break
+            
+            if sample_rating is not None:
+                if sample_rating > 5:
+                    # Ratings are already percentages (like 80.0, 75.0, etc.)
+                    # total_rating_score is sum of percentages
+                    average_score_percentage = total_rating_score / evaluated_count
+                    # Convert to 1-5 scale for rating description
+                    average_rating = (average_score_percentage / 100) * 5
+                else:
+                    # Ratings are 1-5 scale
+                    average_rating = total_rating_score / evaluated_count
+                    # Convert to percentage
+                    average_score_percentage = (average_rating / 5) * 100
+            else:
+                # No ratings found
+                average_rating = 0
+                average_score_percentage = 0
         else:
             average_rating = 0
             average_score_percentage = 0
@@ -736,14 +716,11 @@ def view_performance_targets(request):
                 if targets.count() > 0
                 else 0
             ),
-            "average_score": round(
-                average_score_percentage, 1
-            ),  # This is now correct percentage
-            "average_rating": round(
-                average_rating, 1
-            ),  # Keep the 1-5 scale average for reference
+            "average_score": round(average_score_percentage, 1),  # This is now correct percentage
+            "average_rating": round(average_rating, 1),  # Keep the 1-5 scale average for reference
+            # ✅ FIXED: Pass average_score_percentage (percentage) instead of average_rating (1-5 scale)
             "overall_rating": (
-                get_overall_rating_description(average_rating)
+                get_overall_rating_description(average_score_percentage)  # ✅ FIXED HERE
                 if evaluated_count > 0
                 else "Not Evaluated"
             ),
@@ -769,8 +746,7 @@ def view_performance_targets(request):
                 rejection_info = {
                     "target_number": target.target_number,
                     "description": target.description,
-                    "rejection_reason": target.rejection_reason
-                    or "No reason provided",
+                    "rejection_reason": target.rejection_reason or "No reason provided",
                     "rejected_by": (
                         target.rejected_by.get_full_name()
                         if target.rejected_by
@@ -788,8 +764,7 @@ def view_performance_targets(request):
                     ),
                     "rejected_by": (
                         target.rejected_by.get_full_name()
-                        if hasattr(target, "rejected_by")
-                        and target.rejected_by
+                        if hasattr(target, "rejected_by") and target.rejected_by
                         else "Supervisor"
                     ),
                     "rejected_at": getattr(target, "rejected_at", None),
@@ -846,23 +821,9 @@ def view_performance_targets(request):
             ),
         }
 
-        print(
-            f"DEBUG: Context prepared - is_supervisor: {is_supervisor}, targets: {targets.count()}"
-        )
-        print(
-            f"DEBUG: Evaluation stats - evaluated: {evaluated_count}, average: {evaluation_stats['average_score']}%"
-        )
-
         return render(request, "users/view_targets.html", context)
 
     except Exception as e:
-        print(f"=== DEBUG: ERROR CAUGHT ===")
-        print(f"Error type: {type(e).__name__}")
-        print(f"Error message: {str(e)}")
-        import traceback
-
-        print(f"Traceback: {traceback.format_exc()}")
-
         logger.error(
             f"Error in view_performance_targets: {str(e)}", exc_info=True
         )
@@ -875,16 +836,13 @@ def get_overall_rating_description(average_score):
     if average_score >= 90:
         return "Outstanding"
     elif average_score >= 80:
-        return "Excellent"
-    elif average_score >= 70:
-        return "Good"
-    elif average_score >= 60:
-        return "Satisfactory"
+        return "Exceeds Expectations"
     elif average_score >= 50:
-        return "Needs Improvement"
+        return "Meets Expectations"
+    elif average_score >= 30:
+        return "Below Expectations"
     else:
-        return "Unsatisfactory"
-
+        return "Far Below Expectations"
 
 @login_required
 def evaluate_staff_targets(request, staff_id=None):
@@ -915,7 +873,7 @@ def evaluate_staff_targets(request, staff_id=None):
             return redirect("dashboards:supervisor_dashboard")
 
         print(
-            f"DEBUG: Supervisor department: {supervisor_department.name} ({supervisor_department.staff_type})"
+            f"DEBUG: Supervisor department: {supervisor_department.name}"
         )
 
         # Get current active period
@@ -934,30 +892,28 @@ def evaluate_staff_targets(request, staff_id=None):
                 f"DEBUG: Staff department: {staff_profile.department.name} ({staff_user.role})"
             )
 
-            # ✅ PROPER AUTHORIZATION: Staff must be in supervisor's department with matching staff type
+            # ✅ UPDATED AUTHORIZATION: Staff must be in supervisor's department (NO staff type check)
             is_authorized = (
                 staff_profile.department
                 and staff_profile.department == supervisor_department
-                and staff_user.role
-                == supervisor_department.staff_type  # Staff role must match department type
+                # ✅ REMOVED: and staff_user.role == supervisor_department.staff_type
             )
 
             print(
                 f"DEBUG: Authorization - Same department: {staff_profile.department == supervisor_department}"
-            )
-            print(
-                f"DEBUG: Authorization - Role matches department: {staff_user.role == supervisor_department.staff_type}"
             )
             print(f"DEBUG: Is authorized: {is_authorized}")
 
             if not is_authorized:
                 messages.error(
                     request,
-                    f"You are not authorized to evaluate this staff member. {supervisor_department.get_staff_type_display()} supervisors can only evaluate {supervisor_department.get_staff_type_display()} staff from {supervisor_department.name}.",
+                    f"Access denied. You are a supervisor in {supervisor_department.name}. "
+                    f"You can only evaluate staff from your department. "
+                    f"This staff member is in {staff_profile.department.name if staff_profile.department else 'No Department'}.",
                 )
                 return redirect("users:evaluate_staff_targets")
 
-            # ✅ NEW: Check if staff has approved targets
+            # ✅ Check if staff has approved targets
             has_approved_targets = PerformanceTarget.objects.filter(
                 staff=staff_user, period=current_period, status="approved"
             ).exists()
@@ -1054,9 +1010,9 @@ def evaluate_staff_targets(request, staff_id=None):
 
                     return redirect("users:evaluate_staff_targets")
 
-            # ✅ FIXED: Use the correct reverse relationship name 'performance_targets'
+            # ✅ Get supervisees with approved targets (without staff type filtering)
             users_with_approved_targets = CustomUser.objects.filter(
-                performance_targets__period=current_period,  # ✅ CORRECT: 'performance_targets' not 'performancetarget'
+                performance_targets__period=current_period,
                 performance_targets__status="approved",
             ).values_list("id", flat=True)
 
@@ -1064,7 +1020,7 @@ def evaluate_staff_targets(request, staff_id=None):
             supervisees_profiles = (
                 StaffProfile.objects.filter(
                     department=supervisor_department,
-                    user__role=supervisor_department.staff_type,
+                    # ✅ REMOVED: user__role=supervisor_department.staff_type,
                     user_id__in=users_with_approved_targets,
                 )
                 .exclude(user=request.user)
@@ -1099,9 +1055,9 @@ def evaluate_staff_targets(request, staff_id=None):
         else:
             print("DEBUG: Evaluation dashboard mode")
 
-            # ✅ FIXED: Use the correct reverse relationship name 'performance_targets'
+            # ✅ Get supervisees with approved targets (without staff type filtering)
             users_with_approved_targets = CustomUser.objects.filter(
-                performance_targets__period=current_period,  # ✅ CORRECT: 'performance_targets' not 'performancetarget'
+                performance_targets__period=current_period,
                 performance_targets__status="approved",
             ).values_list("id", flat=True)
 
@@ -1109,7 +1065,7 @@ def evaluate_staff_targets(request, staff_id=None):
             supervisees_profiles = (
                 StaffProfile.objects.filter(
                     department=supervisor_department,
-                    user__role=supervisor_department.staff_type,
+                    # ✅ REMOVED: user__role=supervisor_department.staff_type,
                     user_id__in=users_with_approved_targets,
                 )
                 .exclude(user=request.user)
@@ -1222,8 +1178,7 @@ def evaluate_staff_targets(request, staff_id=None):
             f"An error occurred while processing your request: {str(e)}",
         )
         return redirect("dashboards:supervisor_dashboard")
-
-
+    
 @login_required
 def view_staff_targets(request):
     # Check if user is a supervisor using role field

@@ -27,121 +27,13 @@ class SPEIndicatorInline(admin.TabularInline):
 # ================================================
 # Main Admin Classes
 # ================================================
-
-
 @admin.register(SPEPeriod)
 class SPEPeriodAdmin(admin.ModelAdmin):
-    # ✅ UPDATED: Use forms_status instead of old fields
-    list_display = (
-        "name",
-        "start_date",
-        "end_date",
-        "is_active",
-        "current_phase",
-        "forms_status",
-        "workflow_status",
-    )
+    list_display = ("name", "start_date", "end_date", "is_active", "forms_status", "current_phase")
     list_editable = ("is_active", "forms_status")
-    list_filter = ("is_active", "current_phase", "forms_status")
+    list_filter = ("is_active", "forms_status")
     search_fields = ("name",)
-    actions = [
-        "make_forms_ready",
-        "set_forms_draft",
-        "close_forms",
-        "set_target_submission_phase",
-        "set_evaluation_phase",
-    ]
-
-    fieldsets = (
-        (
-            "Basic Information",
-            {
-                "fields": (
-                    "name",
-                    "start_date",
-                    "end_date",
-                    "is_active",
-                    "is_locked",
-                )
-            },
-        ),
-        ("Workflow Control", {"fields": ("current_phase", "forms_status")}),
-        (
-            "Phase Timing (Optional)",
-            {
-                "fields": (
-                    "target_submission_start",
-                    "target_submission_end",
-                    "evaluation_start",
-                    "evaluation_end",
-                ),
-                "classes": ("collapse",),
-            },
-        ),
-    )
-
-    def workflow_status(self, obj):
-        """Display workflow status with colored badges"""
-        if obj.forms_status == "ready":
-            return format_html(
-                '<span style="color: green;">● Ready for Staff</span>'
-            )
-        elif obj.forms_status == "draft":
-            return format_html(
-                '<span style="color: orange;">● Draft - Supervisors Working</span>'
-            )
-        else:
-            return format_html('<span style="color: red;">● Closed</span>')
-
-    workflow_status.short_description = "Workflow Status"
-
-    def save_model(self, request, obj, form, change):
-        if obj.is_active:
-            SPEPeriod.objects.exclude(pk=obj.pk).update(is_active=False)
-        super().save_model(request, obj, form, change)
-
-    # ✅ UPDATED ACTIONS for forms_status
-    def make_forms_ready(self, request, queryset):
-        updated = queryset.update(forms_status="ready")
-        self.message_user(
-            request, f"Set {updated} period(s) to 'Ready for Staff'."
-        )
-
-    make_forms_ready.short_description = "Make forms ready for staff"
-
-    def set_forms_draft(self, request, queryset):
-        updated = queryset.update(forms_status="draft")
-        self.message_user(request, f"Set {updated} period(s) to 'Draft'.")
-
-    set_forms_draft.short_description = "Set forms to draft"
-
-    def close_forms(self, request, queryset):
-        updated = queryset.update(forms_status="closed")
-        self.message_user(request, f"Closed {updated} period(s).")
-
-    close_forms.short_description = "Close forms"
-
-    def set_target_submission_phase(self, request, queryset):
-        updated = queryset.update(
-            current_phase=SPEPeriod.TARGET_SUBMISSION_PHASE
-        )
-        self.message_user(
-            request, f"Set {updated} period(s) to Target Submission phase."
-        )
-
-    set_target_submission_phase.short_description = (
-        "Set to Target Submission phase"
-    )
-
-    def set_evaluation_phase(self, request, queryset):
-        updated = queryset.update(current_phase=SPEPeriod.EVALUATION_PHASE)
-        self.message_user(
-            request, f"Set {updated} period(s) to Evaluation phase."
-        )
-
-    set_evaluation_phase.short_description = "Set to Evaluation phase"
-
-
+    
 @admin.register(SPEAttribute)
 class SPEAttributeAdmin(admin.ModelAdmin):
     list_display = ("name", "period", "department", "staff_type")

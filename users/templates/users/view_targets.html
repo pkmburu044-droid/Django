@@ -114,6 +114,7 @@
                         <div class="col-md-3">
                             <div class="card text-center border-0 bg-light">
                                 <div class="card-body">
+                                    <!-- FIXED: Ensure completion_rate is formatted properly -->
                                     <h3 class="text-warning">{{ evaluation_stats.completion_rate|floatformat:0 }}%</h3>
                                     <p class="mb-0">Completion</p>
                                 </div>
@@ -122,7 +123,8 @@
                         <div class="col-md-3">
                             <div class="card text-center border-0 bg-light">
                                 <div class="card-body">
-                                    <h3 class="text-info">{{ evaluation_stats.average_score }}%</h3>
+                                    <!-- FIXED: Format average_score properly -->
+                                    <h3 class="text-info">{{ evaluation_stats.average_score|floatformat:0 }}%</h3>
                                     <p class="mb-0">Average Score</p>
                                     <small class="text-muted">{{ evaluation_stats.overall_rating }}</small>
                                 </div>
@@ -174,9 +176,8 @@
                                     </td>
                                     <td>
                                         {% if result.performance_rating %}
-                                            <!-- FIXED: Convert rating (1-5) to percentage -->
-                                            {% widthratio result.performance_rating 5 100 as percentage %}
-                                            <strong>{{ percentage }}%</strong>
+                                            <!-- FIXED: Show performance_rating directly (it's already a percentage) -->
+                                            <strong>{{ result.performance_rating|floatformat:0 }}%</strong>
                                         {% else %}
                                             <span class="text-muted">-</span>
                                         {% endif %}
@@ -335,9 +336,8 @@
                                         <div class="col-md-6">
                                             <strong>Score:</strong> 
                                             {% if target.performance_rating %}
-                                                <!-- FIXED: Convert rating (1-5) to percentage -->
-                                                {% widthratio target.performance_rating 5 100 as percentage %}
-                                                <span class="fw-bold text-success">{{ percentage }}%</span>
+                                                <!-- FIXED: Show performance_rating directly (it's already a percentage) -->
+                                                <span class="fw-bold text-success">{{ target.performance_rating|floatformat:0 }}%</span>
                                             {% else %}
                                                 <span class="text-muted">-</span>
                                             {% endif %}
